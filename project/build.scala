@@ -7,7 +7,7 @@ object General {
   val settings = Defaults.defaultSettings ++ Seq (
     name := "Ballero",
     version := "0.1",
-    scalaVersion := "2.9.0-1",
+    scalaVersion := "2.8.1",
     platformName in Android := "android-8"
   )
 
@@ -17,7 +17,7 @@ object General {
     TypedResources.settings ++
     AndroidMarketPublish.settings ++ Seq (
       keyalias in Android := "change-me",
-      libraryDependencies += "org.scalatest" %% "scalatest" % "1.6.1" % "test"
+      libraryDependencies += "org.scalatest" %% "scalatest" % "1.5.1" % "test"
     )
 }
 

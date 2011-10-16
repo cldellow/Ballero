@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Ballero</string>
+    <string name="app_credits">A knitter</string>
+    <string name="app_descrip">A knitting app</string>
+    <string name="find_lys">Find a local yarn store</string>
 </resources>

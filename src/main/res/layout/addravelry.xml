@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<greendroid.widget.ActionBarHost
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@id/gd_action_bar_host"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:orientation="vertical">
+
+  <greendroid.widget.ActionBar
+    android:id="@id/gd_action_bar"
+    android:layout_height="@dimen/gd_action_bar_height"
+    android:layout_width="fill_parent"
+    android:background="?attr/gdActionBarBackground" />
+
+    <FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+      android:id="@id/gd_action_bar_content_view"
+      android:layout_height="fill_parent"
+      android:layout_width="fill_parent"
+      android:layout_weight="1">
+
+        <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+            <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:id="@+id/textView2" android:layout_width="wrap_content" android:text="@string/username"></TextView>
+            <EditText android:layout_height="wrap_content" android:layout_width="match_parent" android:id="@+id/txtUsername" android:inputType="textEmailAddress"></EditText>
+            <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:id="@+id/textView3" android:layout_width="wrap_content" android:text="@string/password"></TextView>
+            <EditText android:layout_height="wrap_content" android:layout_width="match_parent" android:id="@+id/txtPassword" android:inputType="textPassword"></EditText>
+            <Button android:textAppearance="?android:attr/textAppearanceLarge" android:id="@+id/btnLogin" android:layout_height="wrap_content" android:text="@string/login" android:layout_width="match_parent" android:layout_marginTop="20dp" android:onClick="loginClick"></Button>
+            <ProgressBar android:layout_gravity="center" android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="invisible"></ProgressBar>
+        </LinearLayout>
+      </FrameLayout>
+
+
+ 
+</greendroid.widget.ActionBarHost>

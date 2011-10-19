@@ -1,0 +1,9 @@
+
+.class
+target/
+*.swo
+*.swp
+src/main/gen/
+src/main/bin/
+project/boot/
+dir.list

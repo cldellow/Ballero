@@ -2,5 +2,9 @@
     <string name="app_name">Ballero</string>
     <string name="app_credits">A knitter</string>
     <string name="app_descrip">A knitting app</string>
-    <string name="find_lys">Find a local yarn store</string>
+    <string name="find_lys">find a local yarn store</string>
+    <string name="add_ravelry_account">link a ravelry account</string>
+    <string name="username">username:</string>
+    <string name="password">password:</string>
+    <string name="login">login</string>
 </resources>

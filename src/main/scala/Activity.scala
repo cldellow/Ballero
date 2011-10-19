@@ -2,24 +2,53 @@ package cldellow.ballero
 
 import scala.collection.JavaConversions._
 import android.app.Activity
-import android.content.Context
+import android.content._
 import android.location._
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.TextView
+import android.widget._
+import greendroid.app._
+import greendroid.widget._
+import greendroid.widget.item._
 
-class MainActivity extends Activity {
+class MainActivity extends GDListActivity {
   val TAG = "MainActivity"
+
+  def createTextItem(stringId: Int, klass: Class[_]): TextItem = {
+    val textItem: TextItem = new TextItem(getString(stringId))
+    textItem.setTag(klass)
+    textItem
+  }
+
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.main)
+
+    val adapter = new ItemAdapter(this)
+    adapter.add(createTextItem(R.string.find_lys, classOf[FindLysActivity]));
+    adapter.add(createTextItem(R.string.add_ravelry_account, classOf[AddRavelryAccountActivity]));
     /*
-    setContentView(new TextView(this) {
-      setText("hello, world")
-    })
-    */
+    adapter.add(createTextItem(R.string.tweaked_item_view_label, TweakedItemViewActivity.class));
+    adapter.add(createTextItem(R.string.segmented_label, SegmentedActivity.class));
+    adapter.add(createTextItem(R.string.action_bar_activity_label, ActionBarActivity.class));
+    adapter.add(createTextItem(R.string.quick_action_label, QuickActionActivity.class));
+    adapter.add(createTextItem(R.string.simple_async_image_view_label, SimpleAsyncImageViewActivity.class));
+    adapter.add(createTextItem(R.string.async_image_view_list_view_label, AsyncImageViewListActivity.class));
+    adapter.add(createTextItem(R.string.map_pin_drawable_label, MapPinMapActivity.class));
+    adapter.add(createTextItem(R.string.paged_view_label, PagedViewActivity.class));
+*/
+
+    setListAdapter(adapter);
   }
+
+  override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
+    val textItem: TextItem = l.getAdapter().getItem(position).asInstanceOf[TextItem]
+
+    val intent: Intent = new Intent(this, textItem.getTag.asInstanceOf[Class[_]])
+    intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, textItem.text);
+    startActivity(intent)
+  }
+
 
   def findLysClick(view: View) {
     setContentView(R.layout.findlys)

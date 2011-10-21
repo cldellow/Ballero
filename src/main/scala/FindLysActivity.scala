@@ -11,7 +11,7 @@ import android.widget.TextView
 import greendroid.app._
 import greendroid.widget._
 
-class FindLysActivity extends GDListActivity {
+class FindLysActivity extends GDListActivity with SmartActivity {
   val TAG = "FindLysActivity"
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)

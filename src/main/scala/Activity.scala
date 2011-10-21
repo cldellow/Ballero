@@ -12,7 +12,7 @@ import greendroid.app._
 import greendroid.widget._
 import greendroid.widget.item._
 
-class MainActivity extends GDListActivity {
+class MainActivity extends GDListActivity with SmartActivity {
   val TAG = "MainActivity"
 
   def createTextItem(stringId: Int, klass: Class[_]): TextItem = {

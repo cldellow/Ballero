@@ -11,7 +11,7 @@ import android.widget._
 import greendroid.app._
 import greendroid.widget._
 
-class AddRavelryAccountActivity extends GDActivity {
+class AddRavelryAccountActivity extends GDActivity with SmartActivity {
   val TAG = "AddRavelryAccountActivity"
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
@@ -21,11 +21,37 @@ class AddRavelryAccountActivity extends GDActivity {
       return R.layout.addravelry
   }
 
+  lazy val btnLogin = findButton(R.id.btnLogin)
+  lazy val txtPassword = findTextView(R.id.txtPassword)
+  lazy val txtUsername = findTextView(R.id.txtUsername)
+  lazy val progressBar = findProgressBar(R.id.progressBar)
+  lazy val controls = List(btnLogin, txtPassword, txtUsername, progressBar)
+
+  def disableControls {
+    progressBar.setVisibility(View.VISIBLE)
+    controls.foreach { _.setEnabled(false) }
+    btnLogin.setText("verifying...")
+  }
+
+  def enableControls {
+    progressBar.setVisibility(View.INVISIBLE)
+    controls.foreach { _.setEnabled(true) }
+    btnLogin.setText("login")
+  }
+
+
   def loginClick(v: View) {
-     val progressBar = findViewById(R.id.progressBar).asInstanceOf[ProgressBar]
-     progressBar.setVisibility(View.VISIBLE)
+    if(txtUsername.getText.length == 0) {
+      toast("Please enter your username.")
+      return
+    }
 
+    if(txtPassword.getText.length == 0) {
+      toast("Please enter your password.")
+      return
+    }
 
+    disableControls
   }
 
 }

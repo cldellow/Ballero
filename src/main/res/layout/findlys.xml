@@ -1,15 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<greendroid.widget.ActionBarHost
   xmlns:android="http://schemas.android.com/apk/res/android"
-  android:orientation="vertical"
-  android:layout_width="match_parent"
+  android:id="@id/gd_action_bar_host"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:orientation="vertical">
+
+  <greendroid.widget.ActionBar
+    android:id="@id/gd_action_bar"
+    android:layout_height="@dimen/gd_action_bar_height"
+    android:layout_width="fill_parent"
+    android:background="?attr/gdActionBarBackground" />
+
+    <FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+      android:id="@id/gd_action_bar_content_view"
+      android:layout_height="fill_parent"
+      android:layout_width="fill_parent"
+      android:layout_weight="1">
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical" android:layout_width="match_parent"
   android:layout_height="match_parent" android:weightSum="1">
-    <ScrollView android:id="@+id/scrollView1" android:layout_width="match_parent" android:layout_height="wrap_content">
-        <LinearLayout android:id="@+id/linearLayout1" android:layout_width="match_parent" android:layout_height="match_parent">
-        <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:id="@+id/textView1" android:text="what's new" android:layout_width="wrap_content"></TextView>
-        <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:id="@+id/textView1" android:text="find lys" android:layout_width="wrap_content"></TextView>
-        </LinearLayout>
-    </ScrollView>
+  <ScrollView android:id="@+id/scrollView1"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+    <LinearLayout android:id="@+id/linearLayout1"
+      android:layout_width="match_parent" android:layout_height="match_parent">
+      <TextView android:id="@+id/txtSearchingLocation"
+        android:layout_width="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_height="wrap_content" android:text="hang on, detecting location..."></TextView>
+    </LinearLayout>
+  </ScrollView>
+  <ProgressBar android:id="@+id/progressBar"
+    android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:layout_gravity="center" android:layout_marginTop="20dp"></ProgressBar>
+  <Button android:text="try again" android:id="@+id/btnTryAgain"
+    android:visibility="gone"
+      android:layout_gravity="center|center_horizontal"
+    android:textAppearance="?android:attr/textAppearanceLarge"
+    android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
+  <TextView android:text="can't wait?" android:id="@+id/txtCantWait"
+    android:layout_width="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"
+    android:layout_height="wrap_content" android:layout_marginTop="20dp"></TextView>
+  <EditText android:id="@+id/txtCityName" android:layout_width="match_parent"
+    android:layout_height="wrap_content" android:text="enter city here"
+    android:textColor="#808080">
+    <requestFocus></requestFocus>
+  </EditText>
+  <Button android:textAppearance="?android:attr/textAppearanceLarge"
+    android:layout_width="fill_parent" android:id="@+id/btnFindCity"
+    android:text="find city" android:layout_height="wrap_content"></Button>
+  <TextView android:text="found: Waterloo, ON" android:id="@+id/txtFound"
+      android:layout_marginTop="20dp"
+      android:visibility="gone"
+    android:layout_width="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"
+    android:layout_height="wrap_content"></TextView>
+  <Button android:layout_width="wrap_content" android:id="@+id/btnFindStores"
+    android:textAppearance="?android:attr/textAppearanceLarge"
+    android:visibility="gone"
     
-    
+    android:text="find stores" android:layout_height="wrap_content"
+    android:layout_gravity="center|center_horizontal"></Button>
+
+
 </LinearLayout>
+
+
+      </FrameLayout>
+
+
+ 
+</greendroid.widget.ActionBarHost>

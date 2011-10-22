@@ -1,6 +1,7 @@
 package cldellow.ballero.ui
 
 import cldellow.ballero.R
+import cldellow.ballero.service._
 
 import scala.collection.JavaConversions._
 import android.app.Activity
@@ -23,22 +24,23 @@ class MainActivity extends GDListActivity with SmartActivity {
     textItem
   }
 
+  override def onRestServiceReady {
+    val x = restServiceConnection
+    /*
+    x._boundService.request(
+      RestRequest("http://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&sensor=true")) { response =>
+      toast("got response with code: %s".format(response.status))
+    }
+    */
+  }
+
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
 
     val adapter = new ItemAdapter(this)
     adapter.add(createTextItem(R.string.find_lys, classOf[FindLysActivity]));
     adapter.add(createTextItem(R.string.add_ravelry_account, classOf[AddRavelryAccountActivity]));
-    /*
-    adapter.add(createTextItem(R.string.tweaked_item_view_label, TweakedItemViewActivity.class));
-    adapter.add(createTextItem(R.string.segmented_label, SegmentedActivity.class));
-    adapter.add(createTextItem(R.string.action_bar_activity_label, ActionBarActivity.class));
-    adapter.add(createTextItem(R.string.quick_action_label, QuickActionActivity.class));
-    adapter.add(createTextItem(R.string.simple_async_image_view_label, SimpleAsyncImageViewActivity.class));
-    adapter.add(createTextItem(R.string.async_image_view_list_view_label, AsyncImageViewListActivity.class));
-    adapter.add(createTextItem(R.string.map_pin_drawable_label, MapPinMapActivity.class));
-    adapter.add(createTextItem(R.string.paged_view_label, PagedViewActivity.class));
-*/
+    val x = restServiceConnection
 
     setListAdapter(adapter);
   }

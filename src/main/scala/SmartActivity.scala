@@ -9,6 +9,7 @@ trait SmartActivity { this: Activity =>
     findViewById(i).asInstanceOf[T]
 
   def findView(i: Int): View = find(i)
+  def findLabel(i: Int): TextView = find(i)
   def findTextView(i: Int): TextView = find(i)
   def findProgressBar(i: Int): ProgressBar = find(i)
   def findButton(i: Int): Button = find(i)

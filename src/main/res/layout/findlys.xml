@@ -26,7 +26,7 @@
     android:layout_width="match_parent" android:layout_height="wrap_content">
     <LinearLayout android:id="@+id/linearLayout1"
       android:layout_width="match_parent" android:layout_height="match_parent">
-      <TextView android:id="@+id/txtSearchingLocation"
+      <TextView android:id="@+id/lblSearchingLocation"
         android:layout_width="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_height="wrap_content" android:text="hang on, detecting location..."></TextView>
     </LinearLayout>
@@ -50,7 +50,7 @@
   <Button android:textAppearance="?android:attr/textAppearanceLarge"
     android:layout_width="fill_parent" android:id="@+id/btnFindCity"
     android:text="find city" android:layout_height="wrap_content"></Button>
-  <TextView android:text="found: Waterloo, ON" android:id="@+id/txtFound"
+  <TextView android:text="found: Waterloo, ON" android:id="@+id/lblFound"
       android:layout_marginTop="20dp"
       android:visibility="gone"
     android:layout_width="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"

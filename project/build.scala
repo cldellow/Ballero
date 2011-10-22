@@ -17,7 +17,9 @@ object General {
     TypedResources.settings ++
     AndroidMarketPublish.settings ++ Seq (
       keyalias in Android := "change-me",
-      libraryDependencies += "org.scalatest" %% "scalatest" % "1.5.1" % "test"
+      resolvers ++= Seq("Coda Hales Repository" at "http://repo.codahale.com"),
+      libraryDependencies ++= Seq("org.scalatest" %% "scalatest" % "1.5.1" % "test",
+        "com.codahale" % "jerkson_2.8.2" % "0.5.0")
     )
 }
 

@@ -1,14 +1,17 @@
 package cldellow.ballero.ui
 
-import cldellow.ballero.service.RestService
+import cldellow.ballero.service._
 import cldellow.ballero.R
 
+import org.json.JSONObject
 import android.app.Activity
 import android.content._
+import android.location._
 import android.os._
 import android.util.Log
 import android.view.View
 import android.widget._
+import java.util.Locale
 
 trait SmartActivity extends Activity {// this: Activity =>
   def TAG: String
@@ -29,13 +32,10 @@ trait SmartActivity extends Activity {// this: Activity =>
   protected def warn(s: String) { Log.w(TAG, s) }
   protected def error(s: String) { Log.e(TAG, s) }
 
-  def onRestServiceReady() {
-  }
-
   private var boundRestServiceConnection = false
   lazy val restServiceConnection = {
     Log.i(TAG, "restServiceConnection accessed; binding")
-    val x = new RestServiceConnection(this.onRestServiceReady)
+    val x = new RestServiceConnection()
     val result = bindService(new Intent(this, classOf[RestService]), x, Context.BIND_AUTO_CREATE)
     Log.i(TAG, "result of bind = %s".format(result))
     boundRestServiceConnection = true
@@ -48,6 +48,30 @@ trait SmartActivity extends Activity {// this: Activity =>
       unbindService(restServiceConnection)
     }
   }
+
+  protected def geocode(loc: Location)(callback: Address => Unit) {
+    //geocode(Right(loc))(callback)
+    restServiceConnection.request(
+      RestRequest("http://maps.googleapis.com/maps/api/geocode/json?latlng=%s,%s&sensor=true".format(loc.getLatitude,
+      loc.getLongitude))) { restResponse =>
+
+      info("got response: %s".format(restResponse))
+      val address = new Address(Locale.getDefault)
+
+      val response = new JSONObject(restResponse.body)
+      info("parsed: %s".format(response))
+
+      callback(address)
+    }
+  }
+
+  /*
+  protected def geocode(loc: Location)(callback: Address => Unit) { geocode(Right(loc))(callback) }
+  protected def geocode(loc: String)(callback: Address => Unit) { geocode(Left(loc))(callback) }
+  protected def geocode(loc: Either[String, Location])(callback: Address => Unit) {
+    new GeocoderRequestTask(callback)(this).execute(loc)
+  }
+  */
 }
 
 

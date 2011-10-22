@@ -3,16 +3,36 @@ package cldellow.ballero.ui
 import android.content._
 import android.os._
 import android.util.Log
-import cldellow.ballero.service.RestService
+import cldellow.ballero.service._
 
-class RestServiceConnection(f: => Unit) extends ServiceConnection {
+class RestServiceConnection() extends ServiceConnection {
   val TAG = "RestServiceConnection"
 
   private var _boundService: RestService#LocalBinder = null
-  def boundService = _boundService
+
+  private var _stack: List[(RestRequest, RestResponse => Unit)] = Nil
+
+  /** If the request came in on activity load, we may not have a functioninty rest service connection, so queue up the
+   * request.
+   *
+   * Long term, may want to enforce a max # of outstanding requests anyway.
+   */
+  def request(restRequest: RestRequest)(callback: RestResponse => Unit) {
+    if(_boundService != null)
+      _boundService.request(restRequest)(callback)
+    else {
+      _stack = (restRequest, callback) :: _stack
+    }
+  }
+
   def onServiceConnected(className: ComponentName, service: IBinder) {
     Log.i(TAG, "onServiceConnected")
     _boundService = service.asInstanceOf[RestService#LocalBinder]
+
+    // flush the queue
+    val oldQueue = _stack
+    _stack = Nil
+    oldQueue.foreach { x => request(x._1)(x._2) }
   }
 
   def onServiceDisconnected(className: ComponentName) {

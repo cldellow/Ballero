@@ -16,6 +16,10 @@ class FindLysActivity extends GDActivity with SmartActivity {
   val TAG = "FindLysActivity"
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
+  }
+
+  override def onResume() {
+    super.onResume()
     hunt()
   }
 
@@ -55,6 +59,14 @@ class FindLysActivity extends GDActivity with SmartActivity {
       val latid = loc.getLatitude()
       val longid = loc.getLongitude()
       Log.e(TAG, "lat: %s, long: %s".format(latid, longid))
+
+      // Ask the Geocoder where that is, show the spinner and set text to smth
+      // appropriate
+      progressBar.setVisibility(View.VISIBLE)
+      lblSearchingLocation.setText("resolving your address")
+      geocode(loc) { response =>
+        toast("got a response %s".format(response.toString))
+      }
   }
 
   private class MyLocationListener extends LocationListener {

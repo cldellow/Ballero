@@ -24,24 +24,12 @@ class MainActivity extends GDListActivity with SmartActivity {
     textItem
   }
 
-  override def onRestServiceReady {
-    val x = restServiceConnection
-    /*
-    x._boundService.request(
-      RestRequest("http://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&sensor=true")) { response =>
-      toast("got response with code: %s".format(response.status))
-    }
-    */
-  }
-
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
 
     val adapter = new ItemAdapter(this)
     adapter.add(createTextItem(R.string.find_lys, classOf[FindLysActivity]));
     adapter.add(createTextItem(R.string.add_ravelry_account, classOf[AddRavelryAccountActivity]));
-    val x = restServiceConnection
-
     setListAdapter(adapter);
   }
 
@@ -52,7 +40,6 @@ class MainActivity extends GDListActivity with SmartActivity {
     intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, textItem.text);
     startActivity(intent)
   }
-
 
   def findLysClick(view: View) {
     setContentView(R.layout.findlys)

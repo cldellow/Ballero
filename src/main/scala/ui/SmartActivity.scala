@@ -1,4 +1,6 @@
-package cldellow.ballero
+package cldellow.ballero.ui
+
+import cldellow.ballero.R
 
 import android.app.Activity
 import android.view.View

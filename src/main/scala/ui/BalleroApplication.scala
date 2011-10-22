@@ -1,4 +1,4 @@
-package cldellow.ballero
+package cldellow.ballero.ui
 
 import android.content.Intent
 import android.net.Uri

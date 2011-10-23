@@ -47,6 +47,7 @@ trait SmartActivity extends Activity {// this: Activity =>
   override def onStop() {
     super.onStop()
     if(boundRestServiceConnection) {
+      boundRestServiceConnection = false
       unbindService(restServiceConnection)
     }
   }

@@ -1,4 +1,5 @@
-
+*.keystore
+p_strings.xml
 .class
 target/
 *.swo

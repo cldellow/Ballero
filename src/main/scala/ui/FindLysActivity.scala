@@ -19,6 +19,7 @@ class FindLysActivity extends GDActivity with SmartActivity {
     super.onCreate(savedInstanceState)
   }
 
+  val klazz = classOf[LysStoresMapActivity]
   override def onResume() {
     super.onResume()
     hunt()

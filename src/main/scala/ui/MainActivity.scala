@@ -21,8 +21,10 @@ case class Foo(foo: String, bar: List[String])
 class MainActivity extends GDListActivity with SmartActivity {
   val TAG = "MainActivity"
 
-  def createTextItem(stringId: Int, klass: Class[_]): TextItem = {
-    val textItem: TextItem = new TextItem(getString(stringId))
+  def createTextItem(stringId: Int, klass: Class[_]): TextItem = createTextItem(getString(stringId), klass)
+
+  def createTextItem(string: String, klass: Class[_]): TextItem = {
+    val textItem = new TextItem(string)
     textItem.setTag(klass)
     textItem
   }
@@ -31,8 +33,16 @@ class MainActivity extends GDListActivity with SmartActivity {
     super.onCreate(savedInstanceState)
 
     val adapter = new ItemAdapter(this)
+
     adapter.add(createTextItem(R.string.find_lys, classOf[FindLysActivity]));
+
+    Data.users.sortBy { _.name }.foreach { user => 
+      adapter.add(createTextItem(user.name, classOf[FindLysActivity]))
+    }
+
     adapter.add(createTextItem(R.string.add_ravelry_account, classOf[AddRavelryAccountActivity]));
+
+    Data.users.foreach { user => info("got user: %s".format(user)) }
     setListAdapter(adapter);
 
   }
@@ -42,6 +52,7 @@ class MainActivity extends GDListActivity with SmartActivity {
 
     val intent: Intent = new Intent(this, textItem.getTag.asInstanceOf[Class[_]])
     intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, textItem.text);
+    intent.putExtra(UiConstants.ExtraText, textItem.text);
     startActivity(intent)
   }
 

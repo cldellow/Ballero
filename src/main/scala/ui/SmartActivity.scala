@@ -52,6 +52,7 @@ trait SmartActivity extends Activity {// this: Activity =>
     }
   }
 
+  implicit def implicitContext: Context = this
   protected def geocode(loc: Location)(callback: Option[Address] => Unit) {
     restServiceConnection.request(
       RestRequest("http://maps.googleapis.com/maps/api/geocode/json?latlng=%s,%s&sensor=true".format(loc.getLatitude,

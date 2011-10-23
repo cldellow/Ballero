@@ -1,6 +1,7 @@
 package cldellow.ballero.data
 
 import java.lang.reflect._
+import scala.collection.JavaConversions
 import android.util.Log
 import org.json.{JSONArray, JSONObject}
 
@@ -72,6 +73,7 @@ object Parser {
     case desiredType: Class[_] =>
       desiredType.getName match {
         case "int" => jsonObject.getInt(name)
+        case "boolean" => jsonObject.getBoolean(name)
         case "java.lang.String" => jsonObject.getString(name)
         case "scala.math.BigDecimal" => BigDecimal(jsonObject.getDouble(name))
         case x if instanceOf(desiredType, classOf[Product]) =>
@@ -130,7 +132,7 @@ object Parser {
     val values: Map[String, Any] = Map() ++ fields.flatMap { field =>
       val name = field.getName
       if(jsonObject has name) {
-        val desiredType = field.getGenericType// :: higherKinds
+        val desiredType = field.getGenericType
         List(name -> parseTypeFromObject(jsonObject, name, desiredType))
       } else if(defaultValues contains name) {
         // get the default value
@@ -166,6 +168,71 @@ object Parser {
     val x = constructor.newInstance(javaObjects:_*)
     x.asInstanceOf[T]
   }
+
+  def serialize[T <: Product](item: T)(implicit mf: Manifest[T]): String = serialize(item, mf.erasure).toString
+
+  private def toSerializedForm(_type: Type, value: Any): Any = _type match {
+    case desiredType: Class[_] =>
+      desiredType.getName match {
+        case "int" => value.asInstanceOf[Int]
+        case "boolean" => value.asInstanceOf[Boolean]
+        case "java.lang.String" => value.asInstanceOf[String]
+        case "scala.math.BigDecimal" => value.asInstanceOf[BigDecimal].toDouble
+        case x if instanceOf(desiredType, classOf[Product]) =>
+          serialize(value.asInstanceOf[Product], desiredType)
+        case x => error("unknown")
+      }
+    case x => error("unknown")
+  }
+
+  private def serializeTypeToObject(item: Any, field: Field, _type: Type, jsonObject: JSONObject) {
+    // see http://stackoverflow.com/questions/6756442/scala-class-declared-fields-and-access-modifiers
+    field.setAccessible(true)
+    val name = field.getName
+    _type match {
+      case desiredType: Class[_] =>
+        jsonObject.put(name, toSerializedForm(_type, field.get(item)))
+      case desiredType: ParameterizedType =>
+        // OK, desiredType.getActualTypeArguments gives Class... now, how do we know
+        // what the outer one is?
+        require(desiredType.getRawType.isInstanceOf[Class[_]], "rawType is not an instance of Class[T]")
+        require(desiredType.getActualTypeArguments.forall { arg => arg.isInstanceOf[Class[_]] },
+          "one of the actualTypeArguments is not an instance of Class[T]")
+        val rawType = desiredType.getRawType.asInstanceOf[Class[_]]
+        val actualTypes = desiredType.getActualTypeArguments.collect { case x: Class[_] => x }
+        rawType.getName match {
+          case "scala.collection.immutable.List" =>
+            val listValue = field.get(item)
+            jsonObject.put(name,
+              JavaConversions.asJavaCollection(listValue.asInstanceOf[List[_]].map { item => 
+                toSerializedForm(actualTypes.head, item) }))
+            //val array = jsonObject.getJSONArray(name)
+            // Thanks for special casing everything, jerkwads.
+            //parseArray(array, actualTypes.head)
+          case "scala.Option" =>
+            val optionalValue = field.get(item)
+            if(optionalValue != None) {
+              val realValue = optionalValue.asInstanceOf[Option[_]].get
+              jsonObject.put(name, toSerializedForm(actualTypes.head, realValue))
+            }
+        }
+      case x => 
+        println("x is TypeVar: %s".format(x.isInstanceOf[TypeVariable[_]]))
+        println("x is ParamType: %s".format(x.isInstanceOf[ParameterizedType]))
+        error("unknown type: %s".format(x))
+      }      
+  }
+
+  def serialize[T <: Product](item: T, klazz: Class[_]): JSONObject = {
+    val result = new JSONObject
+    val fields = klazz.getDeclaredFields.filter { !_.getName.startsWith("$")}.toList
+    fields.foreach { field =>
+      serializeTypeToObject(item, field, field.getGenericType, result)
+    }
+
+    result
+  }
+
 }
 
 // vim: set ts=2 sw=2 et:

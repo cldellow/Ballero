@@ -2,6 +2,7 @@ package cldellow.ballero.ui
 
 object UiConstants {
   val Location = "Location"
+  val ExtraText = "ExtraText"
 }
 
 

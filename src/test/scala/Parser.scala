@@ -1,4 +1,5 @@
-package cldellow.ballero.test;
+package cldellow.ballero.test
+
 import cldellow.ballero.data._
 
 import org.scalatest.matchers.ShouldMatchers
@@ -6,15 +7,7 @@ import org.scalatest.Spec
 
 import org.json._
 
-case class OneString(foo: String)
-case class TwoStringsDefault(foo: String, bar: String = "foo")
-case class StringInt(foo: String, bar: Int)
-case class ListString(foo: List[String])
-case class ListCaseClass(foo: List[OneString])
-case class CaseClassWithCaseClass(foo: OneString)
-case class OptionalString(foo: Option[String])
-
-class Specs extends Spec with ShouldMatchers {
+class Parser extends Spec with ShouldMatchers {
   describe("json parser") {
     it("can parse a case class with 1 string") {
       val x: OneString = Parser.parse[OneString]("""{ "foo" : "bar" }""")
@@ -58,6 +51,12 @@ class Specs extends Spec with ShouldMatchers {
       val x: GoogleResponse = Parser.parse[GoogleResponse]("""{   "results" : [],   "status" : "ZERO_RESULTS"}""")
       println(x.results)
       println(x.status)
+    }
+    it("can parse a case class with a Boolean") {
+      val x: CaseBoolean = Parser.parse[CaseBoolean]("""{"foo":true}""")
+      assert(x.foo === true)
+      val y: CaseBoolean = Parser.parse[CaseBoolean]("""{"foo":false}""")
+      assert(y.foo === false)
     }
   }
 }

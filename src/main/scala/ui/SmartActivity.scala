@@ -1,6 +1,7 @@
 package cldellow.ballero.ui
 
 import cldellow.ballero.service._
+import cldellow.ballero.data._
 import cldellow.ballero.R
 
 import org.json.JSONObject
@@ -58,7 +59,7 @@ trait SmartActivity extends Activity {// this: Activity =>
       info("got response: %s".format(restResponse))
       val address = new Address(Locale.getDefault)
 
-      val response = new JSONObject(restResponse.body)
+      val response = Parser.parse[GoogleResponse](restResponse.body)
       info("parsed: %s".format(response))
 
       callback(address)

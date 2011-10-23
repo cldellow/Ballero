@@ -2,6 +2,7 @@ package cldellow.ballero.ui
 
 import cldellow.ballero.R
 import cldellow.ballero.service._
+import cldellow.ballero.data._
 
 import scala.collection.JavaConversions._
 import android.app.Activity
@@ -14,6 +15,8 @@ import android.widget._
 import greendroid.app._
 import greendroid.widget._
 import greendroid.widget.item._
+
+case class Foo(foo: String, bar: List[String])
 
 class MainActivity extends GDListActivity with SmartActivity {
   val TAG = "MainActivity"
@@ -31,6 +34,7 @@ class MainActivity extends GDListActivity with SmartActivity {
     adapter.add(createTextItem(R.string.find_lys, classOf[FindLysActivity]));
     adapter.add(createTextItem(R.string.add_ravelry_account, classOf[AddRavelryAccountActivity]));
     setListAdapter(adapter);
+
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {

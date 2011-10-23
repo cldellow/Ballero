@@ -1,15 +1,37 @@
 package cldellow.ballero.data
 
-case class GoogleResponse(status: String, results: List[GoogleResult])
-case class GoogleResult(types: List[String],
-  formatted_address: String,
+case class GoogleResponse(
+  results: List[GoogleResult],
+  status: String
+)
+
+case class GoogleResult(
   address_components: List[GoogleAddressComponent],
-  geometry: GoogleGeometry)
-case class GoogleAddressComponent(types: List[String], long_name: String, short_name: String)
-case class GoogleGeometry(location: GoogleLocation, location_type: String, viewport: GoogleViewport, bounds:
-Option[GoogleViewport])
-case class GoogleLocation(lat: BigDecimal, lng: BigDecimal)
-case class GoogleViewport(northeast: GoogleLocation, southwest: GoogleLocation)
+  formatted_address: String,
+  geometry: GoogleGeometry,
+  types: List[String]
+)
+case class GoogleAddressComponent(
+  long_name: String,
+  short_name: String,
+  types: List[String]
+)
+case class GoogleGeometry(
+  bounds: Option[GoogleViewport],
+  location: GoogleLocation,
+  location_type: String,
+  viewport: GoogleViewport
+)
+
+case class GoogleLocation(
+  lat: BigDecimal,
+  lng: BigDecimal
+)
+
+case class GoogleViewport(
+  northeast: GoogleLocation,
+  southwest: GoogleLocation
+)
 
 
 

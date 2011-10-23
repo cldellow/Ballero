@@ -163,7 +163,6 @@ object Parser {
     //Log.i("PARSER", "inputs: %s".format(inputs))
     val javaObjects = inputs.map { javaObject(_) }
     //Log.i("PARSER", "java inputs: %s".format(javaObjects))
-    //val x = ParserHelper.construct(constructor, javaObjects.toArray[Object])
     val x = constructor.newInstance(javaObjects:_*)
     x.asInstanceOf[T]
   }

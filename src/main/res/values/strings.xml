@@ -1,4 +1,5 @@
 <resources>
+    <string name="google_map_api_key_debug">0IgVgWFseCoAyOOEFSXlrEhfjQE99UGBY_sh2CA</string>
     <string name="app_name">Ballero</string>
     <string name="app_credits">A knitter</string>
     <string name="app_descrip">A knitting app</string>

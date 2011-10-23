@@ -4,7 +4,7 @@ import cldellow.ballero.R
 import android.graphics._
 import scala.collection.JavaConversions._
 import android.app.Activity
-import android.content.Context
+import android.content._
 import android.location._
 import android.os.Bundle
 import android.util.Log
@@ -33,6 +33,21 @@ class FindLysActivity extends GDActivity with SmartActivity {
   lazy val progressBar = findProgressBar(R.id.progressBar)
 
   lazy val controls = List(lblFound, btnFindStores)
+
+  def btnFindStoresClick(view: View) {
+    if(currentAddress.isEmpty) {
+      toast("Uh oh, don't know where you are.")
+      return
+    }
+
+    val intent: Intent = new Intent(this, classOf[LysStoresMapActivity])
+    intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, "local yarn stores")
+    currentAddress map { currentAddress =>
+      intent.putExtra(UiConstants.Location,
+      """{ "lat": %s, "lng": %s }""".format(currentAddress.getLatitude, currentAddress.getLongitude))
+    }
+    startActivity(intent)
+  }
 
   def btnFindCityClick(view: View) {
     val cityName = txtCityName.getText.toString

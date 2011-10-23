@@ -58,10 +58,7 @@ trait SmartActivity extends Activity {// this: Activity =>
   }
 
   private def handleGeocodeResponse(callback: Option[Address] => Unit)(restResponse: RestResponse) {
-    info("got response: %s".format(restResponse))
-
     val response = Parser.parse[GoogleResponse](restResponse.body)
-    info("parsed: %s".format(response))
 
     callback(response.results match {
       case Nil => None
@@ -88,14 +85,6 @@ trait SmartActivity extends Activity {// this: Activity =>
       RestRequest("http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=true"
         .format(URLEncoder.encode(str, "UTF-8")))) { handleGeocodeResponse(callback) }
   }
-
-  /*
-  protected def geocode(loc: Location)(callback: Address => Unit) { geocode(Right(loc))(callback) }
-  protected def geocode(loc: String)(callback: Address => Unit) { geocode(Left(loc))(callback) }
-  protected def geocode(loc: Either[String, Location])(callback: Address => Unit) {
-    new GeocoderRequestTask(callback)(this).execute(loc)
-  }
-  */
 }
 
 

@@ -19,27 +19,6 @@ import org.apache.http.protocol._
 
 class RestService extends Service {
   private val TAG = "RestService"
-/*
- new DownloadImageTask().execute("http://example.com/image.png");
-}
-
-private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-     protected Bitmap doInBackground(String... urls) {
-         return loadImageFromNetwork(urls[0]);
-     }
-
-     protected void onPostExecute(Bitmap result) {
-         mImageView.setImageBitmap(result);
-     }
- }
- */
-  private class IntTask(f: Integer => Unit) extends IntTaskBase {
-    def doInBackground1(args: Array[String]): Integer = {
-      3
-    }
-
-    override def onPostExecute(i: Integer) = f(i)
-  }
 
   private class RestRequestTask(f: RestResponse => Unit) extends RestRequestTaskBase {
     var responseCode: Int = 0
@@ -83,7 +62,11 @@ private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
         if (entity != null) {
 
           val inputStream: InputStream = entity.getContent
-          body = scala.io.Source.fromInputStream(inputStream).getLines.reduceLeft { _ + _ }
+          val stringBuilder = new StringBuilder(2048)
+          scala.io.Source.fromInputStream(inputStream).getLines.foreach { line =>
+            stringBuilder.append(line)
+          }
+          body = stringBuilder.toString
 
           // Closing the input stream will trigger connection release
           inputStream.close();
@@ -102,11 +85,6 @@ private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
   }
 
   class LocalBinder extends Binder {
-    //def getService: RestService = RestService.this
-    def getNumber(callback: Integer => Unit) {
-      new IntTask(callback).execute()
-    }
-
     def request(request: RestRequest)(callback: RestResponse => Unit) {
       new RestRequestTask(callback).execute(request)
     }

@@ -5,14 +5,10 @@ import android.util.Log
 import org.json.{JSONArray, JSONObject}
 
 object Parser {
-  var reverse: Boolean = false
 
   // Java reflection doesn't keep the names of parameters; but if we require T to be a
   // Product, we can rely on the totally unstated and non-supported reality that
-  // getFields() is the reverse order of the field declarations.
-  // If you override case classes, this will not work. See
-  // http://stackoverflow.com/questions/2224251/reflection-on-a-scala-case-class
-  // for more details.
+  // getFields() after Dexing returns the fields in alphabetical order.
   //
   // Other options include using the Scala compiler library to parse the bytecode--
   // this bloats the # of classes to an unacceptable level.
@@ -45,17 +41,18 @@ object Parser {
     if(jsonArray.length == 0)
       Nil
     else {
-      val result = for(i <- 0 until jsonArray.length)
-        yield desiredType.getCanonicalName match {
+      val listBuffer = new collection.mutable.ListBuffer[Any]
+      for(i <- 0 until jsonArray.length) {
+        listBuffer += (desiredType.getCanonicalName match {
           case "int" => jsonArray.getInt(i)
           case "java.lang.String" => jsonArray.getString(i)
           case "scala.math.BigDecimal" => BigDecimal(jsonArray.getDouble(i))
           case x if instanceOf(desiredType, classOf[Product]) =>
             parse(jsonArray.getJSONObject(i), desiredType)
           case x => error("can't parse %s from array".format(desiredType))
-        }
-
-      result.toList
+        })
+      }
+      listBuffer.toList
     }
 
   private def actualInstanceOf(what: Class[_], target: Class[_]): Boolean =
@@ -111,12 +108,7 @@ object Parser {
   def parse[T <: Product](jsonObject: JSONObject, klazz: Class[_]): T = {
     val constructors = klazz.getConstructors
 
-    val originalFields = klazz.getDeclaredFields.filter { !_.getName.startsWith("$")}.toList
-    val fields =
-      if(reverse)
-        originalFields.reverse
-      else
-        originalFields
+    val fields = klazz.getDeclaredFields.filter { !_.getName.startsWith("$")}.toList
 
     /** Default arguments -- totally non-supported, but hey, it works. What could go wrong? */
     val defaultArgument = "apply$default"
@@ -132,18 +124,12 @@ object Parser {
     }
 
     val constructor = constructors.head
-    /*
-    val parameterAnnotations = constructor.getParameterAnnotations.toList.map { annotations =>
-      annotations.toList.collect { case x: HigherKind => x }.map { _.value }
-    }
-    */
 
     // Need to pair up stuff from the JSON object with fields in the case class
     // constructor.
     val values: Map[String, Any] = Map() ++ fields.flatMap { field =>
       val name = field.getName
       if(jsonObject has name) {
-        //val higherKinds = parameterAnnotations(nameToIndex(name))
         val desiredType = field.getGenericType// :: higherKinds
         List(name -> parseTypeFromObject(jsonObject, name, desiredType))
       } else if(defaultValues contains name) {

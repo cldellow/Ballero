@@ -15,9 +15,6 @@ case class CaseClassWithCaseClass(foo: OneString)
 case class OptionalString(foo: Option[String])
 
 class Specs extends Spec with ShouldMatchers {
-  // The JVM on Android has a wonky implementation of getDeclaredFields
-  Parser.reverse = false
-
   describe("json parser") {
     it("can parse a case class with 1 string") {
       val x: OneString = Parser.parse[OneString]("""{ "foo" : "bar" }""")

@@ -44,11 +44,12 @@
     android:layout_height="wrap_content" android:layout_marginTop="20dp"></TextView>
   <EditText android:id="@+id/txtCityName" android:layout_width="match_parent"
     android:layout_height="wrap_content" android:text="enter city here"
+    android:onClick="txtCityNameClick"
     android:textColor="#808080">
-    <requestFocus></requestFocus>
   </EditText>
   <Button android:textAppearance="?android:attr/textAppearanceLarge"
     android:layout_width="fill_parent" android:id="@+id/btnFindCity"
+    android:onClick="btnFindCityClick"
     android:text="find city" android:layout_height="wrap_content"></Button>
   <TextView android:text="found: Waterloo, ON" android:id="@+id/lblFound"
       android:layout_marginTop="20dp"

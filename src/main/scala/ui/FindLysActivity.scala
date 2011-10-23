@@ -1,13 +1,14 @@
 package cldellow.ballero.ui
 
 import cldellow.ballero.R
+import android.graphics._
 import scala.collection.JavaConversions._
 import android.app.Activity
 import android.content.Context
 import android.location._
 import android.os.Bundle
 import android.util.Log
-import android.view.View
+import android.view._
 import android.widget.TextView
 import greendroid.app._
 import greendroid.widget._
@@ -33,6 +34,30 @@ class FindLysActivity extends GDActivity with SmartActivity {
 
   lazy val controls = List(lblFound, btnFindStores)
 
+  def btnFindCityClick(view: View) {
+    val cityName = txtCityName.getText.toString
+    if(cityName == "enter city here" || cityName.length == 0) {
+      toast("Enter a city name.")
+      return
+    }
+
+    locationListener.disableUpdates
+    progressBar.setVisibility(View.VISIBLE)
+    lblSearchingLocation.setText("searching for city")
+    lblSearchingLocation.setVisibility(View.VISIBLE)
+
+    geocode(cityName)(geocodeCallback(false))
+  }
+
+
+  def txtCityNameClick(view: View) {
+    info("txtCityNameClick called")
+    if(txtCityName.getText.toString == "enter city here") {
+      info("enter city here")
+      txtCityName.setText("")
+      txtCityName.setTextColor(Color.BLACK)
+    }
+  }
 
   override def createLayout(): Int = {
       return R.layout.findlys
@@ -52,6 +77,27 @@ class FindLysActivity extends GDActivity with SmartActivity {
       newLocation(mostRecentLocation)
 
     locationManager.requestLocationUpdates(provider, 60000, 100, locationListener)
+    btnFindStores.setVisibility(View.GONE)
+  }
+
+  private var currentAddress: Option[Address] = None
+
+  private def geocodeCallback(fromGPS: Boolean)(address: Option[Address]) {
+    progressBar.setVisibility(View.GONE)
+    address match {
+      case None =>
+        progressBar.setVisibility(View.GONE)
+        if(fromGPS)
+          lblSearchingLocation.setText("couldn't find where you are")
+        else
+          lblSearchingLocation.setText("couldn't find that city")
+      case Some(address) =>
+        lblSearchingLocation.setVisibility(View.GONE)
+        lblFound.setText("%s, %s".format(address.getLocality, address.getAdminArea))
+        lblFound.setVisibility(View.VISIBLE)
+        btnFindStores.setVisibility(View.VISIBLE)
+    }
+    currentAddress = address
   }
 
   private def newLocation(loc: Location) {
@@ -64,9 +110,7 @@ class FindLysActivity extends GDActivity with SmartActivity {
       // appropriate
       progressBar.setVisibility(View.VISIBLE)
       lblSearchingLocation.setText("resolving your address")
-      geocode(loc) { response =>
-        toast("got a response %s".format(response.toString))
-      }
+      geocode(loc)(geocodeCallback(true))
   }
 
   private class MyLocationListener extends LocationListener {

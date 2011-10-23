@@ -5,6 +5,7 @@ import cldellow.ballero.data._
 import cldellow.ballero.R
 
 import org.json.JSONObject
+import java.net.URLEncoder
 import android.app.Activity
 import android.content._
 import android.location._
@@ -50,20 +51,42 @@ trait SmartActivity extends Activity {// this: Activity =>
     }
   }
 
-  protected def geocode(loc: Location)(callback: Address => Unit) {
-    //geocode(Right(loc))(callback)
+  protected def geocode(loc: Location)(callback: Option[Address] => Unit) {
     restServiceConnection.request(
       RestRequest("http://maps.googleapis.com/maps/api/geocode/json?latlng=%s,%s&sensor=true".format(loc.getLatitude,
-      loc.getLongitude))) { restResponse =>
+      loc.getLongitude))) { handleGeocodeResponse(callback) }
+  }
 
-      info("got response: %s".format(restResponse))
-      val address = new Address(Locale.getDefault)
+  private def handleGeocodeResponse(callback: Option[Address] => Unit)(restResponse: RestResponse) {
+    info("got response: %s".format(restResponse))
 
-      val response = Parser.parse[GoogleResponse](restResponse.body)
-      info("parsed: %s".format(response))
+    val response = Parser.parse[GoogleResponse](restResponse.body)
+    info("parsed: %s".format(response))
 
-      callback(address)
-    }
+    callback(response.results match {
+      case Nil => None
+      case x :: xs =>
+        val address = new Address(Locale.getDefault)
+        address.setLongitude(x.geometry.location.lng.toDouble)
+        address.setLatitude(x.geometry.location.lat.toDouble)
+        x.address_components.find { _.types.contains("locality") }.map { city =>
+          address.setLocality(city.long_name)
+        }
+        x.address_components.find { _.types.contains("administrative_area_level_1") }.map { state =>
+          address.setAdminArea(state.long_name)
+        }
+
+        if(address.getLocality != null && address.getAdminArea != null)
+          Some(address)
+        else
+          None
+    })
+  }
+
+  protected def geocode(str: String)(callback: Option[Address] => Unit) {
+    restServiceConnection.request(
+      RestRequest("http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=true"
+        .format(URLEncoder.encode(str, "UTF-8")))) { handleGeocodeResponse(callback) }
   }
 
   /*

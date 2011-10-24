@@ -26,6 +26,10 @@ object Parser {
     // Are there any generic fields that don't have higher kind attributes?
   }
 
+  def parseList[T](str: String)(implicit mf: Manifest[T]): List[T] = {
+    val arr = new JSONArray(str)
+    parseArray(arr, mf.erasure).asInstanceOf[List[T]]
+  }
   def parse[T <: Product](str: String)(implicit mf: Manifest[T]): T = {
     sanityCheck(mf.erasure)
     val jsonObject = new JSONObject(str)

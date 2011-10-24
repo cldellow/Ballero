@@ -11,6 +11,7 @@ android:versionName="0.1" android:versionCode="1" package="cldellow.ballero" xml
       android:name=".ui.BalleroApplication">
       <uses-library android:name="com.google.android.maps" />
         <service android:name=".service.RestService"/>
+        <activity android:name=".ui.RavellerHomeActivity"/>
         <activity android:name=".ui.FindLysActivity"/>
         <activity android:name=".ui.LysStoresMapActivity"/>
         <activity android:name=".ui.AddRavelryAccountActivity"/>

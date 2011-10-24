@@ -14,6 +14,8 @@ import android.util.Log
 import android.view.View
 import android.widget._
 import java.util.Locale
+import greendroid.widget._
+import greendroid.widget.item._
 
 trait SmartActivity extends Activity {// this: Activity =>
   def TAG: String
@@ -87,6 +89,13 @@ trait SmartActivity extends Activity {// this: Activity =>
       RestRequest("http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=true"
         .format(URLEncoder.encode(str, "UTF-8")))) { handleGeocodeResponse(callback) }
   }
+
+  protected def createTextItem(string: String, klass: Class[_]): TextItem = {
+    val textItem = new TextItem(string)
+    textItem.setTag(klass)
+    textItem
+  }
+
 }
 
 

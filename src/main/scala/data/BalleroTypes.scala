@@ -9,12 +9,15 @@ object Data {
   private val balleroKey = "_ballero"
   private val usersKey = "users"
 
+
+  var currentUser: Option[String] = None
+
   private def getPreferences(implicit context: Context) =
     context.getSharedPreferences(balleroKey, 0)
 
   def users(implicit context: Context): List[User] = {
     val prefs = getPreferences(context)
-    val storedValue = prefs.getString(usersKey, """{ "users" : [{ "name" : "cldellow" }] }""")
+    val storedValue = prefs.getString(usersKey, """{ "users" : [{ "name" : "cldellow" }, { "name" : "jkdellow" }] }""")
     Parser.parse[Users](storedValue).users
   }
 }

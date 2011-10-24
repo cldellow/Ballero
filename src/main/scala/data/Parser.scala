@@ -114,7 +114,9 @@ object Parser {
   def parse[T <: Product](jsonObject: JSONObject, klazz: Class[_]): T = {
     val constructors = klazz.getConstructors
 
-    val fields = klazz.getDeclaredFields.filter { !_.getName.startsWith("$")}.toList
+    val fields = klazz.getDeclaredFields.filter { f => 
+      !f.getName.startsWith("$") && !f.getName.startsWith("_")
+    }.toList
 
     /** Default arguments -- totally non-supported, but hey, it works. What could go wrong? */
     val defaultArgument = "apply$default"
@@ -189,6 +191,12 @@ object Parser {
     case x => error("unknown")
   }
 
+  def serializeList[T](xs: List[T])(implicit mf: Manifest[T]): String = {
+    new JSONArray(
+      JavaConversions.asJavaCollection(xs.map { item => 
+        toSerializedForm(mf.erasure, item) })).toString
+  }
+
   private def serializeTypeToObject(item: Any, field: Field, _type: Type, jsonObject: JSONObject) {
     // see http://stackoverflow.com/questions/6756442/scala-class-declared-fields-and-access-modifiers
     field.setAccessible(true)
@@ -210,9 +218,6 @@ object Parser {
             jsonObject.put(name,
               JavaConversions.asJavaCollection(listValue.asInstanceOf[List[_]].map { item => 
                 toSerializedForm(actualTypes.head, item) }))
-            //val array = jsonObject.getJSONArray(name)
-            // Thanks for special casing everything, jerkwads.
-            //parseArray(array, actualTypes.head)
           case "scala.Option" =>
             val optionalValue = field.get(item)
             if(optionalValue != None) {

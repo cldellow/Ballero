@@ -11,13 +11,3 @@ case class Needle(
   lengthString: Option[String]
 )
 
-object NeedleHelpers {
-  def parse(xml: NodeSeq): List[Needle] = {
-    val needleTable = (xml \\ "table") filter { node => (node \ "@id").text == "needle_details" }
-    println(needleTable)
-    Nil
-  }
-}
-
-
-// vim: set ts=2 sw=2 et:

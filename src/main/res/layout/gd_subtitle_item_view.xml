@@ -25,6 +25,27 @@
 	android:paddingLeft="?attr/gdItemViewPreferredPaddingLeft"
 
 	android:orientation="vertical">
+	<LinearLayout
+		style="?attr/gdSubtitleItemViewStyle"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:minHeight="?attr/gdItemViewPreferredHeight"
+		android:orientation="horizontal">
+
+		<ProgressBar
+			android:id="@+id/gd_progress_bar"
+			
+			style="?attr/gdProgressItemViewStyleProgressBar"
+			android:layout_gravity="center_vertical"
+			android:indeterminate="true" />
+
+	<LinearLayout
+		style="?attr/gdSubtitleItemViewStyle"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:minHeight="?attr/gdItemViewPreferredHeight"
+		android:orientation="vertical">
+
 
 	<TextView
 		style="?attr/gdSubtitleItemViewStyleText"
@@ -50,4 +71,6 @@
 		android:singleLine="true"
 		android:ellipsize="end" />
 
+</LinearLayout>
+</LinearLayout>
 </greendroid.widget.itemview.SubtitleItemView>

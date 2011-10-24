@@ -24,6 +24,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.widget.ProgressBar;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
@@ -45,6 +46,8 @@ public class SubtitleItem extends TextItem {
      * The subtitle of this item
      */
     public String subtitle;
+    public ProgressBar progressBar;
+    public boolean inProgress;
 
     /**
      * @hide
@@ -61,7 +64,15 @@ public class SubtitleItem extends TextItem {
     public SubtitleItem(String text, String subtitle) {
         super(text);
         this.subtitle = subtitle;
+        this.inProgress = false;
     }
+
+    public SubtitleItem(String text, String subtitle, boolean _inProgress) {
+        super(text);
+        this.subtitle = subtitle;
+        this.inProgress = _inProgress;
+    }
+
 
     @Override
     public ItemView newView(Context context, ViewGroup parent) {

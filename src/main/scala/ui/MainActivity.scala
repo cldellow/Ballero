@@ -45,7 +45,7 @@ class MainActivity extends GDListActivity with SmartActivity {
     //TODO: make this less of a hack
     val klazz = textItem.getTag.asInstanceOf[Class[_]]
     if(klazz == classOf[RavellerHomeActivity])
-      Data.currentUser = Some(textItem.text)
+      Data.currentUser = Some(Data.users.find { _.name == textItem.text }.get)
 
     val intent: Intent = new Intent(this, textItem.getTag.asInstanceOf[Class[_]])
     intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, textItem.text);

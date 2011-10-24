@@ -20,7 +20,9 @@ import greendroid.widget.item.SubtitleItem;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.view.View;
 
 //import com.cyrilmottier.android.greendroid.R;
 import cldellow.ballero.R;
@@ -34,6 +36,7 @@ public class SubtitleItemView extends LinearLayout implements ItemView {
 
     private TextView mTextView;
     private TextView mSubtitleView;
+    private ProgressBar mProgressBar;
 
     public SubtitleItemView(Context context) {
         this(context, null);
@@ -46,12 +49,16 @@ public class SubtitleItemView extends LinearLayout implements ItemView {
     public void prepareItemView() {
         mTextView = (TextView) findViewById(R.id.gd_text);
         mSubtitleView = (TextView) findViewById(R.id.gd_subtitle);
+        mProgressBar = (ProgressBar)findViewById(R.id.gd_progress_bar);
     }
 
     public void setObject(Item object) {
         final SubtitleItem item = (SubtitleItem) object;
         mTextView.setText(item.text);
         mSubtitleView.setText(item.subtitle);
+        if(!item.inProgress) {
+          mProgressBar.setVisibility(View.GONE);
+        }
     }
 
 }

@@ -22,20 +22,30 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
 
   var adapter: ItemAdapter = null
 
+  var needlesItem: Item = null
+
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     adapter = new ItemAdapter(this)
-    adapter.add(new ProgressItem("needles", true))
+
+    needlesItem = new ProgressItem("needles", true)
+    adapter.add(needlesItem)
+    /*
     restServiceConnection.request(
-      RestRequest("http://rav.cldellow.com:8080/rav/people/%s/needles.json".format(Data.currentUser.get))
+      RestRequest("http://rav.cldellow.com:8080/rav/people/%s/needles.json".format(Data.currentUser.get.name))
     )(onNeedlesDownloaded)
+    */
     setListAdapter(adapter)
+
   }
 
-  private def onNeedlesDownloaded(response: RestResponse) {
-    info("got: %s".format(response))
-    val needles = Parser.parseList[Needle](response.body)
-    info("got: %s".format(needles))
+  override def onResume {
+    super.onResume
+    Data.currentUser.get.needles.render(true, onNeedlesChanged)
+  }
+
+  private def onNeedlesChanged(needles: List[Needle], pending: Boolean) {
+    /*
     needles.groupBy { _.kind }.foreach { case (kind, needles) =>
       adapter.add(new SeparatorItem("%s %s".format(needles.length, kind)))
       needles.foreach { needle =>
@@ -43,6 +53,17 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
       }
     }
     setListAdapter(adapter)
+    */
+    adapter.remove(needlesItem)
+
+    val subtitle = if(needles.isEmpty) "no needles" else needles.groupBy { _.kind }
+      .map { case(kind, needles) => "%s %s".format(needles.length, kind) }
+      .mkString(", ")
+
+    println("pending: %s".format(pending))
+    needlesItem = new SubtitleItem("needles", subtitle, pending)
+    adapter.add(needlesItem)
+    onContentChanged()
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {

@@ -1,4 +1,4 @@
-package cldellow.ballero.test
+package com.cldellow.ballero.test
 
 
 object Inputs {

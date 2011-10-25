@@ -31,7 +31,7 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * Base class for all items used in GreenDroid. An item represents a wrapper of

@@ -16,7 +16,7 @@ limitations under the License.
 
 package org.coriander.oauth.core.cryptography.signing
 
-import cldellow.ballero.data.Base64
+import com.cldellow.ballero.data.Base64
 import org.coriander.oauth.core.uri._
 import org.coriander.oauth.core.CredentialSet
 import org.coriander.oauth.core.cryptography._

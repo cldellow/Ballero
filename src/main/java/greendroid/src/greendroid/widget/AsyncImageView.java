@@ -34,7 +34,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * <p>

@@ -27,7 +27,7 @@ import android.view.Gravity;
 import android.view.View;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * <p>

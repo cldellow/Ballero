@@ -33,7 +33,7 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 import com.google.android.maps.MapActivity;
 
 /**

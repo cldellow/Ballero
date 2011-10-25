@@ -1,9 +1,9 @@
-package cldellow.ballero.ui
+package com.cldellow.ballero.ui
 
 import android.content._
 import android.os._
 import android.util.Log
-import cldellow.ballero.service._
+import com.cldellow.ballero.service._
 
 class RestServiceConnection() extends ServiceConnection {
   val TAG = "RestServiceConnection"

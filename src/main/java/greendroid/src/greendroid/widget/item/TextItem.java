@@ -29,7 +29,7 @@ import android.util.AttributeSet;
 import android.view.ViewGroup;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * A TextItem is a very basic item that only contains a single text. The text

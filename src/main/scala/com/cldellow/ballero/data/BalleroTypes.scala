@@ -1,9 +1,9 @@
-package cldellow.ballero.data
+package com.cldellow.ballero.data
 
 import android.content._
 import android.util.Log
-import cldellow.ballero.ui.SmartActivity
-import cldellow.ballero.service.{RestRequest, RestResponse}
+import com.cldellow.ballero.ui.SmartActivity
+import com.cldellow.ballero.service.{RestRequest, RestResponse}
 
 sealed trait RefreshPolicy
 case object ForceNetwork extends RefreshPolicy

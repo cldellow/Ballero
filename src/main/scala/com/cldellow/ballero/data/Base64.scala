@@ -1,4 +1,4 @@
-package cldellow.ballero.data
+package com.cldellow.ballero.data
 
 object Base64 {
   val encodeTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"

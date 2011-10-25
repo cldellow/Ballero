@@ -30,7 +30,7 @@ import android.view.WindowManager;
 import android.widget.PopupWindow;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * Abstraction of a {@link QuickAction} wrapper. A QuickActionWidget is

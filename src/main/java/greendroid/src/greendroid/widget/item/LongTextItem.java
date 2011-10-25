@@ -20,7 +20,7 @@ import android.content.Context;
 import android.view.ViewGroup;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * A LongTextItem is very similar to a regular {@link TextItem}. The only

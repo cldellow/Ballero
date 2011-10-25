@@ -30,7 +30,7 @@ import android.util.AttributeSet;
 import android.view.ViewGroup;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * An {@link Item} that contains two Strings : a text and a subtitle. The

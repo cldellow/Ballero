@@ -1,6 +1,6 @@
-package cldellow.ballero.test
+package com.cldellow.ballero.test
 
-import cldellow.ballero.data._
+import com.cldellow.ballero.data._
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.Spec

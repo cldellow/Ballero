@@ -1,4 +1,4 @@
-package cldellow.ballero.data
+package com.cldellow.ballero.data
 
 import java.lang.reflect._
 import scala.collection.JavaConversions

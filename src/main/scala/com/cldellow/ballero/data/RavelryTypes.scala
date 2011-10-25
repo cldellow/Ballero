@@ -1,4 +1,4 @@
-package cldellow.ballero.data
+package com.cldellow.ballero.data
 
 import xml.{XML, NodeSeq}
 

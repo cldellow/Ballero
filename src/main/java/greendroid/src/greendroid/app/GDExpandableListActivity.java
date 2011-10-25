@@ -25,7 +25,7 @@ import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * A {@link GDActivity} equivalent to ExpandableListActivity that manages an

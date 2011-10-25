@@ -21,7 +21,7 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * Base class representing an {@link ActionBarItem} used in {@link ActionBar}s.

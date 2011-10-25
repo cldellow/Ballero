@@ -31,7 +31,7 @@ import android.widget.GridView;
 import android.widget.TextView;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * A {@link QuickActionGrid} is an implementation of a {@link QuickActionWidget}

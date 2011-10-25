@@ -1,6 +1,6 @@
-package cldellow.ballero.ui
+package com.cldellow.ballero.ui
 
-import cldellow.ballero.R
+import com.cldellow.ballero.R
 
 import scala.collection.JavaConversions._
 import android.app.Activity

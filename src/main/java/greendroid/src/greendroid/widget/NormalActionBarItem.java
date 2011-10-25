@@ -20,7 +20,7 @@ import android.view.View;
 import android.widget.ImageButton;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * Default implementation of an {@link ActionBarItem}. A

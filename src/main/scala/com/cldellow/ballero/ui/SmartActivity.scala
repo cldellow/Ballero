@@ -1,8 +1,8 @@
-package cldellow.ballero.ui
+package com.cldellow.ballero.ui
 
-import cldellow.ballero.service._
-import cldellow.ballero.data._
-import cldellow.ballero.R
+import com.cldellow.ballero.service._
+import com.cldellow.ballero.data._
+import com.cldellow.ballero.R
 
 import org.json.JSONObject
 import java.net.URLEncoder

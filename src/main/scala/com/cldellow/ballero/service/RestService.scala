@@ -1,4 +1,4 @@
-package cldellow.ballero.service
+package com.cldellow.ballero.service
 
 import android.app._
 import android.os._

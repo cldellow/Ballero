@@ -26,7 +26,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * An equivalent to ListActivity that manages a ListView.

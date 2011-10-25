@@ -33,7 +33,7 @@ import android.widget.TabHost;
 import android.widget.TextView;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * An equivalent to a TabActivity that manages fancy tabs and an

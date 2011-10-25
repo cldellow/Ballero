@@ -1,4 +1,4 @@
-package cldellow.ballero.test
+package com.cldellow.ballero.test
 
 case class CaseBoolean(foo: Boolean)
 case class OneString(foo: String)

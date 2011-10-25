@@ -20,7 +20,7 @@ import android.content.Context;
 import android.view.ViewGroup;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * A description item displays a text on several lines. The default

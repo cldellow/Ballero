@@ -25,7 +25,7 @@ import android.widget.TextView;
 import android.view.View;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * View representation of the {@link SubtitleItem}.

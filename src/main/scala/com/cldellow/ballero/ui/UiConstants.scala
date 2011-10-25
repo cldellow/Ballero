@@ -1,4 +1,4 @@
-package cldellow.ballero.ui
+package com.cldellow.ballero.ui
 
 object UiConstants {
   val Location = "Location"

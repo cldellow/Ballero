@@ -19,7 +19,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * An extension of a {@link NormalActionBarItem} that supports a loading states.

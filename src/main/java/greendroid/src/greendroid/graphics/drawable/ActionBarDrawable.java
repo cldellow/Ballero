@@ -29,7 +29,7 @@ import android.util.StateSet;
 import android.util.TypedValue;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * <p>

@@ -16,7 +16,7 @@
 package greendroid.app;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 import greendroid.util.Config;
 import greendroid.widget.ActionBar;

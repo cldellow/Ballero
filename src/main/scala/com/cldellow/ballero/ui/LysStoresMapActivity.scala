@@ -1,8 +1,8 @@
-package cldellow.ballero.ui
+package com.cldellow.ballero.ui
 
-import cldellow.ballero.R
-import cldellow.ballero.data._
-import cldellow.ballero.service._
+import com.cldellow.ballero.R
+import com.cldellow.ballero.data._
+import com.cldellow.ballero.service._
 
 import android.graphics._
 import scala.collection.JavaConversions._

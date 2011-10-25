@@ -33,7 +33,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 
 //import com.cyrilmottier.android.greendroid.R;
-import cldellow.ballero.R;
+import com.cldellow.ballero.R;
 
 /**
  * A QuickActionBar displays a set of {@link QuickAction} on a single row. In

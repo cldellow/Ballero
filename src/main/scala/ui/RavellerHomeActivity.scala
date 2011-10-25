@@ -28,7 +28,7 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
     super.onCreate(savedInstanceState)
     adapter = new ItemAdapter(this)
 
-    needlesItem = new ProgressItem("needles", true)
+    needlesItem = (new ProgressItem("needles", true)) goesTo classOf[NeedlesActivity]
     adapter.add(needlesItem)
     /*
     restServiceConnection.request(
@@ -41,19 +41,10 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
 
   override def onResume {
     super.onResume
-    Data.currentUser.get.needles.render(true, onNeedlesChanged)
+    Data.currentUser.get.needles.render(FetchIfNeeded, onNeedlesChanged)
   }
 
   private def onNeedlesChanged(needles: List[Needle], pending: Boolean) {
-    /*
-    needles.groupBy { _.kind }.foreach { case (kind, needles) =>
-      adapter.add(new SeparatorItem("%s %s".format(needles.length, kind)))
-      needles.foreach { needle =>
-        adapter.add(new TextItem("%s (%s)".format(needle.gaugeMetric, needle.comment)))
-      }
-    }
-    setListAdapter(adapter)
-    */
     adapter.remove(needlesItem)
 
     val subtitle = if(needles.isEmpty) "no needles" else needles.groupBy { _.kind }
@@ -61,17 +52,15 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
       .mkString(", ")
 
     println("pending: %s".format(pending))
-    needlesItem = new SubtitleItem("needles", subtitle, pending)
+    needlesItem = new SubtitleItem("needles", subtitle, pending) goesTo classOf[NeedlesActivity]
     adapter.add(needlesItem)
     onContentChanged()
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
-    val textItem: TextItem = l.getAdapter().getItem(position).asInstanceOf[TextItem]
+    val textItem: Item = l.getAdapter().getItem(position).asInstanceOf[Item]
 
     val intent: Intent = new Intent(this, textItem.getTag.asInstanceOf[Class[_]])
-    intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, textItem.text);
-    intent.putExtra(UiConstants.ExtraText, textItem.text);
     startActivity(intent)
   }
 

@@ -5,14 +5,26 @@ import android.util.Log
 import cldellow.ballero.ui.SmartActivity
 import cldellow.ballero.service.{RestRequest, RestResponse}
 
+sealed trait RefreshPolicy
+case object ForceNetwork extends RefreshPolicy
+case object FetchIfNeeded extends RefreshPolicy
+case object ForceDisk extends RefreshPolicy
+
 class NetworkResource[T](val url: String)(implicit mf: Manifest[T]) {
+  def getAge(implicit a: SmartActivity): Long =
+    (System.currentTimeMillis - Data.get(ageName, "0").toLong) / 1000
+
   def get(implicit a: SmartActivity): List[T] = Parser.parseList[T](Data.get(name, "[]"))
-  def name: String = mf.erasure.getSimpleName.toLowerCase
+  final def ageName: String = "%s_age".format(name)
+  final def name: String = mf.erasure.getSimpleName.toLowerCase
 
-  def render(forceFresh: Boolean, callback: (List[T], Boolean) => Unit)(implicit a: SmartActivity) {
-    callback(get, forceFresh)
+  def render(refreshPolicy: RefreshPolicy, callback: (List[T], Boolean) => Unit)(implicit a: SmartActivity) {
+    val doNetwork = refreshPolicy == ForceNetwork ||
+      (refreshPolicy == FetchIfNeeded && getAge > 3600)
 
-    if(forceFresh) {
+    callback(get, doNetwork)
+
+    if(doNetwork) {
       a.restServiceConnection.request(
         RestRequest(url)) { response =>
           val newValues = Parser.parseList[T](response.body)(mf)
@@ -41,6 +53,7 @@ object Data {
 
   def save(key: String, value: String)(implicit context: Context) = {
     val editor = getUserPreferences.edit
+    editor.putString("%s_age".format(key), System.currentTimeMillis.toString)
     editor.putString(key, value)
     editor.commit
   }

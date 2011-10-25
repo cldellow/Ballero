@@ -1,4 +1,6 @@
+.history
 *.keystore
+Keys.scala
 p_strings.xml
 .class
 target/

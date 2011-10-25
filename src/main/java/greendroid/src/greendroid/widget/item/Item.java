@@ -102,6 +102,11 @@ public abstract class Item {
         mTags.put(key, tag);
     }
 
+    public Item goesTo(Class<?> klazz) {
+      setTag(klazz);
+      return this;
+    }
+
     /**
      * Return a view that is associated to the current item. The returned view
      * is normally capable of being a good recipient for all item's information.

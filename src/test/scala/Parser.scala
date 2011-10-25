@@ -9,6 +9,10 @@ import org.json._
 
 class Parser extends Spec with ShouldMatchers {
   describe("json parser") {
+    it("can parse a case class with 1 string and ignore extra crap") {
+      val x: OneString = Parser.parse[OneString]("""{ "foo" : "bar", "baz" :"foo" }""")
+      assert(x === OneString("bar"))
+    }
     it("can parse a case class with 1 string") {
       val x: OneString = Parser.parse[OneString]("""{ "foo" : "bar" }""")
       assert(x === OneString("bar"))

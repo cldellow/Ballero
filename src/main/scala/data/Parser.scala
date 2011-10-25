@@ -37,7 +37,7 @@ object Parser {
   }
 
   private def parseOption(jsonObject: JSONObject, name: String, desiredType: Class[_]): Option[_] =
-    if(jsonObject has name)
+    if(jsonObject.has(name) && !jsonObject.isNull(name))
       Some(parseTypeFromObject(jsonObject, name, desiredType))
     else
       None

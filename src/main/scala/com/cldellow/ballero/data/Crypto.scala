@@ -7,6 +7,9 @@ import javax.crypto.spec._
 import java.text.SimpleDateFormat
 import java.util.Date
 
+// android
+import android.util.Log
+
 
 // 3rd party
 import org.coriander.oauth._
@@ -15,10 +18,30 @@ import org.coriander.oauth.core.cryptography._
 
 /** Wrappers for crypto functions */
 object Crypto {
-  private val consumer = new Consumer(new Credential(Keys.key, Keys.secret))
-  def sign(url: String): String = {
-    val uri = new java.net.URI(url)
-    consumer.sign(uri).toString
+  private def finalsign(url: String, params: Map[String, String], secret: String): String = {
+    val proveMe = "%s?%s".format(url, params.keySet.toList.sorted
+      .map { name => (name, params(name)) }
+      .map { case (name, value) => "%s=%s".format(encode(name), encode(value)) }.mkString("&")
+    )
+
+    val hmac256 = new HmacSha256
+    val signature = Base64.encode(hmac256.create(secret, proveMe))
+    "%s&signature=%s".format(proveMe, encode(signature))
+  }
+
+  private def commonParams: Map[String, String] =
+    Map("access_key" -> Keys.key, "timestamp" -> iso8601)
+
+  /** Sign a request as a user */
+  def sign(url: String, params: Map[String, String], token: String, secret: String): String = {
+    val paramsToSign = params ++ commonParams ++ Map("auth_token" -> token)
+    finalsign(url, paramsToSign, secret)
+  }
+
+  /** Sign a request as Ballero */
+  def appsign(url: String, params: Map[String, String]): String = {
+    val paramsToSign = params ++ commonParams
+    finalsign(url, paramsToSign, Keys.secret)
   }
 
   private def hash(input: String): Array[Byte] = {
@@ -30,7 +53,10 @@ object Crypto {
   lazy val aesKey: Array[Byte] = hash(Keys.secret)
 
   /** Returns a base64 encoded AES256 encrypted version of cleartext using the SHA-256
-      hash of your OAuth secret as a key. */
+      hash of your OAuth secret as a key.
+
+      Note: uses CBC with all zeroes initialization vector.
+  */
   def aes256(cleartext: String): String = {
     val secretKeySpec = new SecretKeySpec(aesKey, "AES")
     val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
@@ -41,6 +67,7 @@ object Crypto {
     Base64.encode(encrypted)
   }
 
+  /** Gets an ISO8601 formatted timestamp. */
   def iso8601: String = {
     val now = new Date()
     val sdf: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.000Z")
@@ -48,20 +75,6 @@ object Crypto {
   }
 
   private def encode(str: String): String = java.net.URLEncoder.encode(str, "UTF-8")
-
-  def appsign(url: String, params: Map[String, String]): String = {
-    val timestamp = iso8601
-    val paramsToSign = params ++ Map("access_key" -> Keys.key, "timestamp" -> timestamp)
-    val proveMe = "%s?%s".format(url, paramsToSign.keySet.toList.sorted
-      .map { name => (name, paramsToSign(name)) }
-      .map { case (name, value) => "%s=%s".format(encode(name), encode(value)) }.mkString("&")
-    )
-
-
-    val hmac256 = new HmacSha256
-    val signature = Base64.encode(hmac256.create(Keys.secret, proveMe))
-    "%s&signature=%s".format(proveMe, encode(signature))
-  }
 }
 
 // vim: set ts=2 sw=2 et:

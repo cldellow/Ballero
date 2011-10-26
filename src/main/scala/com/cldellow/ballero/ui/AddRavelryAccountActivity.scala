@@ -50,6 +50,18 @@ class AddRavelryAccountActivity extends GDActivity with SmartActivity {
 
   def goodLogin(username: String, auth_token: String, signing_key: String) {
     longToast("Great! Hang on a sec, admiring your knitting.")
+
+    /*
+    val signedFriends = Crypto.sign(
+      "http://api.ravelry.com/people/%s/friends/list.json".format(username),
+      Map(),
+      auth_token,
+      signing_key)
+    info("friends: %s".format(signedFriends))
+    restServiceConnection.request(RestRequest(signedFriends)) { response =>
+      info("response: %s".format(response))
+    }
+    */
   }
 
 

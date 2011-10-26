@@ -40,33 +40,33 @@ class LysStoresMapActivity extends GDMapActivity with SmartActivity {
 
   override def isRouteDisplayed = false
 
-  private def handleResponse(shops: ShopResponse) {
-    val overlays = mapView.getOverlays
+  private def makeDetails(shop: LocalYarnStore): String = {
+    import shop._
+    List[Option[String]](Some(address), Some(zip), shop_email, Some(phone), twitter_id map { "@" + _ }, Some(url))
+      .flatten.mkString("\n")
+  }
 
-    val basicOverlay = new BasicItemizedOverlay(this,
-      new MapPinDrawable(getResources,
-        LysStoresMapActivity.createRandomColorStateList,
-        LysStoresMapActivity.createRandomColorStateList))
+  private def handleResponse(shops: ShopResponse) {
+    if (shops.shops.isEmpty) {
+      toast("Sorry, no nearby stores!")
+      return
+    }
+
+    val overlays = mapView.getOverlays
+    val drawable = getResources().getDrawable(R.drawable.marker)
+
+    val basicOverlay = new StoreOverlay(drawable, mapView)
   //Drawable drawable = this.getResources().getDrawable(R.drawable.androidmarker);
 //HelloItemizedOverlay itemizedoverlay = new HelloItemizedOverlay(drawable, this);
     shops.shops.foreach { shop =>
       val point = new GeoPoint((shop.latitude * 1e6).toInt, (shop.longitude * 1e6).toInt)
-      val overlayItem = new OverlayItem(point, shop.name, shop.address)
+      val overlayItem = new BalloonOverlayItem(point, shop)
       basicOverlay.addOverlay(overlayItem)
     }
 
     overlays.add(basicOverlay)
+    mapView.invalidate()
   }
-/*
-GeoPoint point = new GeoPoint(19240000,-99120000);
-OverlayItem overlayitem = new OverlayItem(point, "Hola, Mundo!", "I'm in Mexico City!");
-GeoPoint point2 = new GeoPoint(35410000, 139460000);
-OverlayItem overlayitem2 = new OverlayItem(point2, "Sekai, konichiwa!", "I'm in Japan!");
-itemizedoverlay.addOverlay(overlayitem);
-itemizedoverlay.addOverlay(overlayitem2);
-mapOverlays.add(itemizedoverlay);
-  }
-  */
 
   def query(lat: BigDecimal, lng: BigDecimal) {
     restServiceConnection.request(
@@ -74,19 +74,8 @@ mapOverlays.add(itemizedoverlay);
         Keys.appsign("http://api.ravelry.com/shops/search.json",
           Map("lat" -> lat.toString, "units" -> "km", "lng" -> lng.toString, "shop_type_id" -> "1",
             "radius" -> "40")))) { response =>
-      info("resp length: %s".format(response.body.length))
       val shops = Parser.parse[ShopResponse](response.body)
       handleResponse(shops)
     }
-  }
-}
-
-object LysStoresMapActivity {
-  val PRESSED_STATE = List(android.R.attr.state_pressed).toArray
-  private def createRandomColorStateList(): ColorStateList = {
-    val states = List(PRESSED_STATE, DrawableStateSet.EMPTY_STATE_SET)
-    val colors = List(Color.BLUE, Color.RED)
-
-    new ColorStateList(states.toArray, colors.toArray)
   }
 }

@@ -147,7 +147,7 @@ public class MapPinMapActivity extends GDMapActivity {
         protected boolean onTap(int index) {
             return true;
         }
-
+Context mContext;
     }
 
     private ColorStateList createRandomColorStateList() {

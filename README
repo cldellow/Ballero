@@ -1,1 +1,7 @@
 Potentially an Android app that plays with Ravelry.com's APIs.
+
+Thanks to the folks who made useful libraries with permissive licenses:
+ - Cyril Mottier's GreenDroid UI library
+ - Android-MapViewBalloons, by readyState Software
+ - Doug Crockford's reference JSON implementation
+ - Ben Biddington's OAuth.Coriander

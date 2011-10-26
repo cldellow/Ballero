@@ -1,4 +1,15 @@
-Potentially an Android app that plays with Ravelry.com's APIs.
+An Android app that plays with Ravelry.com's APIs.
+
+Current capabilities:
+
+- find LYS, plot on Google map with links to web sites, phone #s and twitter feeds
+- display your needle collection
+
+In progress features:
+
+- project list
+
+GitHub's heuristics to the contrary, the app is written in Scala, not Java.
 
 Thanks to the folks who made useful libraries with permissive licenses:
  - Cyril Mottier's GreenDroid UI library

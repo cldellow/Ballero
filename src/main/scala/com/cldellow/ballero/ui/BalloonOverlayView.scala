@@ -83,7 +83,7 @@ extends FrameLayout(context) {
   }
 
   def twitterClick(v: View) {
-    item map { item => new Intent(Intent.ACTION_VIEW, Uri.parse("http://twitter.com/" + item.shop.twitter_id.get)) } map {
+    item map { item => new Intent(Intent.ACTION_VIEW, Uri.parse("https://mobile.twitter.com/" + item.shop.twitter_id.get)) } map {
       context.startActivity(_) }
   }
 

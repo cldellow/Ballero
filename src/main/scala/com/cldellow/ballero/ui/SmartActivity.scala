@@ -32,6 +32,11 @@ trait SmartActivity extends Activity {// this: Activity =>
     Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
   }
 
+  def longToast(s: String) {
+    Toast.makeText(this, s, Toast.LENGTH_LONG).show()
+  }
+
+
   protected def info(s: String) { Log.i(TAG, s) }
   protected def warn(s: String) { Log.w(TAG, s) }
   protected def error(s: String) { Log.e(TAG, s) }

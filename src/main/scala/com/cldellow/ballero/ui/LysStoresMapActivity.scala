@@ -69,11 +69,11 @@ class LysStoresMapActivity extends GDMapActivity with SmartActivity {
   }
 
   def query(lat: BigDecimal, lng: BigDecimal) {
-    restServiceConnection.request(
-      RestRequest(
-        Keys.appsign("http://api.ravelry.com/shops/search.json",
-          Map("lat" -> lat.toString, "units" -> "km", "lng" -> lng.toString, "shop_type_id" -> "1",
-            "radius" -> "40")))) { response =>
+    val url = Crypto.appsign("http://api.ravelry.com/shops/search.json",
+      Map("lat" -> lat.toString, "units" -> "km", "lng" -> lng.toString, "shop_type_id" -> "1",
+            "radius" -> "40"))
+    info("lys url: %s".format(url))
+    restServiceConnection.request(RestRequest(url)) { response =>
       val shops = Parser.parse[ShopResponse](response.body)
       handleResponse(shops)
     }

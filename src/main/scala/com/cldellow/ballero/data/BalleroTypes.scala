@@ -37,7 +37,7 @@ class NetworkResource[T](val url: String)(implicit mf: Manifest[T]) {
   }
 }
 
-case class User(name: String, oauth_token: Option[String]) {
+case class User(name: String, oauth_token: Option[OAuthCredential]) {
   private val _needleResource = 
     new NetworkResource[Needle]("http://rav.cldellow.com:8080/rav/people/%s/needles".format(name))
   def needles: NetworkResource[Needle] = _needleResource
@@ -68,8 +68,14 @@ object Data {
 
   def users(implicit context: Context): List[User] = {
     val prefs = getGlobalPreferences(context)
-    val storedValue = prefs.getString(usersKey, """{ "users" : [{ "name" : "cldellow" }, { "name" : "jkdellow" }] }""")
+    val storedValue = prefs.getString(usersKey, """{ "users" : [] }""")
     Parser.parse[Users](storedValue).users
   }
+
+  def saveUser(user: User)(implicit context: Context) {
+    val serialized = Parser.serialize(Users(user :: (users(context) filter { _.name != user.name })))
+    Log.i("DATA", "saving users: %s".format(serialized))
+    getGlobalPreferences.edit.putString(usersKey, serialized).commit
+  }
 }
-// vim: set ts=2 sw=2 et:
+

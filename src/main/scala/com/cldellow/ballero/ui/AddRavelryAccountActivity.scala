@@ -6,7 +6,7 @@ import com.cldellow.ballero.data._
 
 import scala.collection.JavaConversions._
 import android.app.Activity
-import android.content.Context
+import android.content._
 import android.location._
 import android.os.Bundle
 import android.util.Log
@@ -50,6 +50,25 @@ class AddRavelryAccountActivity extends GDActivity with SmartActivity {
 
   def goodLogin(username: String, auth_token: String, signing_key: String) {
     longToast("Great! Hang on a sec, admiring your knitting.")
+
+    val newUser = User(username, Some(OAuthCredential(auth_token, signing_key)))
+    Data.currentUser = Some(newUser)
+    Data.saveUser(newUser)
+    val intent = new Intent(this, classOf[RavellerHomeActivity])
+    intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, username)
+    startActivity(intent)
+
+    /*
+    val signedProjects = Crypto.sign(
+      "http://api.ravelry.com/projects/%s/list.json".format(username),
+      Map(),
+      auth_token,
+      signing_key)
+    info("projects: %s".format(signedProjects))
+    restServiceConnection.request(RestRequest(signedProjects)) { response =>
+      info("response: %s".format(response))
+    }
+    */
 
     /*
     val signedFriends = Crypto.sign(

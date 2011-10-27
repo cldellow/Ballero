@@ -32,6 +32,11 @@ trait SmartActivity extends Activity {// this: Activity =>
     Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
   }
 
+  def goesTo[Destination <: Activity, Target <: Item](target: Target)(implicit mf: Manifest[Destination]): Target = {
+    target.setTag(mf.erasure)
+    target
+  }
+
   def longToast(s: String) {
     Toast.makeText(this, s, Toast.LENGTH_LONG).show()
   }

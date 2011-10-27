@@ -14,6 +14,8 @@ import android.util.Log
 import android.view.View
 import android.widget._
 import greendroid.app._
+import greendroid.widget.ActionBarItem.Type
+import greendroid.graphics.drawable._
 import greendroid.widget._
 import greendroid.widget.item._
 
@@ -22,39 +24,64 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
 
   var adapter: ItemAdapter = null
 
-  var needlesItem: Item = null
+  var needlesItem: SubtitleItem = null
+
+  var refreshButton: LoaderActionBarItem = null
+
+  var numPending: Int = 0
 
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     adapter = new ItemAdapter(this)
 
-    needlesItem = (new ProgressItem("needles", true)) goesTo classOf[NeedlesActivity]
+    needlesItem = goesTo[NeedlesActivity, SubtitleItem](new SubtitleItem("needles", "", true))
     adapter.add(needlesItem)
-    /*
-    restServiceConnection.request(
-      RestRequest("http://rav.cldellow.com:8080/rav/people/%s/needles.json".format(Data.currentUser.get.name))
-    )(onNeedlesDownloaded)
-    */
-    setListAdapter(adapter)
 
+    setListAdapter(adapter)
+    refreshButton = addActionBarItem(Type.Refresh, R.id.action_bar_refresh).asInstanceOf[LoaderActionBarItem]
   }
+
+  override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
+    item.getItemId match {
+      case R.id.action_bar_refresh =>
+        refreshAll(ForceNetwork)
+        true
+      case _ =>
+        true
+    }
 
   override def onResume {
     super.onResume
-    Data.currentUser.get.needles.render(FetchIfNeeded, onNeedlesChanged)
+    refreshAll(FetchIfNeeded)
+  }
+
+  private def refreshAll(policy: RefreshPolicy) {
+    refreshButton.setLoading(true)
+    numPending += 1
+    Data.currentUser.get.needles.render(policy, onNeedlesChanged)
+  }
+
+  private def updatePendings(pending: Boolean) {
+    if(!pending) {
+      numPending -= 1
+      if(numPending <= 0) {
+        numPending = 0
+        refreshButton.setLoading(false)
+      }
+    }
   }
 
   private def onNeedlesChanged(needles: List[Needle], pending: Boolean) {
-    adapter.remove(needlesItem)
+    updatePendings(pending)
 
     val subtitle = if(needles.isEmpty) "no needles" else needles.groupBy { _.kind }
       .map { case(kind, needles) => "%s %s".format(needles.length, kind) }
       .mkString(", ")
 
-    println("pending: %s".format(pending))
-    needlesItem = new SubtitleItem("needles", subtitle, pending) goesTo classOf[NeedlesActivity]
-    adapter.add(needlesItem)
-    onContentChanged()
+    needlesItem.subtitle = subtitle
+    needlesItem.inProgress = pending
+
+    onContentChanged
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {

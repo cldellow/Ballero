@@ -215,9 +215,11 @@ object Parser {
         rawType.getName match {
           case "scala.collection.immutable.List" =>
             val listValue = field.get(item)
-            jsonObject.put(name,
-              JavaConversions.asJavaCollection(listValue.asInstanceOf[List[_]].map { item => 
-                toSerializedForm(actualTypes.head, item) }))
+            // Scala's compiler blows at overloaded methods
+            jsonObject.put(name, new JSONArray)
+            listValue.asInstanceOf[List[_]].foreach { item =>
+              jsonObject.accumulate(name, toSerializedForm(actualTypes.head, item))
+            }
           case "scala.Option" =>
             val optionalValue = field.get(item)
             if(optionalValue != None) {
@@ -234,7 +236,8 @@ object Parser {
 
   def serialize[T <: Product](item: T, klazz: Class[_]): JSONObject = {
     val result = new JSONObject
-    val fields = klazz.getDeclaredFields.filter { !_.getName.startsWith("$")}.toList
+    val fields = klazz.getDeclaredFields.filter { field => !field.getName.startsWith("$") &&
+    !field.getName.startsWith("_")}.toList
     fields.foreach { field =>
       serializeTypeToObject(item, field, field.getGenericType, result)
     }

@@ -12,6 +12,41 @@ case class OAuthCredential (
   signing_key: String
 )
 
+case class Id (id: Int)
+case class QueuedProjects (queued_projects: List[Id])
+case class SimpleProjects (projects: List[Project])
+case class Photo (
+  id: Int,
+  medium_url: String,
+  small_url: String,
+  square_url: String,
+  thumbnail_url: String
+)
+
+sealed trait ProjectStatus
+case object InProgress extends ProjectStatus
+case object Finished extends ProjectStatus
+case object Unknown extends ProjectStatus
+
+case class Project (
+  first_photo: Option[Photo],
+  id: Int,
+  made_for: String,
+  name: String,
+  pattern_id: Option[Int],
+  pattern_name: String,
+  permalink: String,
+  progress: Option[Int],
+  /* "In progress", "Finished" */
+  status_name: String
+) {
+  def status: ProjectStatus = status_name match {
+    case "In progress" => InProgress
+    case "Finished" => Finished
+    case _ => Unknown
+  }
+}
+
 case class Needle(
   comment: String,
   gaugeMetric: BigDecimal,

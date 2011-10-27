@@ -25,6 +25,7 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
   var adapter: ItemAdapter = null
 
   var needlesItem: SubtitleItem = null
+  var projectsItem: SubtitleItem = null
 
   var refreshButton: LoaderActionBarItem = null
 
@@ -35,6 +36,8 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
     adapter = new ItemAdapter(this)
 
     needlesItem = goesTo[NeedlesActivity, SubtitleItem](new SubtitleItem("needles", "", true))
+    projectsItem = goesTo[NeedlesActivity, SubtitleItem](new SubtitleItem("projects", "", true))
+    adapter.add(projectsItem)
     adapter.add(needlesItem)
 
     setListAdapter(adapter)
@@ -55,10 +58,14 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
     refreshAll(FetchIfNeeded)
   }
 
+  private var projectsPending = 0
   private def refreshAll(policy: RefreshPolicy) {
     refreshButton.setLoading(true)
-    numPending += 1
+    numPending += 3
+    projectsPending += 2
     Data.currentUser.get.needles.render(policy, onNeedlesChanged)
+    Data.currentUser.get.queue.render(policy, onQueueChanged)
+    Data.currentUser.get.projects.render(policy, onProjectsChanged)
   }
 
   private def updatePendings(pending: Boolean) {
@@ -69,6 +76,47 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
         refreshButton.setLoading(false)
       }
     }
+  }
+
+  private var queued: List[Id] = Nil
+  private var projects: List[Project] = Nil
+
+  private def onQueueChanged(queued: List[Id], pending: Boolean) {
+    updatePendings(pending)
+    if(!pending)
+      projectsPending -= 1
+
+    this.queued = queued
+    updateProjectsItem
+
+  }
+
+  private def onProjectsChanged(projects: List[Project], pending: Boolean) {
+    updatePendings(pending)
+
+    if(!pending)
+      projectsPending -= 1
+
+    this.projects = projects
+    updateProjectsItem
+  }
+
+  private def updateProjectsItem {
+    val subtitle = 
+      if(queued.isEmpty && projects.isEmpty)
+        "no projects"
+      else {
+      val queue = if(queued.isEmpty) "queue empty" else "%s queued".format(queued.length)
+      val projectStrings = projects.filter { proj => proj.status == InProgress || proj.status == Finished }.groupBy { _.status_name }.map {
+      case (status, items) => "%s %s".format(items.length, status.toLowerCase) }
+
+      (projectStrings.toList ::: List(queue)).mkString(", ")
+    }
+
+    projectsItem.subtitle = subtitle
+    projectsItem.inProgress = projectsPending > 0
+
+    onContentChanged
   }
 
   private def onNeedlesChanged(needles: List[Needle], pending: Boolean) {

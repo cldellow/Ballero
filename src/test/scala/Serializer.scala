@@ -22,7 +22,7 @@ class Serializer extends Spec with ShouldMatchers {
       assert(out === """{}""")
     }
     it("can serialize a case class with a string/int") {
-      val out = Parser.serialize(StringInt("foo", 3))
+      val out = Parser.serialize(StringInt(3, "foo"))
       assert(out === """{"foo":"foo","bar":3}""")
     }
     it("can serialize a case class with an empty list of string") {

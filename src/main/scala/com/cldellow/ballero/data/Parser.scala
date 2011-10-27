@@ -76,7 +76,7 @@ object Parser {
   private def parseTypeFromObject(jsonObject: JSONObject, name: String, desiredType: Type): Any = desiredType match {
     case desiredType: Class[_] =>
       desiredType.getName match {
-        case "int" => jsonObject.getInt(name)
+        case "int"|"java.lang.Integer" => jsonObject.getInt(name)
         case "boolean" => jsonObject.getBoolean(name)
         case "java.lang.String" => jsonObject.getString(name)
         case "scala.math.BigDecimal" => BigDecimal(jsonObject.getDouble(name))
@@ -114,22 +114,12 @@ object Parser {
   def parse[T <: Product](jsonObject: JSONObject, klazz: Class[_]): T = {
     val constructors = klazz.getConstructors
 
+    // Sort them alphabetically descending so dexing can't screw us up
     val fields = klazz.getDeclaredFields.filter { f => 
       !f.getName.startsWith("$") && !f.getName.startsWith("_")
-    }.toList
-
-    /** Default arguments -- totally non-supported, but hey, it works. What could go wrong? */
-    val defaultArgument = "apply$default"
-    val methods = klazz.getDeclaredMethods.filter { method =>
-      method.getParameterTypes.length == 0 && method.getName.contains(defaultArgument)
-    }.toList
+    }.toList.sortBy { _.getName }
 
     val nameToIndex = Map() ++ fields.map { _.getName }.zipWithIndex
-
-    val defaultValues = Map() ++ methods.map { method =>
-      val index = (method.getName.reverse.takeWhile { _ != '$' }.reverse.toInt) - 1
-      fields(index).getName -> method
-    }
 
     val constructor = constructors.head
 
@@ -140,9 +130,6 @@ object Parser {
       if(jsonObject has name) {
         val desiredType = field.getGenericType
         List(name -> parseTypeFromObject(jsonObject, name, desiredType))
-      } else if(defaultValues contains name) {
-        // get the default value
-        List(name -> defaultValues(name).invoke(null))
       } else {
         // not found: if it's optional, use none
         field.getGenericType match {
@@ -180,15 +167,15 @@ object Parser {
   private def toSerializedForm(_type: Type, value: Any): Any = _type match {
     case desiredType: Class[_] =>
       desiredType.getName match {
-        case "int" => value.asInstanceOf[Int]
+        case "int"|"java.lang.Integer" => value.asInstanceOf[Int]
         case "boolean" => value.asInstanceOf[Boolean]
         case "java.lang.String" => value.asInstanceOf[String]
         case "scala.math.BigDecimal" => value.asInstanceOf[BigDecimal].toDouble
         case x if instanceOf(desiredType, classOf[Product]) =>
           serialize(value.asInstanceOf[Product], desiredType)
-        case x => error("unknown")
+        case x => error("unknown: %s".format(x))
       }
-    case x => error("unknown")
+    case x => error("unknown type: %s".format(x))
   }
 
   def serializeList[T](xs: List[T])(implicit mf: Manifest[T]): String = {

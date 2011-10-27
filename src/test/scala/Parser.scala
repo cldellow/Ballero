@@ -17,10 +17,6 @@ class Parser extends Spec with ShouldMatchers {
       val x: OneString = Parser.parse[OneString]("""{ "foo" : "bar" }""")
       assert(x === OneString("bar"))
     }
-    it("can parse a case class with 1 string, and 1 defualt argument") {
-      val x: TwoStringsDefault = Parser.parse[TwoStringsDefault]("""{ "foo" : "bar" }""")
-      assert(x === TwoStringsDefault("bar", "foo"))
-    }
     it("can parse a case class with list of strings") {
       val x: ListString = Parser.parse[ListString]("""{ "foo" : ["bar", "baz"] }""")
       assert(x === ListString(List("bar", "baz")))
@@ -37,7 +33,7 @@ class Parser extends Spec with ShouldMatchers {
     it("can parse a case class with a string/int") {
       val x: StringInt = Parser.parse[StringInt](
         """{ "foo" : "foo", "bar": 3 }""")
-      assert(x === StringInt("foo", 3))
+      assert(x === StringInt(3, "foo"))
     }
     it("can parse a case class with an optional string") {
       val x: OptionalString = Parser.parse[OptionalString]("{}")

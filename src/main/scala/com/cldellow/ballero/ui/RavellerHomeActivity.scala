@@ -78,10 +78,10 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
     }
   }
 
-  private var queued: List[Id] = Nil
+  private var queued: List[SimpleQueuedProject] = Nil
   private var projects: List[Project] = Nil
 
-  private def onQueueChanged(queued: List[Id], pending: Boolean) {
+  private def onQueueChanged(queued: List[SimpleQueuedProject], pending: Boolean) {
     updatePendings(pending)
     if(!pending)
       projectsPending -= 1

@@ -62,5 +62,10 @@ class Parser extends Spec with ShouldMatchers {
       val x: List[CaseBoolean] = Parser.parseList[CaseBoolean]("""[{"foo":true}]""")
       assert(x === List(CaseBoolean(true)))
     }
+    it("can parse an optional list of case classes") {
+      val x: OptionListCaseClass = Parser.parse[OptionListCaseClass]("""{"foo":[{"foo":"bar"}]}""")
+      assert(x === OptionListCaseClass(Some(List(OneString("bar")))))
+    }
+
   }
 }

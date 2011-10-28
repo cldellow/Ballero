@@ -36,18 +36,20 @@ object Parser {
     parse(jsonObject, mf.erasure)
   }
 
-  private def parseOption(jsonObject: JSONObject, name: String, desiredType: Class[_]): Option[_] =
-    if(jsonObject.has(name) && !jsonObject.isNull(name))
-      Some(parseTypeFromObject(jsonObject, name, desiredType))
+  private def parseOption(value: Any, desiredType: Type): Option[_] =
+    if(value != null && value.asInstanceOf[AnyRef] != null && value.toString != "null")
+      Some(parseType(value, desiredType))
     else
       None
 
-  private def parseArray(jsonArray: JSONArray, desiredType: Class[_]): List[_] =
+  private def parseArray(jsonArray: JSONArray, desiredType: Type): List[_] =
     if(jsonArray.length == 0)
       Nil
     else {
       val listBuffer = new collection.mutable.ListBuffer[Any]
       for(i <- 0 until jsonArray.length) {
+        listBuffer += parseType(jsonArray.get(i), desiredType)
+        /*
         listBuffer += (desiredType.getCanonicalName match {
           case "int" => jsonArray.getInt(i)
           case "java.lang.String" => jsonArray.getString(i)
@@ -56,6 +58,7 @@ object Parser {
             parse(jsonArray.getJSONObject(i), desiredType)
           case x => error("can't parse %s from array".format(desiredType))
         })
+        */
       }
       listBuffer.toList
     }
@@ -73,35 +76,48 @@ object Parser {
     (what :: what.getInterfaces.toList)
       .map { actualInstanceOf(_, target) }.reduceLeft { _ || _ }
 
-  private def parseTypeFromObject(jsonObject: JSONObject, name: String, desiredType: Type): Any = desiredType match {
+  private def parseTypeFromObject(jsonObject: JSONObject, name: String, desiredType: Type): Any = {
+    //Log.i("PARSER", "parsing field %s".format(name))
+    parseType(jsonObject.opt(name), desiredType)
+  }
+
+  private def parseType(value: Any, desiredType: Type): Any = desiredType match {
     case desiredType: Class[_] =>
+      //Log.i("PARSER", "attempting to parse %s".format(value))
       desiredType.getName match {
-        case "int"|"java.lang.Integer" => jsonObject.getInt(name)
-        case "boolean" => jsonObject.getBoolean(name)
-        case "java.lang.String" => jsonObject.getString(name)
-        case "scala.math.BigDecimal" => BigDecimal(jsonObject.getDouble(name))
+        case "int"|"java.lang.Integer" => value.asInstanceOf[Int]
+        case "boolean" => value.asInstanceOf[Boolean]
+        case "java.lang.String" => value.asInstanceOf[String]
+        case "scala.math.BigDecimal" => BigDecimal(
+          if(value.isInstanceOf[Int])
+            value.asInstanceOf[Int]
+          else if(value.isInstanceOf[Double])
+            value.asInstanceOf[Double]
+          else
+            error("unknown numeric type: %s".format(value))
+          )
         case x if instanceOf(desiredType, classOf[Product]) =>
-          parse(jsonObject.getJSONObject(name), desiredType)
+          parse(value.asInstanceOf[JSONObject], desiredType)
         case x => error("unknown class: %s (%s)"
           .format(x,
             desiredType
           ))
       }
     case desiredType: ParameterizedType =>
+      //Log.i("PARSER", "attempting to parse %s".format(value))
       // OK, desiredType.getActualTypeArguments gives Class... now, how do we know
       // what the outer one is?
       require(desiredType.getRawType.isInstanceOf[Class[_]], "rawType is not an instance of Class[T]")
-      require(desiredType.getActualTypeArguments.forall { arg => arg.isInstanceOf[Class[_]] },
+      require(desiredType.getActualTypeArguments.forall { arg => arg.isInstanceOf[Class[_]] ||
+      arg.isInstanceOf[ParameterizedType] },
         "one of the actualTypeArguments is not an instance of Class[T]")
       val rawType = desiredType.getRawType.asInstanceOf[Class[_]]
-      val actualTypes = desiredType.getActualTypeArguments.collect { case x: Class[_] => x }
       rawType.getName match {
         case "scala.collection.immutable.List" =>
-          val array = jsonObject.getJSONArray(name)
-          // Thanks for special casing everything, jerkwads.
-          parseArray(array, actualTypes.head)
+          val array = value.asInstanceOf[JSONArray]
+          parseArray(array, desiredType.getActualTypeArguments.head)
         case "scala.Option" =>
-          parseOption(jsonObject, name, actualTypes.head)
+          parseOption(value, desiredType.getActualTypeArguments.head)
       }
     case x => 
       println("x is TypeVar: %s".format(x.isInstanceOf[TypeVariable[_]]))
@@ -164,24 +180,50 @@ object Parser {
 
   def serialize[T <: Product](item: T)(implicit mf: Manifest[T]): String = serialize(item, mf.erasure).toString
 
-  private def toSerializedForm(_type: Type, value: Any): Any = _type match {
-    case desiredType: Class[_] =>
-      desiredType.getName match {
-        case "int"|"java.lang.Integer" => value.asInstanceOf[Int]
-        case "boolean" => value.asInstanceOf[Boolean]
-        case "java.lang.String" => value.asInstanceOf[String]
-        case "scala.math.BigDecimal" => value.asInstanceOf[BigDecimal].toDouble
-        case x if instanceOf(desiredType, classOf[Product]) =>
-          serialize(value.asInstanceOf[Product], desiredType)
-        case x => error("unknown: %s".format(x))
-      }
-    case x => error("unknown type: %s".format(x))
+  private def toSerializedForm(_type: Type, value: Any): Option[Any] = {
+    _type match {
+      case desiredType: Class[_] =>
+        Some(desiredType.getName match {
+          case "int"|"java.lang.Integer" => value.asInstanceOf[Int]
+          case "boolean" => value.asInstanceOf[Boolean]
+          case "java.lang.String" => value.asInstanceOf[String]
+          case "scala.math.BigDecimal" => value.asInstanceOf[BigDecimal].toDouble
+          case x if instanceOf(desiredType, classOf[Product]) =>
+            serialize(value.asInstanceOf[Product], desiredType)
+          case x => error("unknown: %s".format(x))
+        })
+      case desiredType: ParameterizedType =>
+        // OK, desiredType.getActualTypeArguments gives Class... now, how do we know
+        // what the outer one is?
+        require(desiredType.getRawType.isInstanceOf[Class[_]], "rawType is not an instance of Class[T]")
+        val rawType = desiredType.getRawType.asInstanceOf[Class[_]]
+        val actualTypes = desiredType.getActualTypeArguments//.collect { case x: Class[_] => x }
+        rawType.getName match {
+          case "scala.collection.immutable.List" =>
+            val listValue = value
+            // Scala's compiler blows at overloaded methods
+            val rv = new JSONArray
+            listValue.asInstanceOf[List[_]].foreach { item =>
+              toSerializedForm(actualTypes.head, item) map { rv.put(_) }
+            }
+            Some(rv)
+          case "scala.Option" =>
+            val optionalValue = value
+            if(optionalValue != None) {
+              val realValue = optionalValue.asInstanceOf[Option[_]].get
+              toSerializedForm(actualTypes.head, realValue)
+            } else {
+              None
+            }
+        }
+      case x => error("unknown type: %s".format(x))
+    }
   }
 
   def serializeList[T](xs: List[T])(implicit mf: Manifest[T]): String = {
     new JSONArray(
       JavaConversions.asJavaCollection(xs.map { item => 
-        toSerializedForm(mf.erasure, item) })).toString
+        toSerializedForm(mf.erasure, item) }.flatten)).toString
   }
 
   private def serializeTypeToObject(item: Any, field: Field, _type: Type, jsonObject: JSONObject) {
@@ -190,28 +232,30 @@ object Parser {
     val name = field.getName
     _type match {
       case desiredType: Class[_] =>
-        jsonObject.put(name, toSerializedForm(_type, field.get(item)))
+        toSerializedForm(_type, field.get(item)) map { rv => jsonObject.put(name, rv) }
       case desiredType: ParameterizedType =>
         // OK, desiredType.getActualTypeArguments gives Class... now, how do we know
         // what the outer one is?
         require(desiredType.getRawType.isInstanceOf[Class[_]], "rawType is not an instance of Class[T]")
-        require(desiredType.getActualTypeArguments.forall { arg => arg.isInstanceOf[Class[_]] },
-          "one of the actualTypeArguments is not an instance of Class[T]")
         val rawType = desiredType.getRawType.asInstanceOf[Class[_]]
-        val actualTypes = desiredType.getActualTypeArguments.collect { case x: Class[_] => x }
+        val actualTypes = desiredType.getActualTypeArguments//.collect { case x: Class[_] => x }
         rawType.getName match {
           case "scala.collection.immutable.List" =>
             val listValue = field.get(item)
             // Scala's compiler blows at overloaded methods
             jsonObject.put(name, new JSONArray)
             listValue.asInstanceOf[List[_]].foreach { item =>
-              jsonObject.accumulate(name, toSerializedForm(actualTypes.head, item))
+              toSerializedForm(actualTypes.head, item) map { rv => 
+                jsonObject.accumulate(name, rv)
+              }
             }
           case "scala.Option" =>
             val optionalValue = field.get(item)
             if(optionalValue != None) {
               val realValue = optionalValue.asInstanceOf[Option[_]].get
-              jsonObject.put(name, toSerializedForm(actualTypes.head, realValue))
+              toSerializedForm(actualTypes.head, realValue) map { rv =>
+                jsonObject.put(name, rv)
+              }
             }
         }
       case x => 

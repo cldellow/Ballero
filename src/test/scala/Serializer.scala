@@ -47,5 +47,9 @@ class Serializer extends Spec with ShouldMatchers {
       val out2 = Parser.serialize(CaseBoolean(false))
       assert(out2 === """{"foo":false}""")
     }
+    it("can serialize a case class with optional list of caseclasses") {
+      val out = Parser.serialize(OptionListCaseClass(Some(List(OneString("bar")))))
+      assert(out === """{"foo":[{"foo":"bar"}]}""")
+     }
   }
 }

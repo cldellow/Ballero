@@ -81,18 +81,13 @@ class TransformedNetworkResource[From <: Product, To <: Product] (in: NetworkRes
 }
 
 /** Convenience class to map asynchronously from one domain object to another */
-class QueueNetworkResource(in: NetworkResource[Id]) extends
+class QueueNetworkResource(in: NetworkResource[SimpleQueuedProject]) extends
 NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")) {
   override def canNetwork = Data.currentUser map { _.hasToken } getOrElse false
 
-  def makeSignedResource(id: Int): NetworkResource[RavelryQueue] =
-    new TransformedNetworkResource[RavelryQueueProjectWrapper, RavelryQueue](
-      new SignedNetworkResource[RavelryQueueProjectWrapper](RavelryApi.queueDetails(id), false),
-      { qp => List(qp.queued_project) })
-
 
   override def get(implicit a: SmartActivity): List[RavelryQueue] =
-    in.get.map { id => makeSignedResource(id.id) }.flatMap { _.get }
+    in.get.map { id => RavelryApi.makeQueueDetailsResource(id.id) }.flatMap { _.get }
 
   override def render(refreshPolicy: RefreshPolicy, callback: (List[RavelryQueue], Boolean) => Unit)(implicit a: SmartActivity) {
     val doNetwork = (refreshPolicy == ForceNetwork ||
@@ -104,10 +99,25 @@ NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")
       in.render(refreshPolicy, fetchAll(callback))
     }
 
-    def fetchAll(callback: (List[RavelryQueue], Boolean) => Unit)(ids: List[Id], pending: Boolean) {
+    def fetchAll(callback: (List[RavelryQueue], Boolean) => Unit)(ids: List[SimpleQueuedProject], pending: Boolean) {
       val counter = new AtomicInteger(ids.length)
       ids.foreach { id =>
-        val resource = makeSignedResource(id.id)
+        val resource = RavelryApi.makeQueueDetailsResource(id.id)
+
+        id.pattern_id.map { pattern_id =>
+          counter.getAndIncrement
+
+          val patternResource = RavelryApi.makePatternDetailsResource(pattern_id)
+          patternResource.render(refreshPolicy, { (items, pending) =>
+            if(!pending) {
+              val newValue = counter.getAndDecrement
+
+              if(newValue == 1)
+                callback(get, false)
+            }
+          })
+        }
+
         resource.render(refreshPolicy, { (items, pending) =>
           if(!pending) {
             val newValue = counter.getAndDecrement
@@ -126,11 +136,12 @@ case class User(name: String, oauth_token: Option[OAuthCredential]) {
   def sign(url: UrlInput): String =
     Crypto.sign(url.base.replace("{user}", name), url.params, oauth_token.get.auth_token, oauth_token.get.signing_key)
 
+
   private val _needleResource = 
     new NetworkResource[Needle](RavelryApi.needleList)
 
   private val _queueResource =
-    new TransformedNetworkResource[QueuedProjects, Id](
+    new TransformedNetworkResource[QueuedProjects, SimpleQueuedProject](
       new SignedNetworkResource[QueuedProjects](RavelryApi.queueList, false),
       { qp => qp.queued_projects })
 
@@ -144,7 +155,7 @@ case class User(name: String, oauth_token: Option[OAuthCredential]) {
 
 
 
-  def queue: NetworkResource[Id] = _queueResource
+  def queue: NetworkResource[SimpleQueuedProject] = _queueResource
   def queuedProjects: NetworkResource[RavelryQueue] = _queuedProjectsResource
   def projects: NetworkResource[Project] = _projectResource
   def needles: NetworkResource[Needle] = _needleResource

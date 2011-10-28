@@ -11,6 +11,17 @@ object RavelryApi {
   def needleList = UrlInput("http://rav.cldellow.com:8080/rav/people/{user}/needles", Map(), "needles")
   def friendsList = UrlInput("%s/people/{user}/friends/list.json".format(root), Map(), "friends")
   def patternDetails(id: Int) = UrlInput("%s/patterns/%s.json".format(root, id), Map(), "pattern_%s".format(id))
+
+  def makeQueueDetailsResource(id: Int): NetworkResource[RavelryQueue] =
+    new TransformedNetworkResource[RavelryQueueProjectWrapper, RavelryQueue](
+      new SignedNetworkResource[RavelryQueueProjectWrapper](RavelryApi.queueDetails(id), false),
+      { qp => List(qp.queued_project) })
+
+  def makePatternDetailsResource(id: Int): NetworkResource[Pattern] =
+    new TransformedNetworkResource[PatternWrapper, Pattern](
+      new SignedNetworkResource[PatternWrapper](RavelryApi.patternDetails(id), false),
+      { qp => List(qp.pattern) })
+
 }
 
 // vim: set ts=2 sw=2 et:

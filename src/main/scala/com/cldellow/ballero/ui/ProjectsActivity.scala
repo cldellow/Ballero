@@ -86,13 +86,28 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
   private def updateItems {
     adapter = new ItemAdapter(this)
 
-    (queued ::: projects).sortBy { _.name }.foreach { projectish =>
+    (queued ::: projects).sortBy { _.uiName }.foreach { projectish =>
       projectish match {
         case q: RavelryQueue =>
-          val item = new TextItem(q.name)
+          val subtitle = "in queue"
+          val item = q.pattern_id.map { id => RavelryApi.makePatternDetailsResource(id).get }
+            .getOrElse(Nil).flatMap { pattern => pattern.photos.getOrElse(Nil)
+            } match {
+              case photo :: xs => new ThumbnailItem(q.uiName, subtitle, R.drawable.ic_gdcatalog, photo.thumbnail_url)
+              case Nil => new SubtitleItem(q.uiName, subtitle)
+            }
           adapter.add(item)
         case p: Project =>
-          val item = new TextItem(p.name)
+          val subtitle = p.status match {
+            case Finished => "finished"
+            case InProgress => "in progress"
+            case Unknown => "unknown"
+          }
+
+          val item = p.first_photo match {
+            case Some(photo) => new ThumbnailItem(p.uiName, subtitle, R.drawable.ic_gdcatalog, photo.thumbnail_url)
+            case None => new SubtitleItem(p.uiName, subtitle)
+          }
           adapter.add(item)
       }
     }

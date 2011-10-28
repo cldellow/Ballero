@@ -12,10 +12,15 @@ case class OAuthCredential (
   signing_key: String
 )
 
-case class Id (id: Int)
-case class QueuedProjects (queued_projects: List[Id])
+case class SimpleQueuedProject(
+  id: Int,
+  pattern_id: Option[Int]
+)
+case class QueuedProjects (queued_projects: List[SimpleQueuedProject])
 
 case class RavelryQueueProjectWrapper(queued_project: RavelryQueue)
+
+case class PatternWrapper(pattern: Pattern)
 
 case class Pattern(
   difficulty_average: BigDecimal,
@@ -25,8 +30,9 @@ case class Pattern(
   gauge_pattern: Option[String],
   id: Int,
   name: String,
-  notes: String,
+  notes: Option[String],
   permalink: String,
+  photos: Option[List[Photo]],
   price: Option[BigDecimal],
   row_gauge: Option[BigDecimal],
   yardage: Option[Int],
@@ -94,10 +100,12 @@ case class Pattern(
 case class RavelryQueue(
   id: Int,
   make_for: String,
+  name: String,
   pattern: Option[Pattern],
-  pattern_name: String
+  pattern_id: Option[Int],
+  pattern_name: Option[String]
 )  extends Projectish {
-  def name: String = pattern map { _.name } getOrElse pattern_name
+  def uiName: String = pattern.map { _.name }.getOrElse(pattern_name.getOrElse(name))
 }
 
 
@@ -116,7 +124,7 @@ case object Finished extends ProjectStatus
 case object Unknown extends ProjectStatus
 
 trait Projectish {
-  def name: String
+  def uiName: String
 }
 
 case class Project (
@@ -125,7 +133,7 @@ case class Project (
   made_for: String,
   name: String,
   pattern_id: Option[Int],
-  pattern_name: String,
+  pattern_name: Option[String],
   permalink: String,
   progress: Option[Int],
   /* "In progress", "Finished" */
@@ -136,6 +144,8 @@ case class Project (
     case "Finished" => Finished
     case _ => Unknown
   }
+
+  def uiName: String = name
 }
 
 case class Needle(

@@ -19,27 +19,20 @@ import greendroid.graphics.drawable._
 import greendroid.widget._
 import greendroid.widget.item._
 
-class RavellerHomeActivity extends GDListActivity with SmartActivity {
-  val TAG = "RavellerHomeActivity"
+class ProjectsActivity extends GDListActivity with SmartActivity {
+  val TAG = "ProjectsActivity"
 
   var adapter: ItemAdapter = null
 
-  var needlesItem: SubtitleItem = null
-  var projectsItem: SubtitleItem = null
+  private var projects: List[Project] = Nil
+  private var queued: List[RavelryQueue] = Nil
 
   var refreshButton: LoaderActionBarItem = null
-
   var numPending: Int = 0
 
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     adapter = new ItemAdapter(this)
-
-    needlesItem = goesTo[NeedlesActivity, SubtitleItem](new SubtitleItem("needles", "", true))
-    projectsItem = goesTo[ProjectsActivity, SubtitleItem](new SubtitleItem("projects", "", true))
-    adapter.add(projectsItem)
-    adapter.add(needlesItem)
-
     setListAdapter(adapter)
     refreshButton = addActionBarItem(Type.Refresh, R.id.action_bar_refresh).asInstanceOf[LoaderActionBarItem]
   }
@@ -58,15 +51,21 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
     refreshAll(FetchIfNeeded)
   }
 
-  private var projectsPending = 0
   private def refreshAll(policy: RefreshPolicy) {
     refreshButton.setLoading(true)
-    numPending += 3
-    projectsPending += 2
-    Data.currentUser.get.needles.render(policy, onNeedlesChanged)
-    Data.currentUser.get.queue.render(policy, onQueueChanged)
+    numPending += 2
+    Data.currentUser.get.queuedProjects.render(policy, onQueueChanged)
     Data.currentUser.get.projects.render(policy, onProjectsChanged)
   }
+
+  private def onQueueChanged(queued: List[RavelryQueue], pending: Boolean) {
+    this.queued = queued
+    updatePendings(pending)
+    println("new queue")
+    println(queued)
+    updateItems
+  }
+
 
   private def updatePendings(pending: Boolean) {
     if(!pending) {
@@ -78,65 +77,34 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
     }
   }
 
-  private var queued: List[Id] = Nil
-  private var projects: List[Project] = Nil
-
-  private def onQueueChanged(queued: List[Id], pending: Boolean) {
-    updatePendings(pending)
-    if(!pending)
-      projectsPending -= 1
-
-    this.queued = queued
-    updateProjectsItem
-
-  }
-
   private def onProjectsChanged(projects: List[Project], pending: Boolean) {
     updatePendings(pending)
-
-    if(!pending)
-      projectsPending -= 1
-
     this.projects = projects
-    updateProjectsItem
+    updateItems
   }
 
-  private def updateProjectsItem {
-    val subtitle = 
-      if(queued.isEmpty && projects.isEmpty)
-        "no projects"
-      else {
-      val queue = if(queued.isEmpty) "queue empty" else "%s queued".format(queued.length)
-      val projectStrings = projects.filter { proj => proj.status == InProgress || proj.status == Finished }.groupBy { _.status_name }.map {
-      case (status, items) => "%s %s".format(items.length, status.toLowerCase) }
+  private def updateItems {
+    adapter = new ItemAdapter(this)
 
-      (projectStrings.toList ::: List(queue)).mkString(", ")
+    (queued ::: projects).sortBy { _.name }.foreach { projectish =>
+      projectish match {
+        case q: RavelryQueue =>
+          val item = new TextItem(q.name)
+          adapter.add(item)
+        case p: Project =>
+          val item = new TextItem(p.name)
+          adapter.add(item)
+      }
     }
 
-    projectsItem.subtitle = subtitle
-    projectsItem.inProgress = projectsPending > 0
-
-    onContentChanged
-  }
-
-  private def onNeedlesChanged(needles: List[Needle], pending: Boolean) {
-    updatePendings(pending)
-
-    val subtitle = if(needles.isEmpty) "no needles" else needles.groupBy { _.kind }
-      .map { case(kind, needles) => "%s %s".format(needles.length, kind) }
-      .mkString(", ")
-
-    needlesItem.subtitle = subtitle
-    needlesItem.inProgress = pending
-
-    onContentChanged
+    setListAdapter(adapter)
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
+    /*
     val textItem: Item = l.getAdapter().getItem(position).asInstanceOf[Item]
-
     val intent: Intent = new Intent(this, textItem.getTag.asInstanceOf[Class[_]])
     startActivity(intent)
+    */
   }
-
 }

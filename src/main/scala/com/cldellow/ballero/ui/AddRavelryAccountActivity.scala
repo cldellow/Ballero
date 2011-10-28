@@ -57,30 +57,6 @@ class AddRavelryAccountActivity extends GDActivity with SmartActivity {
     val intent = new Intent(this, classOf[RavellerHomeActivity])
     intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, username)
     startActivity(intent)
-
-    /*
-    val signedProjects = Crypto.sign(
-      "http://api.ravelry.com/projects/%s/list.json".format(username),
-      Map(),
-      auth_token,
-      signing_key)
-    info("projects: %s".format(signedProjects))
-    restServiceConnection.request(RestRequest(signedProjects)) { response =>
-      info("response: %s".format(response))
-    }
-    */
-
-    /*
-    val signedFriends = Crypto.sign(
-      "http://api.ravelry.com/people/%s/friends/list.json".format(username),
-      Map(),
-      auth_token,
-      signing_key)
-    info("friends: %s".format(signedFriends))
-    restServiceConnection.request(RestRequest(signedFriends)) { response =>
-      info("response: %s".format(response))
-    }
-    */
   }
 
 

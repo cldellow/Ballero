@@ -3,7 +3,7 @@ package com.cldellow.ballero.data
 import android.content._
 import android.util.Log
 import com.cldellow.ballero.ui.SmartActivity
-import com.cldellow.ballero.service.{RestRequest, RestResponse}
+import com.cldellow.ballero.service._
 import java.util.concurrent.atomic._
 
 sealed trait RefreshPolicy
@@ -43,11 +43,18 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
       a.restServiceConnection.request(
         RestRequest(getUrl)) { response =>
           Log.i("NETWORK_RESOURCE", "got %s".format(response.body))
-          val newValues = fromString(response.body)
-          val saving = Parser.serializeList(newValues)(mf)
-          Log.i("NETWORK_RESOURCE", "saving %s".format(saving))
-          Data.save(name, saving)
-          callback(newValues, false)
+
+          response.statusCode match {
+            case OK =>
+              val newValues = fromString(response.body)
+              val saving = Parser.serializeList(newValues)(mf)
+              Log.i("NETWORK_RESOURCE", "saving %s".format(saving))
+              Data.save(name, saving)
+              callback(newValues, false)
+            case _ =>
+              a.networkError(response)
+              callback(get, false)
+          }
       }
     }
   }

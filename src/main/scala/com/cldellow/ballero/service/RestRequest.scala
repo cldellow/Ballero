@@ -15,7 +15,20 @@ case class RestRequest(url: String, verb: HttpVerb = GET, params: Map[String, St
           .mkString("&"))
 }
 
-case class RestResponse(status: Int, body: String) {
+sealed abstract class StatusCode(val code: Int)
+
+case object OK extends StatusCode(200)
+case class UnknownCode(override val code: Int) extends StatusCode(code)
+
+object StatusCode {
+  def apply(code: Int): StatusCode = code match {
+    case 200 => OK
+    case _ => UnknownCode(code)
+  }
+}
+
+case class RestResponse(status: Int, body: String, statusMessage: String) {
+  lazy val statusCode: StatusCode = StatusCode(status)
 }
 
 

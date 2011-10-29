@@ -41,7 +41,7 @@ class RestService extends Service {
           executeRequest(request, url);
           */
       }
-      RestResponse(responseCode, body)
+      RestResponse(responseCode, body, responseCodeMessage)
     }
 
     private def executeRequest(request: HttpUriRequest) {
@@ -71,12 +71,19 @@ class RestService extends Service {
           // Closing the input stream will trigger connection release
           inputStream.close();
         }
-      } catch {
+      } 
+      catch {
+        case e: java.net.UnknownHostException =>
+          responseCodeMessage = e.toString
+          client.getConnectionManager().shutdown()
+          client.getConnectionManager().shutdown()
         case e: ClientProtocolException =>
           client.getConnectionManager().shutdown()
+          responseCodeMessage = e.toString
           e.printStackTrace()
         case e: IOException =>
           client.getConnectionManager().shutdown()
+          responseCodeMessage = e.toString
           e.printStackTrace()
       }
   }

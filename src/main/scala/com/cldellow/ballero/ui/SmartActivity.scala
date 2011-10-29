@@ -106,6 +106,18 @@ trait SmartActivity extends Activity {// this: Activity =>
     textItem
   }
 
+  private var lastToast: Long = 0
+  /** Display a warning when we can't access network resources; max once warning per 10
+      minutes. */
+  def networkError(request: RestResponse) {
+    val newToast = System.currentTimeMillis / 1000
+
+    if(newToast - lastToast > 600) {
+      lastToast = newToast
+      toast("Oops, couldn't access the Internet.")
+    }
+  }
+
 }
 
 

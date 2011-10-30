@@ -19,7 +19,7 @@ import greendroid.graphics.drawable._
 import greendroid.widget._
 import greendroid.widget.item._
 
-class RavellerHomeActivity extends GDListActivity with SmartActivity {
+class RavellerHomeActivity extends GDListActivity with NavigableListActivity with SmartActivity {
   val TAG = "RavellerHomeActivity"
 
   var adapter: ItemAdapter = null
@@ -33,10 +33,12 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
 
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
+
+    getParams[User] map { user => Data.currentUser = Some(user) }
     adapter = new ItemAdapter(this)
 
-    needlesItem = goesTo[NeedlesActivity, SubtitleItem](new SubtitleItem("needles", "", true))
-    projectsItem = goesTo[ProjectsActivity, SubtitleItem](new SubtitleItem("projects", "", true))
+    needlesItem = new SubtitleItem("needles", "", true).goesTo[NeedlesActivity]
+    projectsItem = new SubtitleItem("projects", "", true).goesTo[ProjectsActivity]
     adapter.add(projectsItem)
     adapter.add(needlesItem)
 
@@ -130,13 +132,6 @@ class RavellerHomeActivity extends GDListActivity with SmartActivity {
     needlesItem.inProgress = pending
 
     onContentChanged
-  }
-
-  override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
-    val textItem: Item = l.getAdapter().getItem(position).asInstanceOf[Item]
-
-    val intent: Intent = new Intent(this, textItem.getTag.asInstanceOf[Class[_]])
-    startActivity(intent)
   }
 
 }

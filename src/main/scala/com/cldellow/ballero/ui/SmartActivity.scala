@@ -32,15 +32,24 @@ trait SmartActivity extends Activity {// this: Activity =>
     Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
   }
 
-  def goesTo[Destination <: Activity, Target <: Item](target: Target)(implicit mf: Manifest[Destination]): Target = {
-    target.setTag(mf.erasure)
-    target
-  }
-
   def longToast(s: String) {
     Toast.makeText(this, s, Toast.LENGTH_LONG).show()
   }
 
+  protected def getParams[P <: Product](implicit mf: Manifest[P]): Option[P] = {
+    val intent = getIntent()
+    val bundle = intent.getExtras
+
+    if(bundle == null)
+      None
+    else {
+      val params = bundle.getString("com.cldellow.params")
+      if(params == null)
+        None
+      else
+        Some(Parser.parse[P](params))
+    }
+  }
 
   protected def info(s: String) { Log.i(TAG, s) }
   protected def warn(s: String) { Log.w(TAG, s) }
@@ -115,6 +124,26 @@ trait SmartActivity extends Activity {// this: Activity =>
     }
   }
 
+  implicit def item2richitem[T <: Item](item: T): RichItem[T] = new RichItem(item)
+}
+
+case class NavHint(clazz: Class[_], params: Option[String])
+class RichItem[T <: Item](val item: T) {
+  def goesTo[A <: Activity](implicit mfA: Manifest[A]): T = {
+    goesTo(None)
+  }
+
+  def goesToWithData[A <: Activity, P <: Product](info: P)(implicit mfA: Manifest[A], mfP: Manifest[P]): T = {
+    goesTo[P, A](Some(info))
+  }
+
+
+
+  private def goesTo[P <: Product, A <: Activity](info: Option[P])(implicit mfP: Manifest[P], mfA: Manifest[A]): T = {
+    val serialized = info map { Parser.serialize(_) }
+    item.setTag(NavHint(mfA.erasure, serialized))
+    item
+  }
 }
 
 object SmartActivity {

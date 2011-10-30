@@ -16,10 +16,8 @@ import greendroid.app._
 import greendroid.widget._
 import greendroid.widget.item._
 
-class MainActivity extends GDListActivity with SmartActivity {
+class MainActivity extends GDListActivity with NavigableListActivity with SmartActivity {
   val TAG = "MainActivity"
-
-  private def createTextItem(stringId: Int, klass: Class[_]): TextItem = createTextItem(getString(stringId), klass)
 
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
@@ -27,30 +25,16 @@ class MainActivity extends GDListActivity with SmartActivity {
     setTitle("Ballero")
     val adapter = new ItemAdapter(this)
 
-    adapter.add(createTextItem(R.string.find_lys, classOf[FindLysActivity]));
+    adapter.add(new TextItem("find a local yarn store").goesTo[FindLysActivity])
 
     Data.users.sortBy { _.name }.foreach { user => 
-      adapter.add(createTextItem(user.name, classOf[RavellerHomeActivity]))
+      adapter.add(new TextItem(user.name).goesToWithData[RavellerHomeActivity, User](user))
     }
 
-    adapter.add(createTextItem(R.string.add_ravelry_account, classOf[AddRavelryAccountActivity]));
+    adapter.add(new TextItem("link a ravelry account").goesTo[AddRavelryAccountActivity])
 
     Data.users.foreach { user => info("got user: %s".format(user)) }
     setListAdapter(adapter);
 
-  }
-
-  override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
-    val textItem: TextItem = l.getAdapter().getItem(position).asInstanceOf[TextItem]
-
-    //TODO: make this less of a hack
-    val klazz = textItem.getTag.asInstanceOf[Class[_]]
-    if(klazz == classOf[RavellerHomeActivity])
-      Data.currentUser = Some(Data.users.find { _.name == textItem.text }.get)
-
-    val intent: Intent = new Intent(this, textItem.getTag.asInstanceOf[Class[_]])
-    intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, textItem.text);
-    intent.putExtra(UiConstants.ExtraText, textItem.text);
-    startActivity(intent)
   }
 }

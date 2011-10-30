@@ -15,6 +15,8 @@ android:versionName="0.1" android:versionCode="1" package="com.cldellow.ballero"
         <service android:name=".service.RestService"/>
         <activity android:name=".ui.RavellerHomeActivity"/>
         <activity android:name=".ui.NeedlesActivity"/>
+        <activity android:name=".ui.ProjectDetailsActivity"/>
+        <activity android:name=".ui.QueuedProjectDetailsActivity"/>
         <activity android:name=".ui.ProjectsActivity"/>
         <activity android:name=".ui.FindLysActivity"/>
         <activity android:name=".ui.LysStoresMapActivity"/>

@@ -137,7 +137,7 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
   private def updateItems {
     adapter = new ItemAdapter(this)
 
-    val kept = (queued ::: projects).filter { filterProjects }.sortBy { _.uiName }
+    val kept = (queued ::: projects).filter { filterProjects }
     if(filter != Unknown)
       adapter.add(new SeparatorItem(filter match {
         case Hibernated => "hibernating projects"
@@ -151,10 +151,13 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
     if(kept.isEmpty) {
       adapter.add(new TextItem("no projects found"))
     }
-    kept.foreach { projectish =>
+
+    val useQueueOrder = kept.forall { _.isInstanceOf[RavelryQueue] }
+    val sorted = if(useQueueOrder) kept.collect { case q: RavelryQueue => q }.sortBy { -_.sort_order } else kept.sortBy { _.uiName }
+    sorted.zipWithIndex.foreach { case (projectish, index) =>
       projectish match {
         case q: RavelryQueue =>
-          val subtitle = "in queue"
+          val subtitle = if(!useQueueOrder) "in queue" else "queue item %s".format(index + 1)
           val item = q.pattern_id.map { id => RavelryApi.makePatternDetailsResource(id).get }
             .getOrElse(Nil).flatMap { pattern => pattern.photos.getOrElse(Nil)
             } match {

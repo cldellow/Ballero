@@ -103,7 +103,8 @@ case class RavelryQueue(
   name: String,
   pattern: Option[Pattern],
   pattern_id: Option[Int],
-  pattern_name: Option[String]
+  pattern_name: Option[String],
+  sort_order: Int
 )  extends Projectish {
   def uiName: String = pattern.map { _.name }.getOrElse(pattern_name.getOrElse(name))
 }

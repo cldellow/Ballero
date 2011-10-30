@@ -79,6 +79,7 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
   class Listener extends OnQuickActionClickListener{
     def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
       filter = quickActions(position).filter
+      updateTitle
       updateItems
     }
   }
@@ -102,8 +103,19 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
 
     var savedFilter = Data.currentUser.get.uiPref("projects_filter", "Unknown")
     filter = ProjectStatus(savedFilter)
-
+    updateTitle
     refreshAll(FetchIfNeeded)
+  }
+
+  private def updateTitle {
+    setTitle(filter match {
+        case Hibernated => "hibernated"
+        case InProgress => "in progress"
+        case Unknown => "all projects"
+        case Queued => "queued"
+        case Frogged => "frogged"
+        case Finished => "finished"
+      })
   }
 
   private def refreshAll(policy: RefreshPolicy) {
@@ -172,7 +184,7 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
       if(useQueueOrder)
         kept.collect { case Left(q) => Left(q)}.sortBy { -_.left.get.q.sort_order }
       else
-        kept.sortBy { x => x match { case Left(q) => q.q.uiName case Right(p) => p.uiName } }
+        kept.sortBy { x => (x match { case Left(q) => q.q.uiName case Right(p) => p.uiName }).toLowerCase }
 
     sorted.zipWithIndex.foreach { case (projectish, index) =>
       projectish match {

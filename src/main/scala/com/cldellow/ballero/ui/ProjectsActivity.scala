@@ -34,8 +34,9 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
   var numPending: Int = 0
   var sortButton: ActionBarItem = null
   var actions: QuickActionBar = null
+  var filter: ProjectStatus = Unknown
 
-  case class ActionItem(action: QuickAction, label: String)
+  case class ActionItem(action: QuickAction, label: String, filter: ProjectStatus)
 
   val BLACK_CF: ColorFilter = new LightingColorFilter(Color.BLACK, Color.BLACK)
   def d(id: Int): Drawable = {
@@ -46,12 +47,12 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
 
 
   lazy val quickActions = List(
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "all"), "all"),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "WIPs"), "WIPs"),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "queued"), "queued"),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "finished"), "finished"),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "zzz"), "zzz"),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "frogged"), "frogged")
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "all"), "all projects", Unknown),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "WIPs"), "in progress projects", InProgress),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "queued"), "queued projects", Queued),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "finished"), "finished projects", Finished),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "zzz"), "hibernating projects", Hibernated),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "frogged"), "frogged projects", Frogged)
   )
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
@@ -69,7 +70,8 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
 
   class Listener extends OnQuickActionClickListener{
     def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
-      toast("you clicked: %s".format(quickActions(position).label))
+      filter = quickActions(position).filter
+      updateItems
     }
   }
 
@@ -124,10 +126,32 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
     updateItems
   }
 
+  private def filterProjects(projectish: Projectish): Boolean = projectish match {
+    case q: RavelryQueue =>
+      filter == Unknown || filter == Queued
+    case p: Project =>
+      filter == Unknown ||
+      filter == p.status
+  }
+
   private def updateItems {
     adapter = new ItemAdapter(this)
 
-    (queued ::: projects).sortBy { _.uiName }.foreach { projectish =>
+    val kept = (queued ::: projects).filter { filterProjects }.sortBy { _.uiName }
+    if(filter != Unknown)
+      adapter.add(new SeparatorItem(filter match {
+        case Hibernated => "hibernating projects"
+        case Queued => "queued projects"
+        case Finished => "finished projects"
+        case Frogged => "frogged projects"
+        case InProgress => "in progress projects"
+        // just to avoid match warning - never shows up
+        case Unknown => "all projects"
+      }))
+    if(kept.isEmpty) {
+      adapter.add(new TextItem("no projects found"))
+    }
+    kept.foreach { projectish =>
       projectish match {
         case q: RavelryQueue =>
           val subtitle = "in queue"

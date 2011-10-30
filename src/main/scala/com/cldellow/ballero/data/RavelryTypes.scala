@@ -142,6 +142,7 @@ case class Project (
   /* "In progress", "Finished" */
   status_name: String
 ) extends Projectish{
+  /* TODO: parse the other statuses */
   def status: ProjectStatus = status_name match {
     case "In progress" => InProgress
     case "Finished" => Finished

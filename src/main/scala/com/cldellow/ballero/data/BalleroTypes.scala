@@ -1,6 +1,7 @@
 package com.cldellow.ballero.data
 
 import android.content._
+import android.database.sqlite._
 import android.util.Log
 import com.cldellow.ballero.ui.SmartActivity
 import com.cldellow.ballero.service._
@@ -47,6 +48,9 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
           response.statusCode match {
             case OK =>
               val newValues = fromString(response.body)
+
+              // If it's an array, serialize the list of keys to the primary name
+              // and each item to its own key.
               val saving = Parser.serializeList(newValues)(mf)
               Log.i("NETWORK_RESOURCE", "saving %s".format(saving))
               Data.save(name, saving)
@@ -180,6 +184,18 @@ case class User(name: String, oauth_token: Option[OAuthCredential]) {
 }
 case class Users(users: List[User])
 
+class DataHelper(context: Context) extends SQLiteOpenHelper(context, "ballero", null, 1) {
+  override def onCreate(db: SQLiteDatabase) {
+    db.execSQL("CREATE TABLE data (namespace text, key text, value text, primary key(namespace, key))")
+
+  }
+
+  override def onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+    db.execSQL("DROP TABLE data")
+    onCreate(db)
+  }
+}
+
 object Data {
   private val balleroKey = "_ballero"
   private val usersKey = "users"
@@ -188,16 +204,56 @@ object Data {
 
   var currentUser: Option[User] = None
 
+  var _databaseHelper: DataHelper = null
+  def getHelper(implicit context: Context): DataHelper = {
+    if(_databaseHelper == null)
+      _databaseHelper = new DataHelper(context)
+
+    _databaseHelper
+  }
+
+  def getDatabase(implicit context: Context): SQLiteDatabase = {
+    getHelper.getWritableDatabase
+  }
+
   def save(key: String, value: String)(implicit context: Context) = {
-    val editor = getUserPreferences.edit
-    editor.putString("%s_age".format(key), System.currentTimeMillis.toString)
-    editor.putString(key, value)
+    //val editor = getUserPreferences.edit
+    //editor.putString("%s_age".format(key), System.currentTimeMillis.toString)
+    //editor.putString(key, value)
     //Log.i("DATA", "saving key %s with value %s".format(key, value))
-    editor.commit
+    //editor.commit
+
+    val db = getDatabase
+    val username = Data.currentUser.get.name
+    db.delete("data", "namespace = ? and key = ?", List(username, key).toArray)
+    db.delete("data", "namespace = ? and key = ?", List(username, key + "_age").toArray)
+
+    val contentValues = new ContentValues()
+    contentValues.put("namespace", username)
+    contentValues.put("key", key)
+    contentValues.put("value", value)
+    db.insert("data", null, contentValues)
+
+    contentValues.put("key", key + "_age")
+    contentValues.put("value", System.currentTimeMillis.toString)
+    db.insert("data", null, contentValues)
   }
 
   def get(key: String, default: String)(implicit context: Context): String = {
-   val rv = getUserPreferences.getString(key, default)
+   val username = Data.currentUser.get.name
+   val cursor = getDatabase.query("data", List("value").toArray,
+     "namespace = ? AND key = ?", List(username, key).toArray, null, null, null, null)
+   val rv = if(cursor.getCount == 0) {
+     cursor.close()
+     default
+   } else {
+     cursor.moveToFirst
+     val rv = cursor.getString(0)
+     cursor.close()
+     rv
+   }
+
+   //val rv = getUserPreferences.getString(key, default)
    //Log.i("DATA", "asked for key %s, returning default? %s".format(key, default == rv))
    rv
   }
@@ -211,7 +267,7 @@ object Data {
       // data and force network reloads.
       val prefs = getGlobalPreferences
       val oldInt = prefs.getInt(balleroRevKey, 0)
-      if(oldInt != balleroRev) {
+      if(true || oldInt != balleroRev) {
         Log.i("DATA", "Ballero serialization formats changed; clearing user cache")
         users.foreach { user =>
           context.getSharedPreferences(user.name, 0).edit().clear().commit()

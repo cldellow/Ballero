@@ -13,8 +13,8 @@ import android.widget.TextView
 import greendroid.app._
 import greendroid.widget._
 
-class QueuedProjectDetailsActivity extends GDActivity with SmartActivity {
-  val TAG = "QueuedProjectDetailsActivity"
+class FindLysActivity extends GDActivity with SmartActivity {
+  val TAG = "FindLysActivity"
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
   }

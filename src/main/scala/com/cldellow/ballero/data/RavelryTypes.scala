@@ -14,8 +14,10 @@ case class OAuthCredential (
 
 case class SimpleQueuedProject(
   id: Int,
+  notes: Option[String],
   pattern_id: Option[Int]
 )
+
 case class QueuedProjects (queued_projects: List[SimpleQueuedProject])
 
 case class RavelryQueueProjectWrapper(queued_project: RavelryQueue)

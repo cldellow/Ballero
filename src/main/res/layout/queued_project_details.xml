@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pattern Name"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:layout_margin="0dp"
+        android:orientation="horizontal" >
+    
+    <TextView
+        android:id="@+id/lblMakeFor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Make for:"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+    <TextView
+        android:id="@+id/lblMakeForValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="(no one)"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+</LinearLayout>
+
+    <TextView
+        android:id="@+id/lblStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="In queue"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/lblNotes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Notes:"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/lblNotesValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="(no notes)"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+</LinearLayout>

@@ -12,11 +12,20 @@ case class OAuthCredential (
   signing_key: String
 )
 
+trait Key {
+  def key: String
+}
+
+trait IdKey extends Key {
+  def key = id.toString
+  def id: Int
+}
+
 case class SimpleQueuedProject(
   id: Int,
   notes: Option[String],
   pattern_id: Option[Int]
-)
+) extends IdKey
 
 case class QueuedProjects (queued_projects: List[SimpleQueuedProject])
 
@@ -39,7 +48,7 @@ case class Pattern(
   row_gauge: Option[BigDecimal],
   yardage: Option[Int],
   yarn_weight_description: String
-)
+) extends IdKey
 /*
         "pattern": {
             "gauge_description": "20 stitches and 32 rows = 4 inches in stockinette stitch",
@@ -107,7 +116,7 @@ case class RavelryQueue(
   pattern_id: Option[Int],
   pattern_name: Option[String],
   sort_order: Int
-)  extends Projectish {
+)  extends Projectish with IdKey {
   def uiName: String = pattern.map { _.name }.getOrElse(pattern_name.getOrElse(name))
 }
 
@@ -154,7 +163,7 @@ case class Project (
   progress: Option[Int],
   /* "In progress", "Finished" */
   status_name: String
-) extends Projectish{
+) extends Projectish with IdKey {
   /* TODO: parse the other statuses */
   def status: ProjectStatus = status_name match {
     case "Hibernating" => Hibernated
@@ -171,10 +180,11 @@ case class Needle(
   comment: String,
   gaugeMetric: BigDecimal,
   gaugeUS: Option[BigDecimal],
+  id: Int,
   kind: String,
   lengthDecimal: Option[BigDecimal],
   lengthString: Option[String]
-)
+) extends IdKey
 
 case class LocalYarnStore(
   address: String,

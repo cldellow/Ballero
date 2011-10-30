@@ -25,7 +25,14 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
     else
       List(Parser.parse[T](string))
 
-  def get(implicit a: SmartActivity): List[T] = Parser.parseList[T](Data.get(name, "[]"))
+  def get(implicit a: SmartActivity): List[T] = {
+    if(!array) 
+      Parser.parseList[T](Data.get(name, "[]"))
+    else {
+      val keys = Parser.parseList[String](Data.get(name, "[]"))
+      keys.flatMap { key => Parser.parseList[T](Data.get(name + "_item_" + key, "[]")) }
+    }
+  }
   final def ageName: String = "%s_age".format(name)
   def name: String = url.cacheName
 
@@ -51,9 +58,20 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
 
               // If it's an array, serialize the list of keys to the primary name
               // and each item to its own key.
-              val saving = Parser.serializeList(newValues)(mf)
-              Log.i("NETWORK_RESOURCE", "saving %s".format(saving))
-              Data.save(name, saving)
+              if(!array) {
+                val saving = Parser.serializeList(newValues)(mf)
+                Log.i("NETWORK_RESOURCE", "saving %s".format(saving))
+                Data.save(name, saving)
+              } else if(array) {
+                val keys = newValues.map { _.asInstanceOf[Key] }
+                val savedKeys = Parser.serializeList[String](keys.map { _.key })
+                Data.save(name, savedKeys)
+
+                newValues.foreach { key =>
+                  val saved = Parser.serializeList[T](List(key))
+                  Data.save(name + "_item_" + key.asInstanceOf[Key].key, saved)
+                }
+              }
               callback(newValues, false)
             case _ =>
               a.networkError(response)
@@ -184,7 +202,7 @@ case class User(name: String, oauth_token: Option[OAuthCredential]) {
 }
 case class Users(users: List[User])
 
-class DataHelper(context: Context) extends SQLiteOpenHelper(context, "ballero", null, 1) {
+class DataHelper(context: Context) extends SQLiteOpenHelper(context, "ballero", null, 3) {
   override def onCreate(db: SQLiteDatabase) {
     db.execSQL("CREATE TABLE data (namespace text, key text, value text, primary key(namespace, key))")
 
@@ -217,12 +235,6 @@ object Data {
   }
 
   def save(key: String, value: String)(implicit context: Context) = {
-    //val editor = getUserPreferences.edit
-    //editor.putString("%s_age".format(key), System.currentTimeMillis.toString)
-    //editor.putString(key, value)
-    //Log.i("DATA", "saving key %s with value %s".format(key, value))
-    //editor.commit
-
     val db = getDatabase
     val username = Data.currentUser.get.name
     db.delete("data", "namespace = ? and key = ?", List(username, key).toArray)
@@ -253,8 +265,6 @@ object Data {
      rv
    }
 
-   //val rv = getUserPreferences.getString(key, default)
-   //Log.i("DATA", "asked for key %s, returning default? %s".format(key, default == rv))
    rv
   }
 
@@ -295,7 +305,6 @@ object Data {
 
   def saveUser(user: User)(implicit context: Context) {
     val serialized = Parser.serialize(Users(user :: (users(context) filter { _.name != user.name })))
-    //Log.i("DATA", "saving users: %s".format(serialized))
     getGlobalPreferences.edit.putString(usersKey, serialized).commit
   }
 }

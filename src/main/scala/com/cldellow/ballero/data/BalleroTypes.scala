@@ -140,6 +140,16 @@ NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")
 
 case class User(name: String, oauth_token: Option[OAuthCredential]) {
   def hasToken = oauth_token.isDefined
+
+  def uiPrefix = "uipref_"
+  def uiPref(key: String, default: String)(implicit context: Context): String = {
+    Data.getPreferencesForUser(name).getString("uipref_" + key, default)
+  }
+
+  def setUiPref(key: String, value: String)(implicit context: Context) {
+    Data.getPreferencesForUser(name).edit().putString("uipref_" + key, value).commit
+  }
+
   def sign(url: UrlInput): String =
     Crypto.sign(url.base.replace("{user}", name), url.params, oauth_token.get.auth_token, oauth_token.get.signing_key)
 
@@ -193,7 +203,8 @@ object Data {
   }
 
   private var sanityChecked = false
-  private def getUserPreferences(implicit context: Context) = {
+
+  def getPreferencesForUser(user: String)(implicit context: Context) = {
     if(!sanityChecked) {
       sanityChecked = true
       // If the Ballero data serialization has changed between revs, blow away all cached
@@ -210,8 +221,13 @@ object Data {
       }
     }
 
-    context.getSharedPreferences(currentUser.get.name, 0)
+    context.getSharedPreferences(user, 0)
   }
+
+  def getUserPreferences(implicit context: Context) = {
+    getPreferencesForUser(currentUser.get.name)
+  }
+
   private def getGlobalPreferences(implicit context: Context) =
     context.getSharedPreferences(balleroKey, 0)
 

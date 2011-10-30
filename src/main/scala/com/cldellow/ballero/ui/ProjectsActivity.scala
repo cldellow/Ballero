@@ -54,8 +54,15 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
     ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "zzz"), "hibernating projects", Hibernated),
     ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "frogged"), "frogged projects", Frogged)
   )
+
+  override def onPause{
+    super.onPause
+    Data.currentUser.get.setUiPref("projects_filter", filter.toString)
+  }
+
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
+
     adapter = new ItemAdapter(this)
     setListAdapter(adapter)
     refreshButton = addActionBarItem(Type.Refresh, R.id.action_bar_refresh).asInstanceOf[LoaderActionBarItem]
@@ -91,6 +98,10 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
 
   override def onResume {
     super.onResume
+
+    var savedFilter = Data.currentUser.get.uiPref("projects_filter", "Unknown")
+    filter = ProjectStatus(savedFilter)
+
     refreshAll(FetchIfNeeded)
   }
 

@@ -120,6 +120,16 @@ case class Photo (
 )
 
 sealed trait ProjectStatus
+object ProjectStatus {
+  def apply(str: String): ProjectStatus = str match {
+    case "Hibernated" => Hibernated
+    case "Queued" => Queued
+    case "Frogged" => Frogged
+    case "InProgress" => InProgress
+    case "Finished" => Finished
+    case _ => Unknown
+  }
+}
 case object Hibernated extends ProjectStatus
 case object Queued extends ProjectStatus
 case object Frogged extends ProjectStatus

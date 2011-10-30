@@ -266,7 +266,6 @@ public abstract class QuickActionWidget extends PopupWindow {
     }
 
     private void showArrow() {
-
         final View contentView = getContentView();
         final int arrowId = mIsOnTop ? R.id.gdi_arrow_down : R.id.gdi_arrow_up;
         final View arrow = contentView.findViewById(arrowId);

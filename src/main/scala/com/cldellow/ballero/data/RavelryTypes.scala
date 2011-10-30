@@ -119,6 +119,9 @@ case class Photo (
 )
 
 sealed trait ProjectStatus
+case object Hibernated extends ProjectStatus
+case object Queued extends ProjectStatus
+case object Frogged extends ProjectStatus
 case object InProgress extends ProjectStatus
 case object Finished extends ProjectStatus
 case object Unknown extends ProjectStatus

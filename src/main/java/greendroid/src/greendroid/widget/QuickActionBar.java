@@ -21,6 +21,7 @@ import java.util.List;
 import android.content.Context;
 import android.graphics.Rect;
 import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.View.OnClickListener;
@@ -74,9 +75,17 @@ public class QuickActionBar extends QuickActionWidget {
         mScrollView = (HorizontalScrollView) v.findViewById(R.id.gdi_scroll);
     }
 
+
+    public String ts(View v) {
+      if(v==null)
+        return "null";
+      else
+        return v.toString();
+    }
     @Override
     public void show(View anchor) {
         super.show(anchor);
+        Log.i("QUICK", ts(anchor.findViewById(R.id.gdi_scroll)));
         mScrollView.scrollTo(0, 0);
         mRack.startAnimation(mRackAnimation);
     }

@@ -9,11 +9,14 @@ import scala.collection.JavaConversions._
 import android.app.Activity
 import android.content._
 import android.location._
+import android.graphics._
+import android.graphics.drawable._
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget._
 import greendroid.app._
+import greendroid.widget.QuickActionWidget._
 import greendroid.widget.ActionBarItem.Type
 import greendroid.graphics.drawable._
 import greendroid.widget._
@@ -29,12 +32,45 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
 
   var refreshButton: LoaderActionBarItem = null
   var numPending: Int = 0
+  var sortButton: ActionBarItem = null
+  var actions: QuickActionBar = null
 
+  case class ActionItem(action: QuickAction, label: String)
+
+  val BLACK_CF: ColorFilter = new LightingColorFilter(Color.BLACK, Color.BLACK)
+  def d(id: Int): Drawable = {
+    val d = this.getResources().getDrawable(id)
+    d.setColorFilter(BLACK_CF)
+    d
+  }
+
+
+  lazy val quickActions = List(
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "all"), "all"),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "WIPs"), "WIPs"),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "queued"), "queued"),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "finished"), "finished"),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "zzz"), "zzz"),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "frogged"), "frogged")
+  )
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     adapter = new ItemAdapter(this)
     setListAdapter(adapter)
     refreshButton = addActionBarItem(Type.Refresh, R.id.action_bar_refresh).asInstanceOf[LoaderActionBarItem]
+    sortButton = addActionBarItem(Type.Export, R.id.action_bar_locate)
+
+    ensureLayout()
+    actions = new QuickActionBar(this)
+    quickActions.foreach { qa => actions.addQuickAction(qa.action) }
+
+    actions.setOnQuickActionClickListener(new Listener)
+  }
+
+  class Listener extends OnQuickActionClickListener{
+    def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
+      toast("you clicked: %s".format(quickActions(position).label))
+    }
   }
 
   override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
@@ -42,9 +78,14 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
       case R.id.action_bar_refresh =>
         refreshAll(ForceNetwork)
         true
+      case R.id.action_bar_locate =>
+        actions.show(item.getItemView)
+        true
       case _ =>
         true
     }
+
+  override def createLayout: Int = R.layout.projects_activity
 
   override def onResume {
     super.onResume

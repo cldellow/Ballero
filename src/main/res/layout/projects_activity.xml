@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<greendroid.widget.ActionBarHost xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@id/gd_action_bar_host"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+    <greendroid.widget.ActionBar
+        android:id="@id/gd_action_bar"
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/gd_action_bar_height"
+        android:background="?attr/gdActionBarBackground" />
+            <ListView
+            android:id="@android:id/list"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
+    <FrameLayout
+        android:id="@id/gd_action_bar_content_view"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" >
+        <RelativeLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <FrameLayout
+                android:id="@+id/gdi_header"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/gdi_arrow_up"
+                android:layout_marginTop="@dimen/gd_action_bar_height"
+                android:background="@drawable/gd_quick_action_top_frame" />
+
+            <HorizontalScrollView
+                android:id="@+id/gdi_scroll"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/gdi_header"
+                android:background="@drawable/gd_quick_action_bar_background"
+                android:fadingEdgeLength="0dp"
+                android:scrollbars="none" >
+
+                <LinearLayout
+                    android:id="@+id/gdi_rack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="4dip" >
+
+                    <View
+                        android:layout_width="wrap_content"
+                        android:layout_height="fill_parent"
+                        android:background="@drawable/gd_quick_action_bar_grip_left" />
+
+                    <LinearLayout
+                        android:id="@+id/gdi_quick_action_items"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <View
+                        android:layout_width="wrap_content"
+                        android:layout_height="fill_parent"
+                        android:background="@drawable/gd_quick_action_bar_grip_right" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <FrameLayout
+                android:id="@+id/gdi_footer"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/gdi_scroll"
+                android:background="@drawable/gd_quick_action_bar_bottom_frame" />
+
+            <ImageView
+                android:id="@+id/gdi_arrow_up"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/gd_quick_action_arrow_up" />
+
+            <ImageView
+                android:id="@+id/gdi_arrow_down"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/gdi_footer"
+                android:layout_marginTop="-1px"
+                android:src="@drawable/gd_quick_action_bar_arrow_down" />
+        </RelativeLayout>
+
+
+    </FrameLayout>
+
+</greendroid.widget.ActionBarHost>

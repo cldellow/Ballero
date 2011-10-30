@@ -8,4 +8,10 @@
     <string name="username">username:</string>
     <string name="password">password:</string>
     <string name="login">login</string>
+    <string name="project_filter_all">all</string>
+    <string name="project_filter_wip">WIPs</string>
+    <string name="project_filter_queued">queued</string>
+    <string name="project_filter_finished">finished</string>
+    <string name="project_filter_frogged">frogged</string>
+    <string name="project_filter_hibernated"> zzz</string>
 </resources>

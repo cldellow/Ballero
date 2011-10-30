@@ -106,19 +106,19 @@ trait SmartActivity extends Activity {// this: Activity =>
     textItem
   }
 
-  private var lastToast: Long = 0
   /** Display a warning when we can't access network resources; max once warning per 10
       minutes. */
   def networkError(request: RestResponse) {
-    val newToast = System.currentTimeMillis / 1000
-
-    if(newToast - lastToast > 600) {
-      lastToast = newToast
+    if(SmartActivity.canToast) {
+      SmartActivity.canToast = false
       toast("Oops, couldn't access the Internet.")
     }
   }
 
 }
 
+object SmartActivity {
+  var canToast = true
+}
 
 // vim: set ts=2 sw=2 et:

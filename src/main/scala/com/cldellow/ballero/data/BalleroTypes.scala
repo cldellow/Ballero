@@ -173,6 +173,8 @@ case class Users(users: List[User])
 object Data {
   private val balleroKey = "_ballero"
   private val usersKey = "users"
+  private val balleroRevKey = "balleroRev"
+  val balleroRev = 2
 
   var currentUser: Option[User] = None
 
@@ -190,8 +192,26 @@ object Data {
    rv
   }
 
-  private def getUserPreferences(implicit context: Context) =
+  private var sanityChecked = false
+  private def getUserPreferences(implicit context: Context) = {
+    if(!sanityChecked) {
+      sanityChecked = true
+      // If the Ballero data serialization has changed between revs, blow away all cached
+      // data and force network reloads.
+      val prefs = getGlobalPreferences
+      val oldInt = prefs.getInt(balleroRevKey, 0)
+      if(oldInt != balleroRev) {
+        Log.i("DATA", "Ballero serialization formats changed; clearing user cache")
+        users.foreach { user =>
+          context.getSharedPreferences(user.name, 0).edit().clear().commit()
+        }
+
+        prefs.edit.putInt(balleroRevKey, balleroRev).commit
+      }
+    }
+
     context.getSharedPreferences(currentUser.get.name, 0)
+  }
   private def getGlobalPreferences(implicit context: Context) =
     context.getSharedPreferences(balleroKey, 0)
 

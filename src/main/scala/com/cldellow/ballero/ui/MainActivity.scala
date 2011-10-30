@@ -24,6 +24,7 @@ class MainActivity extends GDListActivity with SmartActivity {
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
 
+    setTitle("Ballero")
     val adapter = new ItemAdapter(this)
 
     adapter.add(createTextItem(R.string.find_lys, classOf[FindLysActivity]));
@@ -52,9 +53,4 @@ class MainActivity extends GDListActivity with SmartActivity {
     intent.putExtra(UiConstants.ExtraText, textItem.text);
     startActivity(intent)
   }
-
-  def findLysClick(view: View) {
-    setContentView(R.layout.findlys)
-  }
-
 }

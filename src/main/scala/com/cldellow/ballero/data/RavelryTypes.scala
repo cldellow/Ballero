@@ -155,6 +155,8 @@ case class Project (
 ) extends Projectish{
   /* TODO: parse the other statuses */
   def status: ProjectStatus = status_name match {
+    case "Hibernating" => Hibernated
+    case "Frogged" => Frogged
     case "In progress" => InProgress
     case "Finished" => Finished
     case _ => Unknown

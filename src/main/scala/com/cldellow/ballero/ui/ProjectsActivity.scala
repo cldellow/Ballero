@@ -188,6 +188,8 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
           val subtitle = p.status match {
             case Finished => "finished"
             case InProgress => "in progress"
+            case Frogged => "frogged"
+            case Hibernated => "hibernating"
             case Unknown => "unknown"
           }
 

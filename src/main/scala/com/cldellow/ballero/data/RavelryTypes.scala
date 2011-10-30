@@ -170,7 +170,7 @@ case class LocalYarnStore(
   name: String,
   phone: String,
   shop_email: Option[String],
-  site: String,
+  site: Option[String],
   twitter_id: Option[String],
   url: String,
   zip: String

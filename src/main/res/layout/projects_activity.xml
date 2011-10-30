@@ -4,20 +4,24 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
+
     <greendroid.widget.ActionBar
         android:id="@id/gd_action_bar"
         android:layout_width="fill_parent"
         android:layout_height="@dimen/gd_action_bar_height"
         android:background="?attr/gdActionBarBackground" />
-            <ListView
-            android:id="@android:id/list"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
+
+    <ListView
+        android:id="@android:id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
+
     <FrameLayout
         android:id="@id/gd_action_bar_content_view"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_weight="1" >
+
         <RelativeLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="wrap_content"
@@ -86,8 +90,6 @@
                 android:layout_marginTop="-1px"
                 android:src="@drawable/gd_quick_action_bar_arrow_down" />
         </RelativeLayout>
-
-
     </FrameLayout>
 
 </greendroid.widget.ActionBarHost>

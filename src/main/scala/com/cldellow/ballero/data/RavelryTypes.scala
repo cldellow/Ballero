@@ -12,6 +12,8 @@ case class OAuthCredential (
   signing_key: String
 )
 
+case class Id(id: Int)
+
 trait Key {
   def key: String
 }

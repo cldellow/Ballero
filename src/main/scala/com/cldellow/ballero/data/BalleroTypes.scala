@@ -25,12 +25,19 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
     else
       List(Parser.parse[T](string))
 
+  protected var _cachedGet: Option[List[T]] = None
   def get(implicit a: SmartActivity): List[T] = {
-    if(!array) 
-      Parser.parseList[T](Data.get(name, "[]"))
+    if(_cachedGet.isDefined)
+      _cachedGet.get
     else {
-      val keys = Parser.parseList[String](Data.get(name, "[]"))
-      keys.flatMap { key => Parser.parseList[T](Data.get(name + "_item_" + key, "[]")) }
+      _cachedGet = Some(
+        if(!array) 
+          Parser.parseList[T](Data.get(name, "[]"))
+        else {
+          val keys = Parser.parseList[String](Data.get(name, "[]"))
+          keys.flatMap { key => Parser.parseList[T](Data.get(name + "_item_" + key, "[]")) }
+        })
+      _cachedGet.get
     }
   }
   final def ageName: String = "%s_age".format(name)
@@ -55,6 +62,7 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
           response.statusCode match {
             case OK =>
               val newValues = fromString(response.body)
+              _cachedGet = Some(newValues)
 
               // If it's an array, serialize the list of keys to the primary name
               // and each item to its own key.
@@ -79,6 +87,12 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
           }
       }
     }
+  }
+}
+
+object NetworkResource {
+  def get[T <: Product](key: String): Option[T] = {
+    None
   }
 }
 
@@ -115,8 +129,14 @@ NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")
   override def canNetwork = Data.currentUser map { _.hasToken } getOrElse false
 
 
-  override def get(implicit a: SmartActivity): List[RavelryQueue] =
-    in.get.map { id => RavelryApi.makeQueueDetailsResource(id.id) }.flatMap { _.get }
+  override def get(implicit a: SmartActivity): List[RavelryQueue] = {
+    if(_cachedGet.isDefined)
+      _cachedGet.get
+    else {
+      _cachedGet = Some(in.get.map { id => RavelryApi.makeQueueDetailsResource(id.id) }.flatMap { _.get })
+      _cachedGet.get
+    }
+  }
 
   override def render(refreshPolicy: RefreshPolicy, callback: (List[RavelryQueue], Boolean) => Unit)(implicit a: SmartActivity) {
     val doNetwork = (refreshPolicy == ForceNetwork ||
@@ -141,8 +161,10 @@ NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")
             if(!pending) {
               val newValue = counter.getAndDecrement
 
-              if(newValue == 1)
+              if(newValue == 1) {
+                _cachedGet = None
                 callback(get, false)
+              }
             }
           })
         }
@@ -151,8 +173,10 @@ NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")
           if(!pending) {
             val newValue = counter.getAndDecrement
 
-            if(newValue == 1)
+            if(newValue == 1) { 
+              _cachedGet = None
               callback(get, false)
+            }
           }
         })
       }
@@ -277,7 +301,7 @@ object Data {
       // data and force network reloads.
       val prefs = getGlobalPreferences
       val oldInt = prefs.getInt(balleroRevKey, 0)
-      if(true || oldInt != balleroRev) {
+      if(oldInt != balleroRev) {
         Log.i("DATA", "Ballero serialization formats changed; clearing user cache")
         users.foreach { user =>
           context.getSharedPreferences(user.name, 0).edit().clear().commit()

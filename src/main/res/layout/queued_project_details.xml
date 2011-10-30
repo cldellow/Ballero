@@ -1,11 +1,31 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><greendroid.widget.ActionBarHost
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@id/gd_action_bar_host"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:orientation="vertical">
+
+  <greendroid.widget.ActionBar
+    android:id="@id/gd_action_bar"
+    android:layout_height="@dimen/gd_action_bar_height"
+    android:layout_width="fill_parent"
+    android:background="?attr/gdActionBarBackground" />
+
+    <FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+      android:id="@id/gd_action_bar_content_view"
+      android:layout_height="fill_parent"
+      android:layout_width="fill_parent"
+      android:layout_weight="1">
+  
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/lblPatternName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Pattern Name"
@@ -56,3 +76,5 @@
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
 </LinearLayout>
+</FrameLayout>
+</greendroid.widget.ActionBarHost>

@@ -22,7 +22,7 @@ import greendroid.graphics.drawable._
 import greendroid.widget._
 import greendroid.widget.item._
 
-class ProjectsActivity extends GDListActivity with SmartActivity {
+class ProjectsActivity extends GDListActivity with NavigableListActivity with SmartActivity {
   val TAG = "ProjectsActivity"
 
   var adapter: ItemAdapter = null
@@ -141,8 +141,6 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
         RavelryApi.makePatternDetailsResource(id).get }.getOrElse(Nil).headOption)
     }
     updatePendings(pending)
-    println("new queue")
-    println(queued)
     updateItems
   }
 
@@ -195,6 +193,7 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
               case photo :: xs => new ThumbnailItem(q.q.uiName, subtitle, R.drawable.ic_gdcatalog, photo.thumbnail_url)
               case Nil => new SubtitleItem(q.q.uiName, subtitle)
             }
+          item.goesToWithData[QueuedProjectDetailsActivity, Id](Id(q.q.id))
           adapter.add(item)
         case Right(p) =>
           val subtitle = p.status match {
@@ -214,8 +213,5 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
     }
 
     setListAdapter(adapter)
-  }
-
-  override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
   }
 }

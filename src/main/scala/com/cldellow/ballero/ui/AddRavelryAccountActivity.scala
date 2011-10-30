@@ -19,6 +19,7 @@ class AddRavelryAccountActivity extends GDActivity with SmartActivity {
   val TAG = "AddRavelryAccountActivity"
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
+    setTitle("add a ravelry account")
   }
 
   override def createLayout(): Int = {

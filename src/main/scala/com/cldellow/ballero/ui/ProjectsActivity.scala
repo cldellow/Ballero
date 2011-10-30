@@ -28,7 +28,8 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
   var adapter: ItemAdapter = null
 
   private var projects: List[Project] = Nil
-  private var queued: List[RavelryQueue] = Nil
+  case class QueueWithPattern(q: RavelryQueue, pattern: Option[Pattern])
+  private var queued: List[QueueWithPattern] = Nil
 
   var refreshButton: LoaderActionBarItem = null
   var numPending: Int = 0
@@ -112,15 +113,6 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
     Data.currentUser.get.projects.render(policy, onProjectsChanged)
   }
 
-  private def onQueueChanged(queued: List[RavelryQueue], pending: Boolean) {
-    this.queued = queued
-    updatePendings(pending)
-    println("new queue")
-    println(queued)
-    updateItems
-  }
-
-
   private def updatePendings(pending: Boolean) {
     if(!pending) {
       numPending -= 1
@@ -131,16 +123,27 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
     }
   }
 
+  private def onQueueChanged(queued: List[RavelryQueue], pending: Boolean) {
+    this.queued = queued.map { q =>
+      QueueWithPattern(q, q.pattern_id.map { id =>
+        RavelryApi.makePatternDetailsResource(id).get }.getOrElse(Nil).headOption)
+    }
+    updatePendings(pending)
+    println("new queue")
+    println(queued)
+    updateItems
+  }
+
   private def onProjectsChanged(projects: List[Project], pending: Boolean) {
     updatePendings(pending)
     this.projects = projects
     updateItems
   }
 
-  private def filterProjects(projectish: Projectish): Boolean = projectish match {
-    case q: RavelryQueue =>
+  private def filterProjects(projectish: Either[QueueWithPattern, Project]): Boolean = projectish match {
+    case Left(q) =>
       filter == Unknown || filter == Queued
-    case p: Project =>
+    case Right(p) =>
       filter == Unknown ||
       filter == p.status
   }
@@ -148,7 +151,8 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
   private def updateItems {
     adapter = new ItemAdapter(this)
 
-    val kept = (queued ::: projects).filter { filterProjects }
+    val kept: List[Either[QueueWithPattern, Project]] =
+      ((queued.map { Left(_) }) ::: (projects.map { Right(_) })).filter { filterProjects }
     if(filter != Unknown)
       adapter.add(new SeparatorItem(filter match {
         case Hibernated => "hibernating projects"
@@ -163,20 +167,24 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
       adapter.add(new TextItem("no projects found"))
     }
 
-    val useQueueOrder = kept.forall { _.isInstanceOf[RavelryQueue] }
-    val sorted = if(useQueueOrder) kept.collect { case q: RavelryQueue => q }.sortBy { -_.sort_order } else kept.sortBy { _.uiName }
+    val useQueueOrder = kept.forall { _.isLeft }
+    val sorted =
+      if(useQueueOrder)
+        kept.collect { case Left(q) => Left(q)}.sortBy { -_.left.get.q.sort_order }
+      else
+        kept.sortBy { x => x match { case Left(q) => q.q.uiName case Right(p) => p.uiName } }
+
     sorted.zipWithIndex.foreach { case (projectish, index) =>
       projectish match {
-        case q: RavelryQueue =>
+        case Left(q) =>
           val subtitle = if(!useQueueOrder) "in queue" else "queue item %s".format(index + 1)
-          val item = q.pattern_id.map { id => RavelryApi.makePatternDetailsResource(id).get }
-            .getOrElse(Nil).flatMap { pattern => pattern.photos.getOrElse(Nil)
-            } match {
-              case photo :: xs => new ThumbnailItem(q.uiName, subtitle, R.drawable.ic_gdcatalog, photo.thumbnail_url)
-              case Nil => new SubtitleItem(q.uiName, subtitle)
+          val photos: List[Photo] = q.pattern.map { _.photos.getOrElse(Nil) }.getOrElse(Nil)
+          val item = photos match {
+              case photo :: xs => new ThumbnailItem(q.q.uiName, subtitle, R.drawable.ic_gdcatalog, photo.thumbnail_url)
+              case Nil => new SubtitleItem(q.q.uiName, subtitle)
             }
           adapter.add(item)
-        case p: Project =>
+        case Right(p) =>
           val subtitle = p.status match {
             case Finished => "finished"
             case InProgress => "in progress"
@@ -195,10 +203,5 @@ class ProjectsActivity extends GDListActivity with SmartActivity {
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
-    /*
-    val textItem: Item = l.getAdapter().getItem(position).asInstanceOf[Item]
-    val intent: Intent = new Intent(this, textItem.getTag.asInstanceOf[Class[_]])
-    startActivity(intent)
-    */
   }
 }

@@ -21,6 +21,7 @@ class QueuedProjectDetailsActivity extends GDActivity with SmartActivity {
   lazy val notesValue = findLabel(R.id.lblNotesValue)
   lazy val makeForValue = findLabel(R.id.lblMakeForValue)
   lazy val patternName = findLabel(R.id.lblPatternName)
+  lazy val imageView = findAsyncImageView(R.id.image_view)
 
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
@@ -38,6 +39,7 @@ class QueuedProjectDetailsActivity extends GDActivity with SmartActivity {
     super.onResume()
 
     val ravelryQueue = RavelryApi.makeQueueDetailsResource(currentId).get.headOption
+    imageView.setVisibility(View.GONE)
     ravelryQueue map { q =>
 
       var makeFor = q.make_for
@@ -45,6 +47,17 @@ class QueuedProjectDetailsActivity extends GDActivity with SmartActivity {
 
       makeForValue.setText(makeFor)
       q.pattern_name.map { pn => patternName.setText(pn) }
+
+
+      q.pattern_id.foreach { id =>
+        val patternDetails = RavelryApi.makePatternDetailsResource(id).get.headOption
+        patternDetails.foreach { pattern =>
+          pattern.photos.getOrElse(Nil).headOption.foreach { photo =>
+            imageView.setVisibility(View.VISIBLE)
+            imageView.setUrl(photo.small_url)
+          }
+        }
+      }
     }
 
     Data.currentUser.get.queue.get.filter { _.id == currentId }.map { q =>

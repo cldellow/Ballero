@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?><greendroid.widget.ActionBarHost
   xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:greendroid="http://schemas.android.com/apk/res/com.cyrilmottier.android.gdcatalog"
+  
   android:id="@id/gd_action_bar_host"
   android:layout_width="fill_parent"
   android:layout_height="fill_parent"
@@ -18,12 +20,27 @@
       android:layout_width="fill_parent"
       android:layout_weight="1">
   
+<ScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:padding="4dp"
+	android:background="@android:color/black">
 
+        
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-
+    
+    <greendroid.widget.AsyncImageView
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      android:id="@+id/image_view"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center"
+      />
+    <!--  greendroid:defaultSrc="@drawable/ic_gdcatalog"  -->
     <TextView
         android:id="@+id/lblPatternName"
         android:layout_width="wrap_content"
@@ -76,5 +93,6 @@
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
 </LinearLayout>
+</ScrollView>
 </FrameLayout>
 </greendroid.widget.ActionBarHost>

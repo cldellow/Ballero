@@ -23,6 +23,7 @@ trait SmartActivity extends Activity {// this: Activity =>
     findViewById(i).asInstanceOf[T]
 
   def findView(i: Int): View = find(i)
+  def findAsyncImageView(i: Int): AsyncImageView = find(i)
   def findLabel(i: Int): TextView = find(i)
   def findTextView(i: Int): TextView = find(i)
   def findProgressBar(i: Int): ProgressBar = find(i)

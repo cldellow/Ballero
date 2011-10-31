@@ -87,6 +87,7 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:id="@+id/layoutMakeFor"
         android:orientation="horizontal" >
 
         <TextView
@@ -127,18 +128,6 @@
             android:layout_weight="1" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/lblNotes"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Notes"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <TextView
-        android:id="@+id/lblNotesValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="(no notes)" />
 
 <TextView
         android:id="@+id/lblNeedleDetails"
@@ -173,6 +162,19 @@
         android:layout_height="wrap_content"
         android:text="Yarn Color" />
     </LinearLayout>
+        <TextView
+        android:id="@+id/lblNotes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Notes"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/lblNotesValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="(no notes)" />
+        
 </LinearLayout>
 
 </LinearLayout>

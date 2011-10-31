@@ -223,10 +223,10 @@ case class Project (
   photos: Option[List[Photo]],
   progress: Option[Int],
   /* "In progress", "Finished" */
-  status_name: String
+  status_name: Option[String]
 ) extends Projectish with IdKey {
   /* TODO: parse the other statuses */
-  def status: ProjectStatus = status_name match {
+  def status: ProjectStatus = status_name.getOrElse("In progress") match {
     case "Hibernating" => Hibernated
     case "Frogged" => Frogged
     case "In progress" => InProgress
@@ -249,9 +249,9 @@ case class Project (
 */
 case class RavelryNeedle(
   crochet: Boolean,
-  hook: String,
+  hook: Option[String],
   knitting: Boolean,
-  metric: BigDecimal,
+  metric: Option[BigDecimal],
   name: Option[String],
   us: Option[String],
   us_steel: Option[String]

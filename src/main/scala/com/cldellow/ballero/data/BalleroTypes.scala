@@ -61,7 +61,7 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
     if(doNetwork) {
       a.restServiceConnection.request(
         RestRequest(getUrl)) { response =>
-          Log.i("NETWORK_RESOURCE", "got %s".format(response.body))
+          //Log.i("NETWORK_RESOURCE", "got %s".format(response.body))
 
           response.statusCode match {
             case OK =>

@@ -22,6 +22,7 @@ class QueuedProjectDetailsActivity extends GDActivity with SmartActivity {
   lazy val makeForValue = findLabel(R.id.lblMakeForValue)
   lazy val patternName = findLabel(R.id.lblPatternName)
   lazy val imageView = findAsyncImageView(R.id.image_view)
+  lazy val layoutMakeFor = findView(R.id.layoutMakeFor)
 
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
@@ -45,7 +46,13 @@ class QueuedProjectDetailsActivity extends GDActivity with SmartActivity {
       var makeFor = q.make_for
       if(makeFor.trim == "") makeFor = "(no one)"
 
-      makeForValue.setText(makeFor)
+      if(makeFor == "(no one)") {
+        layoutMakeFor.setVisibility(View.GONE)
+      } else {
+        makeForValue.setText(makeFor)
+        layoutMakeFor.setVisibility(View.VISIBLE)
+      }
+
       q.pattern_name.map { pn => patternName.setText(pn) }
 
 

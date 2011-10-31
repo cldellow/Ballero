@@ -110,7 +110,8 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
         "no projects"
       else {
       val queue = if(queued.isEmpty) "queue empty" else "%s queued".format(queued.length)
-      val projectStrings = projects.filter { proj => proj.status == InProgress || proj.status == Finished }.groupBy { _.status_name }.map {
+      val projectStrings = projects.filter { proj => proj.status == InProgress || proj.status == Finished }.groupBy {
+        _.status_name.getOrElse("In progress") }.map {
       case (status, items) => "%s %s".format(items.length, status.toLowerCase) }
 
       (projectStrings.toList ::: List(queue)).mkString(", ")

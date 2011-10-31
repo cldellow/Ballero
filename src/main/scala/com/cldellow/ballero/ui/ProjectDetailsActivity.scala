@@ -19,6 +19,7 @@ class ProjectDetailsActivity extends GDActivity with SmartActivity {
 
   var currentId: Int = 0
 
+  lazy val layoutMakeFor = findView(R.id.layoutMakeFor)
   lazy val yarnLayout = findView(R.id.yarnLayout)
   lazy val needleDetails = findLabel(R.id.lblNeedleDetails)
   lazy val yarnName = findLabel(R.id.lblYarnName)
@@ -77,9 +78,15 @@ class ProjectDetailsActivity extends GDActivity with SmartActivity {
 
       var madeFor = project.made_for.getOrElse("")
       if(madeFor.trim == "")
-        madeForValue.setText("(no one)")
-      else
+        madeFor = "(no one)"
+
+      if(madeFor == "(no one)") {
+        layoutMakeFor.setVisibility(View.GONE)
+      }
+      else {
+        layoutMakeFor.setVisibility(View.VISIBLE)
         madeForValue.setText(madeFor)
+      }
 
       yarnLayout.setVisibility(View.GONE)
       project.packs.foreach { packs =>

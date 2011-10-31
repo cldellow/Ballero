@@ -7,6 +7,10 @@ import com.cldellow.ballero.ui.SmartActivity
 import com.cldellow.ballero.service._
 import java.util.concurrent.atomic._
 
+object Constants {
+  val DB_VERSION = 4
+}
+
 sealed trait RefreshPolicy
 case object ForceNetwork extends RefreshPolicy
 case object FetchIfNeeded extends RefreshPolicy
@@ -226,7 +230,7 @@ case class User(name: String, oauth_token: Option[OAuthCredential]) {
 }
 case class Users(users: List[User])
 
-class DataHelper(context: Context) extends SQLiteOpenHelper(context, "ballero", null, 3) {
+class DataHelper(context: Context) extends SQLiteOpenHelper(context, "ballero", null, Constants.DB_VERSION) {
   override def onCreate(db: SQLiteDatabase) {
     db.execSQL("CREATE TABLE data (namespace text, key text, value text, primary key(namespace, key))")
 

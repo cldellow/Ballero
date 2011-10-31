@@ -18,6 +18,7 @@ class RestServiceConnection() extends ServiceConnection {
    * Long term, may want to enforce a max # of outstanding requests anyway.
    */
   def request(restRequest: RestRequest)(callback: RestResponse => Unit) {
+    Log.i("REST", "Outgoing: " + restRequest.toString)
     if(_boundService != null)
       _boundService.request(restRequest)(callback)
     else {

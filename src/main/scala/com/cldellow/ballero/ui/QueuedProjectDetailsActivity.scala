@@ -53,6 +53,7 @@ class QueuedProjectDetailsActivity extends GDActivity with SmartActivity {
         val patternDetails = RavelryApi.makePatternDetailsResource(id).get.headOption
         patternDetails.foreach { pattern =>
           pattern.photos.getOrElse(Nil).headOption.foreach { photo =>
+            info("PHOTO: " + photo.toString)
             imageView.setVisibility(View.VISIBLE)
             imageView.setUrl(photo.small_url)
           }

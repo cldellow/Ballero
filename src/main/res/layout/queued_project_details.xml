@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><greendroid.widget.ActionBarHost
+<?xml version="1.0" encoding="utf-8"?>
+<greendroid.widget.ActionBarHost
   xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:greendroid="http://schemas.android.com/apk/res/com.cyrilmottier.android.gdcatalog"
   

@@ -35,6 +35,7 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
     super.onCreate(savedInstanceState)
 
     getParams[User] map { user => Data.currentUser = Some(user) }
+    setTitle(Data.currentUser.get.name)
     adapter = new ItemAdapter(this)
 
     needlesItem = new SubtitleItem("needles", "", true).goesTo[NeedlesActivity]

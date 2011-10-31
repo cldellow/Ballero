@@ -10,6 +10,7 @@ object RavelryApi {
   def queueList = UrlInput("%s/people/{user}/queue/list.json".format(root), Map(), "queue")
   def needleList = UrlInput("http://rav.cldellow.com:8080/rav/people/{user}/needles", Map(), "needles")
   def friendsList = UrlInput("%s/people/{user}/friends/list.json".format(root), Map(), "friends")
+  def projectDetails(id: Int) = UrlInput("%s/projects/{user}/%s.json".format(root, id), Map(), "project_%s".format(id))
   def patternDetails(id: Int) = UrlInput("%s/patterns/%s.json".format(root, id), Map(), "pattern_%s".format(id))
 
   def makeQueueDetailsResource(id: Int): NetworkResource[RavelryQueue] =
@@ -21,6 +22,12 @@ object RavelryApi {
     new TransformedNetworkResource[PatternWrapper, Pattern](
       new SignedNetworkResource[PatternWrapper](RavelryApi.patternDetails(id), false),
       { qp => List(qp.pattern) })
+
+  def makeProjectDetailsResource(id: Int): NetworkResource[Project] =
+    new TransformedNetworkResource[ProjectWrapper, Project](
+      new SignedNetworkResource[ProjectWrapper](RavelryApi.projectDetails(id), false),
+      { qp => List(qp.project) })
+
 
 }
 

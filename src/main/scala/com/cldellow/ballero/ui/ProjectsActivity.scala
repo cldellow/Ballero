@@ -208,6 +208,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
             case Some(photo) => new ThumbnailItem(p.uiName, subtitle, R.drawable.ic_gdcatalog, photo.thumbnail_url)
             case None => new SubtitleItem(p.uiName, subtitle)
           }
+          item.goesToWithData[ProjectDetailsActivity, Id](Id(p.id))
           adapter.add(item)
       }
     }

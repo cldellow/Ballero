@@ -34,6 +34,7 @@ case class QueuedProjects (queued_projects: List[SimpleQueuedProject])
 case class RavelryQueueProjectWrapper(queued_project: RavelryQueue)
 
 case class PatternWrapper(pattern: Pattern)
+case class ProjectWrapper(project: Project)
 
 case class Pattern(
   difficulty_average: BigDecimal,
@@ -132,7 +133,10 @@ case class Photo (
   thumbnail_url: String
 )
 
-sealed trait ProjectStatus
+sealed trait ProjectStatus {
+  def human: String
+}
+
 object ProjectStatus {
   def apply(str: String): ProjectStatus = str match {
     case "Hibernated" => Hibernated
@@ -143,25 +147,80 @@ object ProjectStatus {
     case _ => Unknown
   }
 }
-case object Hibernated extends ProjectStatus
-case object Queued extends ProjectStatus
-case object Frogged extends ProjectStatus
-case object InProgress extends ProjectStatus
-case object Finished extends ProjectStatus
-case object Unknown extends ProjectStatus
+case object Hibernated extends ProjectStatus { def human = "zzz" }
+case object Queued extends ProjectStatus { def human = "in queue" }
+case object Frogged extends ProjectStatus { def human = "frogged" }
+case object InProgress extends ProjectStatus { def human = "in progress" }
+case object Finished extends ProjectStatus { def human = "finished" }
+case object Unknown extends ProjectStatus { def human = "unknown" }
 
 trait Projectish {
   def uiName: String
 }
 
+/*
+"packs": [{
+            "yarn_id": 69628,
+            "yarn_weight": {
+                "name": "Lace",
+                "min_gauge": null,
+                "wpi": null,
+                "crochet_gauge": "",
+                "ply": "2",
+                "knit_gauge": "32-34",
+                "max_gauge": null
+            },
+            "total_grams": 100,
+            "colorway": "Dark blues",
+            "shop_id": null,
+            "prefer_metric_weight": true,
+            "prefer_metric_length": false,
+            "ounces_per_skein": 3.53,
+            "dye_lot": "",
+            "skeins": 1.0,
+            "id": 19389993,
+            "shop_name": "KW Knitters Guild",
+            "grams_per_skein": 100,
+            "color_family_id": 9,
+            "total_meters": 699.5,
+            "stash_id": 5470401,
+            "yarn": {
+                "permalink": "handmaiden-fine-yarn-marrakesh",
+                "yarn_company_id": 426,
+                "name": "Marrakesh",
+                "id": 69628,
+                "yarn_company_name": "Handmaiden Fine Yarn"
+            },
+            "total_ounces": 3.53,
+            "personal_name": null,
+            "meters_per_skein": 699.5,
+            "yarn_name": "Handmaiden Fine Yarn Marrakesh",
+            "yards_per_skein": 765.0,
+            "total_yards": 765.0
+        }],
+        */
+
+case class YarnPack (
+  colorway: Option[String],
+  skeins: Option[BigDecimal],
+  total_grams: Option[Int],
+  total_yards: Option[BigDecimal],
+  yarn_id: Option[Int],
+  yarn_name: Option[String]
+)
 case class Project (
+  craft_name: Option[String],
   first_photo: Option[Photo],
   id: Int,
-  made_for: String,
+  made_for: Option[String],
   name: String,
+  needle_sizes: Option[List[RavelryNeedle]],
+  notes: Option[String],
+  packs: Option[List[YarnPack]],
   pattern_id: Option[Int],
   pattern_name: Option[String],
   permalink: String,
+  photos: Option[List[Photo]],
   progress: Option[Int],
   /* "In progress", "Finished" */
   status_name: String
@@ -177,6 +236,26 @@ case class Project (
 
   def uiName: String = name
 }
+
+/**
+   "hook": "E",
+            "metric": 3.5,
+            "us": "4 ",
+            "us_steel": "00",
+            "name": "US 4  - 3.5 mm",
+            "knitting": true,
+            "id": 4,
+            "crochet": false
+*/
+case class RavelryNeedle(
+  crochet: Boolean,
+  hook: String,
+  knitting: Boolean,
+  metric: BigDecimal,
+  name: Option[String],
+  us: Option[String],
+  us_steel: Option[String]
+)
 
 case class Needle(
   comment: String,

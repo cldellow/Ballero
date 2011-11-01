@@ -16,6 +16,7 @@
 package com.cldellow.ballero.ui
 
 import android.content._
+import android.graphics._
 import android.text._
 import android.view._
 import android.widget.FrameLayout.LayoutParams
@@ -78,8 +79,12 @@ extends FrameLayout(context) {
   addView(layout, params);
 
   def urlClick(v: View) {
-    item map { item => new Intent(Intent.ACTION_VIEW, Uri.parse(item.shop.url)) } map {
-      context.startActivity(_) }
+    item foreach { item =>
+      val url = item.shop.url
+      if(url != "") {
+        context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(item.shop.url)))
+      }
+    }
   }
 
   def twitterClick(v: View) {
@@ -107,8 +112,14 @@ extends FrameLayout(context) {
     layout.setVisibility(View.VISIBLE)
     if (item.getTitle() != null) {
       title.setVisibility(View.VISIBLE)
-      title.setText(Html.fromHtml("<span><u>%s</u></span>".format(item.getTitle())))
-
+      val hasUrl = item.shop.url != ""
+      if(hasUrl) {
+        title.setTextColor(Color.BLUE)
+        title.setText(Html.fromHtml("<span><u>%s</u></span>".format(item.getTitle())))
+      } else {
+        title.setTextColor(Color.BLACK)
+        title.setText(Html.fromHtml("<span>%s</span>".format(item.getTitle())))
+      }
     } else {
       title.setVisibility(View.GONE)
     }
@@ -121,7 +132,7 @@ extends FrameLayout(context) {
       snippet.setVisibility(View.GONE)
     }
 
-    if (item.shop.twitter_id != None) {
+    if (item.shop.twitter_id != None && item.shop.twitter_id.get.trim != "") {
       twitter.setVisibility(View.VISIBLE)
       twitter.setText(Html.fromHtml("<span><u>@%s</u></span>".format(item.shop.twitter_id.get)))
     } else {

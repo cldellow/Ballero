@@ -16,9 +16,11 @@ import android.util.Log
 import android.view._
 import android.widget.TextView
 import greendroid.app._
+import android.view.GestureDetector.SimpleOnGestureListener
+import android.view.View.OnTouchListener
 import greendroid.graphics.drawable._
 import greendroid.widget._
-import com.google.android.maps._
+import com.google.android.maps.{MapView, GeoPoint}
 
 class LysStoresMapActivity extends GDMapActivity with SmartActivity {
   val TAG = "FindLysActivity"
@@ -35,7 +37,25 @@ class LysStoresMapActivity extends GDMapActivity with SmartActivity {
     controller.setCenter(new GeoPoint((location.lat * 1e6).toInt, (location.lng * 1e6).toInt))
     controller.setZoom(14)
 
+    /** Built-in zoom controls capture this after the first click
+    val gDetector: GestureDetector = new GestureDetector(this, new DoubleTapZoomer())
+    mapView.setOnTouchListener(new OnTouchListener() {
+      override def onTouch(v: View, event: MotionEvent): Boolean = {
+        info("ONTOUCH")
+        gDetector.onTouchEvent(event)
+      }
+    })
+    */
+
     query(location.lat, location.lng)
+  }
+
+  class DoubleTapZoomer extends SimpleOnGestureListener {
+    override def onDoubleTap(event: MotionEvent): Boolean = {
+        mapView.getController().zoomInFixing(event.getX().asInstanceOf[Int],
+          event.getY().asInstanceOf[Int])
+        super.onDoubleTap(event)
+    }
   }
 
   override def isRouteDisplayed = false

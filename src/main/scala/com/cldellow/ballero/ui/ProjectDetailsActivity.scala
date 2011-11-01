@@ -44,7 +44,7 @@ class ProjectDetailsActivity extends GDActivity with SmartActivity {
 
   def onProjectLoaded(projects: List[Project], pending: Boolean) {
     projects.headOption.map { project =>
-      setTitle(project.name)
+      setTitle(project.uiName)
       patternName.setVisibility(View.GONE)
 
       project.pattern_name.foreach { name =>

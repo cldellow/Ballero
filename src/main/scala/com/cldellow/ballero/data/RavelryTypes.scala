@@ -213,7 +213,7 @@ case class Project (
   first_photo: Option[Photo],
   id: Int,
   made_for: Option[String],
-  name: String,
+  name: Option[String],
   needle_sizes: Option[List[RavelryNeedle]],
   notes: Option[String],
   packs: Option[List[YarnPack]],
@@ -234,7 +234,7 @@ case class Project (
     case _ => Unknown
   }
 
-  def uiName: String = name
+  def uiName: String = name.getOrElse { pattern_name.getOrElse("bugbug: no name!") }
 }
 
 /**

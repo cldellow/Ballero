@@ -335,5 +335,10 @@ object Data {
     val serialized = Parser.serialize(Users(user :: (users(context) filter { _.name != user.name })))
     getGlobalPreferences.edit.putString(usersKey, serialized).commit
   }
+
+  def deleteUser(name: String)(implicit context: Context) {
+    val serialized = Parser.serialize(Users(users(context) filter { _.name != name }))
+    getGlobalPreferences.edit.putString(usersKey, serialized).commit
+  }
 }
 

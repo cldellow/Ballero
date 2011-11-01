@@ -37,6 +37,12 @@ class NeedlesActivity extends GDListActivity with SmartActivity {
   }
 
   private def format(needle: Needle): Item = {
+    val us =
+      if(needle.gaugeUSString.isDefined && needle.gaugeUSString.get.trim != "")
+        "%s / ".format(needle.gaugeUSString.get)
+      else
+        ""
+
     val metric =
       if(needle.gaugeMetric.toInt == needle.gaugeMetric)
         needle.gaugeMetric.toInt.toString
@@ -49,11 +55,11 @@ class NeedlesActivity extends GDListActivity with SmartActivity {
       else
         " - %s".format(needle.comment)
 
-    new TextItem("%s%s".format(metric, trailer))
+    new TextItem("%s%s%s".format(us, metric, trailer))
   }
 
   private def onNeedlesChanged(needles: List[Needle], pending: Boolean) {
-    adapter.remove(progressItem)
+    adapter = new ItemAdapter(this)
     needles.groupBy { _.kind }.foreach { case (kind, needles) =>
       adapter.add(new SeparatorItem("%s %s".format(needles.length, if(kind == "dp") "double-pointed" else kind)))
       needles.foreach { needle =>
@@ -64,7 +70,7 @@ class NeedlesActivity extends GDListActivity with SmartActivity {
     if(needles.isEmpty)
       adapter.add(new TextItem("you have no needles!"))
 
-    onContentChanged()
+    setListAdapter(adapter)
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {

@@ -74,6 +74,7 @@ class RestService extends Service {
       } 
       catch {
         case e: java.net.UnknownHostException =>
+          e.printStackTrace
           responseCodeMessage = e.toString
           client.getConnectionManager().shutdown()
           client.getConnectionManager().shutdown()

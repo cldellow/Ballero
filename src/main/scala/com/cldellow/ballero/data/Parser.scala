@@ -31,7 +31,7 @@ object Parser {
     parseArray(arr, mf.erasure).asInstanceOf[List[T]]
   }
   def parse[T <: Product](str: String)(implicit mf: Manifest[T]): T = {
-    sanityCheck(mf.erasure)
+    //sanityCheck(mf.erasure)
     val jsonObject = new JSONObject(str)
     parse(jsonObject, mf.erasure)
   }
@@ -49,16 +49,6 @@ object Parser {
       val listBuffer = new collection.mutable.ListBuffer[Any]
       for(i <- 0 until jsonArray.length) {
         listBuffer += parseType(jsonArray.get(i), desiredType)
-        /*
-        listBuffer += (desiredType.getCanonicalName match {
-          case "int" => jsonArray.getInt(i)
-          case "java.lang.String" => jsonArray.getString(i)
-          case "scala.math.BigDecimal" => BigDecimal(jsonArray.getDouble(i))
-          case x if instanceOf(desiredType, classOf[Product]) =>
-            parse(jsonArray.getJSONObject(i), desiredType)
-          case x => error("can't parse %s from array".format(desiredType))
-        })
-        */
       }
       listBuffer.toList
     }
@@ -74,16 +64,16 @@ object Parser {
 
   private def instanceOf(what: Class[_], target: Class[_]): Boolean =
     (what :: what.getInterfaces.toList)
-      .map { actualInstanceOf(_, target) }.reduceLeft { _ || _ }
+      .exists { actualInstanceOf(_, target) }
 
   private def parseTypeFromObject(jsonObject: JSONObject, name: String, desiredType: Type): Any = {
-    //Log.i("PARSER", "parsing field %s".format(name))
+    Log.i("PARSER", "parsing field %s".format(name))
     parseType(jsonObject.opt(name), desiredType)
   }
 
   private def parseType(value: Any, desiredType: Type): Any = desiredType match {
     case desiredType: Class[_] =>
-      //Log.i("PARSER", "attempting to parse %s".format(value))
+      Log.i("PARSER", "attempting to parse %s".format(value))
       desiredType.getName match {
         case "int"|"java.lang.Integer" => value.asInstanceOf[Int]
         case "boolean" => value.asInstanceOf[Boolean]
@@ -132,7 +122,8 @@ object Parser {
 
     // Sort them alphabetically descending so dexing can't screw us up
     val fields = klazz.getDeclaredFields.filter { f => 
-      !f.getName.startsWith("$") && !f.getName.startsWith("_")
+      val name = f.getName
+      !name.startsWith("$") && !name.startsWith("_")
     }.toList.sortBy { _.getName }
 
     val nameToIndex = Map() ++ fields.map { _.getName }.zipWithIndex
@@ -277,5 +268,3 @@ object Parser {
   }
 
 }
-
-// vim: set ts=2 sw=2 et:

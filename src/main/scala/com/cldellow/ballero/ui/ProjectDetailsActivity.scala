@@ -54,9 +54,11 @@ class ProjectDetailsActivity extends GDActivity with SmartActivity {
 
       imageView.setVisibility(View.GONE)
       project.photos.foreach { photos =>
-        photos.headOption.map { photo =>
-          imageView.setVisibility(View.VISIBLE)
-          imageView.setUrl(photo.square_url)
+        photos.headOption.foreach { photo =>
+          photo.square_url.foreach { url =>
+            imageView.setVisibility(View.VISIBLE)
+            imageView.setUrl(url)
+          }
         }
       }
       status.setText(project.status.human)

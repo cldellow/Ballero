@@ -136,10 +136,12 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   }
 
   private def onQueueChanged(queued: List[RavelryQueue], pending: Boolean) {
+    val curTime = System.currentTimeMillis
     this.queued = queued.map { q =>
       QueueWithPattern(q, q.pattern_id.map { id =>
         RavelryApi.makePatternDetailsResource(id).get }.getOrElse(Nil).headOption)
     }
+    info("time for onQueueChanged to map: %s".format(System.currentTimeMillis - curTime))
     updatePendings(pending)
     updateItems
   }

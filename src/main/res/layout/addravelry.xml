@@ -26,14 +26,11 @@
           android:layout_width="fill_parent"
           android:layout_height="fill_parent">
             <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:id="@+id/textView2" android:layout_width="wrap_content" android:text="@string/username"></TextView>
-            <EditText android:layout_height="wrap_content" android:layout_width="match_parent" android:id="@+id/txtUsername" android:inputType="textEmailAddress" android:text=""></EditText>
+            <EditText android:layout_height="wrap_content" android:layout_width="match_parent" android:id="@+id/txtUsername" android:inputType="textEmailAddress" android:text="cldellow-ballero"></EditText>
             <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:id="@+id/textView3" android:layout_width="wrap_content" android:text="@string/password"></TextView>
-            <EditText android:layout_height="wrap_content" android:layout_width="match_parent" android:id="@+id/txtPassword" android:inputType="textPassword" android:text=""></EditText>
+            <EditText android:layout_height="wrap_content" android:layout_width="match_parent" android:id="@+id/txtPassword" android:inputType="textPassword" android:text="p@$$w0rd1"></EditText>
             <Button android:textAppearance="?android:attr/textAppearanceLarge" android:id="@+id/btnLogin" android:layout_height="wrap_content" android:text="@string/login" android:layout_width="match_parent" android:layout_marginTop="20dp" android:onClick="loginClick"></Button>
             <ProgressBar android:layout_gravity="center" android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="invisible"></ProgressBar>
         </LinearLayout>
-      </FrameLayout>
-
-
- 
+      </FrameLayout> 
 </greendroid.widget.ActionBarHost>

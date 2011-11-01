@@ -50,7 +50,7 @@ case class Pattern(
   price: Option[BigDecimal],
   row_gauge: Option[BigDecimal],
   yardage: Option[Int],
-  yarn_weight_description: String
+  yarn_weight_description: Option[String]
 ) extends IdKey
 /*
         "pattern": {
@@ -129,7 +129,7 @@ case class Photo (
   id: Int,
   medium_url: String,
   small_url: String,
-  square_url: String,
+  square_url: Option[String],
   thumbnail_url: String
 )
 
@@ -260,7 +260,8 @@ case class RavelryNeedle(
 case class Needle(
   comment: String,
   gaugeMetric: BigDecimal,
-  gaugeUS: Option[BigDecimal],
+  /** Seriously, US. WTF. */
+  gaugeUSString: Option[String],
   id: Int,
   kind: String,
   lengthDecimal: Option[BigDecimal],

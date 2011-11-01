@@ -247,6 +247,7 @@ object Data {
   private val usersKey = "users"
   private val balleroRevKey = "balleroRev"
   val balleroRev = 2
+  var newUser = false
 
   var currentUser: Option[User] = None
 

@@ -27,6 +27,17 @@ class MainActivity extends GDListActivity with NavigableListActivity with SmartA
 
     setTitle("Ballero")
     rebuildOptions
+
+  }
+
+  override def onResume() {
+    super.onResume
+    if(Data.newUser && Data.currentUser.isDefined) {
+      Data.newUser = false
+      val intent = new Intent(this, classOf[RavellerHomeActivity])
+      intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, Data.currentUser.get.name)
+      startActivity(intent)
+    }
   }
 
   def rebuildOptions {

@@ -53,11 +53,10 @@ class AddRavelryAccountActivity extends GDActivity with SmartActivity {
     longToast("Great! Hang on a sec, admiring your knitting.")
 
     val newUser = User(username, Some(OAuthCredential(auth_token, signing_key)))
+    Data.newUser = true
     Data.currentUser = Some(newUser)
     Data.saveUser(newUser)
-    val intent = new Intent(this, classOf[RavellerHomeActivity])
-    intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, username)
-    startActivity(intent)
+    finish()
   }
 
 

@@ -32,6 +32,7 @@ class MainActivity extends GDListActivity with NavigableListActivity with SmartA
 
   override def onResume() {
     super.onResume
+    /** If we're returning from the link account activity, forward to the real account. */
     if(Data.newUser && Data.currentUser.isDefined) {
       Data.newUser = false
       val intent = new Intent(this, classOf[RavellerHomeActivity])

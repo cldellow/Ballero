@@ -11,7 +11,7 @@
     android:layout_height="@dimen/gd_action_bar_height"
     android:layout_width="fill_parent"
     android:background="?attr/gdActionBarBackground" />
-
+ 
     <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
       android:id="@id/gd_action_bar_content_view"

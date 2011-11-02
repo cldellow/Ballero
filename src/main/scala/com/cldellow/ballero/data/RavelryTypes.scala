@@ -113,7 +113,7 @@ case class Pattern(
         */
 case class RavelryQueue(
   id: Int,
-  make_for: String,
+  make_for: Option[String],
   name: String,
   pattern: Option[Pattern],
   pattern_id: Option[Int],

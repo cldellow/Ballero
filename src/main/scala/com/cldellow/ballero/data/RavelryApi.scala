@@ -20,12 +20,12 @@ object RavelryApi {
 
   def makePatternDetailsResource(id: Int): NetworkResource[Pattern] =
     new TransformedNetworkResource[PatternWrapper, Pattern](
-      new SignedNetworkResource[PatternWrapper](RavelryApi.patternDetails(id), false),
+      new NetworkResource[PatternWrapper](RavelryApi.patternDetails(id), false),
       { qp => List(qp.pattern) })
 
   def makeProjectDetailsResource(id: Int): NetworkResource[Project] =
     new TransformedNetworkResource[ProjectWrapper, Project](
-      new SignedNetworkResource[ProjectWrapper](RavelryApi.projectDetails(id), false),
+      new NetworkResource[ProjectWrapper](RavelryApi.projectDetails(id), false),
       { qp => List(qp.project) })
 
 

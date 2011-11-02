@@ -43,7 +43,7 @@ class QueuedProjectDetailsActivity extends GDActivity with SmartActivity {
     imageView.setVisibility(View.GONE)
     ravelryQueue map { q =>
 
-      var makeFor = q.make_for
+      var makeFor = q.make_for.getOrElse("")
       if(makeFor.trim == "") makeFor = "(no one)"
 
       if(makeFor == "(no one)") {

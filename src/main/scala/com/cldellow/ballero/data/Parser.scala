@@ -67,13 +67,13 @@ object Parser {
       .exists { actualInstanceOf(_, target) }
 
   private def parseTypeFromObject(jsonObject: JSONObject, name: String, desiredType: Type): Any = {
-    Log.i("PARSER", "parsing field %s".format(name))
+    //Log.i("PARSER", "parsing field %s".format(name))
     parseType(jsonObject.opt(name), desiredType)
   }
 
   private def parseType(value: Any, desiredType: Type): Any = desiredType match {
     case desiredType: Class[_] =>
-      Log.i("PARSER", "attempting to parse %s".format(value))
+      //Log.i("PARSER", "attempting to parse %s".format(value))
       desiredType.getName match {
         case "int"|"java.lang.Integer" => value.asInstanceOf[Int]
         case "boolean" => value.asInstanceOf[Boolean]

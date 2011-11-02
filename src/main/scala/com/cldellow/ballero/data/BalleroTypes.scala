@@ -48,7 +48,10 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
   def name: String = url.cacheName
 
   def canNetwork = true
-  def getUrl = url.base.replace("{user}", Data.currentUser.map { _.name }.getOrElse(""))
+  def getUrl =
+    Crypto.appsign(
+      (url.base.replace("{user}", Data.currentUser.map { _.name }.getOrElse(""))),
+      url.params)
 
   def stale(implicit a: SmartActivity): Boolean = getAge > 3600
 
@@ -59,8 +62,8 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
     callback(get, doNetwork)
 
     if(doNetwork) {
-      a.restServiceConnection.request(
-        RestRequest(getUrl)) { response =>
+      val restRequest = RestRequest(getUrl)
+      a.restServiceConnection.request(restRequest) { response =>
           //Log.i("NETWORK_RESOURCE", "got %s".format(response.body))
 
           response.statusCode match {
@@ -86,6 +89,8 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
               }
               callback(newValues, false)
             case _ =>
+              Log.e("NETWORK_RESOURCE", "Failed request: %s".format(restRequest))
+              Log.e("NETWORK_RESOURCE", "Response: %s".format(response))
               a.networkError(response)
               callback(get, false)
           }

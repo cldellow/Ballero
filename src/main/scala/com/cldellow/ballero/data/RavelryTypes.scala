@@ -115,7 +115,7 @@ case class RavelryQueue(
   id: Int,
   make_for: Option[String],
   name: String,
-  pattern: Option[Pattern],
+  var pattern: Option[Pattern],
   pattern_id: Option[Int],
   pattern_name: Option[String],
   sort_order: Int

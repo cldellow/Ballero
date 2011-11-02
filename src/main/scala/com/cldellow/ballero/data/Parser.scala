@@ -30,6 +30,12 @@ object Parser {
     val arr = new JSONArray(str)
     parseArray(arr, mf.erasure).asInstanceOf[List[T]]
   }
+
+  def parseAsList[T <: Product](str: String)(implicit mf: Manifest[T]): List[T] = {
+    //Log.i("PARSER", "trying to parse %s from %s".format(mf.erasure.getName, str))
+    List(parse[T](str))
+  }
+
   def parse[T <: Product](str: String)(implicit mf: Manifest[T]): T = {
     //sanityCheck(mf.erasure)
     val jsonObject = new JSONObject(str)
@@ -166,6 +172,7 @@ object Parser {
     val javaObjects = inputs.map { javaObject(_) }
     //Log.i("PARSER", "java inputs: %s".format(javaObjects))
     val x = constructor.newInstance(javaObjects:_*)
+
     x.asInstanceOf[T]
   }
 

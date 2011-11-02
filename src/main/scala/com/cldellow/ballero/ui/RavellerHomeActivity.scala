@@ -62,43 +62,41 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
   }
 
   private var projectsPending = 0
+  private var needlesPending = 0
   private def refreshAll(policy: RefreshPolicy) {
     refreshButton.setLoading(true)
-    numPending += 3
-    projectsPending += 2
+    numPending += 6
+    projectsPending += 4
+    needlesPending += 2
     Data.currentUser.get.needles.render(policy, onNeedlesChanged)
     Data.currentUser.get.queue.render(policy, onQueueChanged)
     Data.currentUser.get.projects.render(policy, onProjectsChanged)
   }
 
-  private def updatePendings(pending: Boolean) {
-    if(!pending) {
-      numPending -= 1
-      if(numPending <= 0) {
-        numPending = 0
-        refreshButton.setLoading(false)
-      }
+  private def updatePendings(delta: Int) {
+    numPending += delta
+    if(numPending <= 0) {
+      numPending = 0
+      refreshButton.setLoading(false)
     }
   }
 
   private var queued: List[SimpleQueuedProject] = Nil
   private var projects: List[Project] = Nil
 
-  private def onQueueChanged(queued: List[SimpleQueuedProject], pending: Boolean) {
-    updatePendings(pending)
-    if(!pending)
-      projectsPending -= 1
+  private def onQueueChanged(queued: List[SimpleQueuedProject], delta: Int) {
+    updatePendings(delta)
+    projectsPending += delta
 
     this.queued = queued
     updateProjectsItem
 
   }
 
-  private def onProjectsChanged(projects: List[Project], pending: Boolean) {
-    updatePendings(pending)
+  private def onProjectsChanged(projects: List[Project], delta: Int) {
+    updatePendings(delta)
 
-    if(!pending)
-      projectsPending -= 1
+    projectsPending += delta
 
     this.projects = projects
     updateProjectsItem
@@ -123,15 +121,16 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
     onContentChanged
   }
 
-  private def onNeedlesChanged(needles: List[Needle], pending: Boolean) {
-    updatePendings(pending)
+  private def onNeedlesChanged(needles: List[Needle], delta: Int) {
+    updatePendings(delta)
+    needlesPending += delta
 
     val subtitle = if(needles.isEmpty) "no needles" else needles.groupBy { _.kind }
       .map { case(kind, needles) => "%s %s".format(needles.length, kind) }
       .mkString(", ")
 
     needlesItem.subtitle = subtitle
-    needlesItem.inProgress = pending
+    needlesItem.inProgress = needlesPending > 0
 
     onContentChanged
   }

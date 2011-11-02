@@ -39,36 +39,44 @@ class QueuedProjectDetailsActivity extends GDActivity with SmartActivity {
   override def onResume() {
     super.onResume()
 
-    val ravelryQueue = RavelryApi.makeQueueDetailsResource(currentId).get.headOption
-    imageView.setVisibility(View.GONE)
+    val ravelryQueue = RavelryApi.makeQueueDetailsResource(currentId).render(FetchIfNeeded, onQueueDetails)
+  }
+
+  private def onQueueDetails(ravelryQueue: List[RavelryQueue], delta: Int) {
     ravelryQueue map { q =>
-
-      var makeFor = q.make_for.getOrElse("")
-      if(makeFor.trim == "") makeFor = "(no one)"
-
-      if(makeFor == "(no one)") {
-        layoutMakeFor.setVisibility(View.GONE)
-      } else {
-        makeForValue.setText(makeFor)
-        layoutMakeFor.setVisibility(View.VISIBLE)
-      }
-
-      q.pattern_name.map { pn => patternName.setText(pn) }
-
-
-      q.pattern_id.foreach { id =>
-        val patternDetails = RavelryApi.makePatternDetailsResource(id).get.headOption
-        patternDetails.foreach { pattern =>
-          pattern.photos.getOrElse(Nil).headOption.foreach { photo =>
-            info("PHOTO: " + photo.toString)
-            imageView.setVisibility(View.VISIBLE)
-            imageView.setUrl(photo.small_url)
-          }
-        }
+      q.pattern_id.map { id =>
+        RavelryApi.makePatternDetailsResource(id).render(FetchIfNeeded, onPatternDetails(q))
       }
     }
+  }
 
-    Data.currentUser.get.queue.get.filter { _.id == currentId }.map { q =>
+  private def onPatternDetails(q: RavelryQueue)(patternDetails: List[Pattern], delta: Int) {
+    patternDetails map { patternDetails =>
+      Data.currentUser.get.queue.render(FetchIfNeeded, onSimpleQueue(q, patternDetails))
+    }
+  }
+
+  private def onSimpleQueue(q: RavelryQueue, pattern: Pattern)(queue: List[SimpleQueuedProject], delta: Int) {
+    imageView.setVisibility(View.GONE)
+    var makeFor = q.make_for.getOrElse("")
+    if(makeFor.trim == "") makeFor = "(no one)"
+
+    if(makeFor == "(no one)") {
+      layoutMakeFor.setVisibility(View.GONE)
+    } else {
+      makeForValue.setText(makeFor)
+      layoutMakeFor.setVisibility(View.VISIBLE)
+    }
+
+    q.pattern_name.map { pn => patternName.setText(pn) }
+
+    pattern.photos.getOrElse(Nil).headOption.foreach { photo =>
+      info("PHOTO: " + photo.toString)
+      imageView.setVisibility(View.VISIBLE)
+      imageView.setUrl(photo.small_url)
+    }
+
+    queue.filter { _.id == currentId }.map { q =>
       var text = q.notes.getOrElse("")
       if(text.trim == "") text = "(no notes)"
       notesValue.setText(text)

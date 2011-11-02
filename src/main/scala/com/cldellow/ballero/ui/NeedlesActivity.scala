@@ -58,7 +58,7 @@ class NeedlesActivity extends GDListActivity with SmartActivity {
     new TextItem("%s%s%s".format(us, metric, trailer))
   }
 
-  private def onNeedlesChanged(needles: List[Needle], pending: Boolean) {
+  private def onNeedlesChanged(needles: List[Needle], pending: Int) {
     adapter = new ItemAdapter(this)
     needles.groupBy { _.kind }.foreach { case (kind, needles) =>
       adapter.add(new SeparatorItem("%s %s".format(needles.length, if(kind == "dp") "double-pointed" else kind)))

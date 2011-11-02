@@ -23,27 +23,28 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
   def getAge(implicit a: SmartActivity): Long = getAgeFromKey(ageName)
 
 
-  protected def fromString(string: String): List[T] =
-    if(array)
+  protected def fromString(string: String): List[T] = {
+    val currentTime = System.currentTimeMillis
+    val rv = if(array)
       Parser.parseList[T](string)
     else
       List(Parser.parse[T](string))
+    Log.i("NETWORK_RESOURCE", "Parse took %s ms".format(System.currentTimeMillis - currentTime))
+    rv
+  }
 
   protected var _cachedGet: Option[List[T]] = None
-  def get(implicit a: SmartActivity): List[T] = {
-    if(_cachedGet.isDefined)
-      _cachedGet.get
-    else {
-      _cachedGet = Some(
-        if(!array) 
-          Parser.parseList[T](Data.get(name, "[]"))
-        else {
-          val keys = Parser.parseList[String](Data.get(name, "[]"))
-          keys.flatMap { key => Parser.parseList[T](Data.get(name + "_item_" + key, "[]")) }
-        })
-      _cachedGet.get
+  private def get(callback: (List[T], Int) => Unit, delta: Int)(implicit a: SmartActivity) {
+    if(_cachedGet.isDefined) {
+      callback(_cachedGet.get, delta)
+    } else {
+      a.restServiceConnection.parseRequest(JsonParseRequest[T](Data.get(name, "[]"), Parser.parseList[T])){ response =>
+        _cachedGet = Some(response.parsedVals)
+        callback(response.parsedVals, delta)
+      }
     }
   }
+
   final def ageName: String = "%s_age".format(name)
   def name: String = url.cacheName
 
@@ -55,14 +56,14 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
 
   def stale(implicit a: SmartActivity): Boolean = getAge > 3600
 
-  def render(refreshPolicy: RefreshPolicy, callback: (List[T], Boolean) => Unit)(implicit a: SmartActivity) {
+  def render(refreshPolicy: RefreshPolicy, callback: (List[T], Int) => Unit)(implicit a: SmartActivity) {
     val doNetwork = (refreshPolicy == ForceNetwork ||
       (refreshPolicy == FetchIfNeeded && stale)) && canNetwork
 
-    callback(get, doNetwork)
-
+    val delta = if (doNetwork) -1 else -2
+    get(callback, delta)
     if(doNetwork) {
-      val restRequest = RestRequest(getUrl)
+      val restRequest = RestRequest[T](getUrl, parseFunc = fromString)
       a.restServiceConnection.request(restRequest) { response =>
           //Log.i("NETWORK_RESOURCE", "got %s".format(response.body))
 
@@ -71,28 +72,15 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
               val newValues = fromString(response.body)
               _cachedGet = Some(newValues)
 
-              // If it's an array, serialize the list of keys to the primary name
-              // and each item to its own key.
-              if(!array) {
-                val saving = Parser.serializeList(newValues)(mf)
-                Log.i("NETWORK_RESOURCE", "saving %s".format(saving))
-                Data.save(name, saving)
-              } else if(array) {
-                val keys = newValues.map { _.asInstanceOf[Key] }
-                val savedKeys = Parser.serializeList[String](keys.map { _.key })
-                Data.save(name, savedKeys)
-
-                newValues.foreach { key =>
-                  val saved = Parser.serializeList[T](List(key))
-                  Data.save(name + "_item_" + key.asInstanceOf[Key].key, saved)
-                }
-              }
-              callback(newValues, false)
+              val saving = Parser.serializeList(newValues)(mf)
+              Log.i("NETWORK_RESOURCE", "saving %s".format(saving))
+              Data.save(name, saving)
+            callback(newValues, -1)
             case _ =>
               Log.e("NETWORK_RESOURCE", "Failed request: %s".format(restRequest))
               Log.e("NETWORK_RESOURCE", "Response: %s".format(response))
               a.networkError(response)
-              callback(get, false)
+              get(callback, -1)
           }
       }
     }
@@ -118,18 +106,15 @@ class TransformedNetworkResource[From <: Product, To <: Product] (in: NetworkRes
   override def getUrl = in.getUrl
   override def canNetwork = in.canNetwork
 
-  override def render(refreshPolicy: RefreshPolicy, callback: (List[To], Boolean) => Unit)(implicit a: SmartActivity) {
+  override def render(refreshPolicy: RefreshPolicy, callback: (List[To], Int) => Unit)(implicit a: SmartActivity) {
     // We'd like to invoke the delegated render and perform the transformation.
     in.render(refreshPolicy, transformer(callback))
   }
 
-  private def transformer(callback: (List[To], Boolean) => Unit)(results: List[From], pending: Boolean)
+  private def transformer(callback: (List[To], Int) => Unit)(results: List[From], delta: Int)
   {
-    callback(results flatMap mapper, pending)
+    callback(results flatMap mapper, delta)
   }
-
-  override def get(implicit a: SmartActivity): List[To] =
-    in.get flatMap mapper
 }
 
 /** Convenience class to map asynchronously from one domain object to another */
@@ -138,57 +123,77 @@ NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")
   override def canNetwork = Data.currentUser map { _.hasToken } getOrElse false
 
 
-  override def get(implicit a: SmartActivity): List[RavelryQueue] = {
+  private def get(callback: (List[RavelryQueue], Int) => Unit, delta: Int)(implicit a: SmartActivity) {
     if(_cachedGet.isDefined)
-      _cachedGet.get
-    else {
-      _cachedGet = Some(in.get.map { id => RavelryApi.makeQueueDetailsResource(id.id) }.flatMap { _.get })
-      _cachedGet.get
-    }
+      callback(_cachedGet.get, delta)
+    else
+      in.render(ForceDisk, fetchAll(ForceDisk, callback, delta))
   }
 
-  override def render(refreshPolicy: RefreshPolicy, callback: (List[RavelryQueue], Boolean) => Unit)(implicit a: SmartActivity) {
-    val doNetwork = (refreshPolicy == ForceNetwork ||
-      (refreshPolicy == FetchIfNeeded && (in.stale || get.length != in.get.length))) && canNetwork
+  /** rawDelta is the delta the original caller is expecting to see */
+  private def fetchAll(policy: RefreshPolicy, callback: (List[RavelryQueue], Int) => Unit, rawDelta: Int)(ids:
+  List[SimpleQueuedProject], delta: Int)(implicit a: SmartActivity) {
+    val counter = new AtomicInteger(ids.length * 2)
+    import scala.collection.JavaConversions._
+    val patternMap: collection.mutable.ConcurrentMap[Int, Pattern] = 
+      new java.util.concurrent.ConcurrentHashMap[Int, Pattern]
+    val queueMap: collection.mutable.ConcurrentMap[Int, RavelryQueue] = 
+      new java.util.concurrent.ConcurrentHashMap[Int, RavelryQueue]
+    val syncObject = new Object
 
-    callback(get, doNetwork)
-
-    if(doNetwork) {
-      in.render(refreshPolicy, fetchAll(callback))
-    }
-
-    def fetchAll(callback: (List[RavelryQueue], Boolean) => Unit)(ids: List[SimpleQueuedProject], pending: Boolean) {
-      val counter = new AtomicInteger(ids.length)
-      ids.foreach { id =>
-        val resource = RavelryApi.makeQueueDetailsResource(id.id)
-
-        id.pattern_id.map { pattern_id =>
-          counter.getAndIncrement
-
-          val patternResource = RavelryApi.makePatternDetailsResource(pattern_id)
-          patternResource.render(refreshPolicy, { (items, pending) =>
-            if(!pending) {
-              val newValue = counter.getAndDecrement
-
-              if(newValue == 1) {
-                _cachedGet = None
-                callback(get, false)
-              }
-            }
-          })
+    def fire() {
+      if(policy != ForceDisk)
+        Data.save(ageName, System.currentTimeMillis.toString)
+      val ravelryQueue = queueMap.values.toList
+      ravelryQueue.foreach { q =>
+        q.pattern_id.foreach { id =>
+          q.pattern = patternMap.get(id)
         }
+      }
+      callback(ravelryQueue, rawDelta)
+    }
+    ids.foreach { id =>
+      val resource = RavelryApi.makeQueueDetailsResource(id.id)
 
-        resource.render(refreshPolicy, { (items, pending) =>
-          if(!pending) {
-            val newValue = counter.getAndDecrement
+      id.pattern_id.map { pattern_id =>
+        counter.addAndGet(2)
 
-            if(newValue == 1) { 
-              _cachedGet = None
-              callback(get, false)
-            }
+        val patternResource = RavelryApi.makePatternDetailsResource(pattern_id)
+        patternResource.render(policy, { (items, pending) =>
+          val contains = items.exists { item => patternMap.contains(item.id) }
+          items.foreach { item => patternMap(item.id) = item }
+
+          val newValue = counter.addAndGet(pending)
+
+          if(newValue == 0) {
+            fire()
           }
         })
       }
+
+      resource.render(policy, { (items, pending) =>
+        val contains = items.exists { item => queueMap.contains(item.id) }
+        items.foreach { item => queueMap(item.id) = item }
+
+        val newValue = counter.addAndGet(pending)
+
+        if(newValue == 0) { 
+          fire()
+        }
+      })
+    }
+  }
+
+  override def render(refreshPolicy: RefreshPolicy, callback: (List[RavelryQueue], Int) => Unit)(implicit a: SmartActivity) {
+    val doNetwork = (refreshPolicy == ForceNetwork ||
+      (refreshPolicy == FetchIfNeeded && (in.stale || stale))) && canNetwork
+
+
+    val delta = if(doNetwork) -1 else -2
+    get(callback, delta)
+
+    if(doNetwork) {
+      in.render(refreshPolicy, fetchAll(refreshPolicy, callback, delta))
     }
   }
 }
@@ -343,6 +348,9 @@ object Data {
   }
 
   def deleteUser(name: String)(implicit context: Context) {
+    val db = getDatabase
+    db.delete("data", "namespace = ?", List(name).toArray)
+
     val serialized = Parser.serialize(Users(users(context) filter { _.name != name }))
     getGlobalPreferences.edit.putString(usersKey, serialized).commit
   }

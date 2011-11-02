@@ -20,12 +20,22 @@ import org.apache.http.protocol._
 class RestService extends Service {
   private val TAG = "RestService"
 
-  private class RestRequestTask(f: RestResponse => Unit) extends RestRequestTaskBase {
+  private class JsonParseTask[T](f: JsonParseResult[T] => Unit) extends JsonParseTaskBase {
+    def doInBackground1(args: Array[JsonParseRequest[_]]): JsonParseResult[_] = {
+      val request = args(0)
+      val parsedValues = request.parseFunc(request.data).map { _.asInstanceOf[T] }
+      JsonParseResult[T](parsedValues)
+    }
+
+    override def onPostExecute(r: JsonParseResult[_]) = f(r.asInstanceOf[JsonParseResult[T]])
+  }
+
+  private class RestRequestTask[T](f: RestResponse[T] => Unit) extends RestRequestTaskBase {
     var responseCode: Int = 0
     var responseCodeMessage: String = ""
     var body: String = ""
 
-    def doInBackground1(args: Array[RestRequest]): RestResponse = {
+    def doInBackground1(args: Array[RestRequest[_]]): RestResponse[_] = {
       // do something
       val request = args(0)
       request.verb match {
@@ -41,7 +51,13 @@ class RestService extends Service {
           executeRequest(request, url);
           */
       }
-      RestResponse(responseCode, body, responseCodeMessage)
+
+      val parsedVals =
+        if(responseCode == 200)
+          request.parseFunc(body)
+        else
+          Nil
+      RestResponse(responseCode, body, responseCodeMessage, parsedVals)
     }
 
     private def executeRequest(request: HttpUriRequest) {
@@ -87,14 +103,18 @@ class RestService extends Service {
           responseCodeMessage = e.toString
           e.printStackTrace()
       }
-  }
+    }
 
-    override def onPostExecute(r: RestResponse) = f(r)
+    override def onPostExecute(r: RestResponse[_]) = f(r.asInstanceOf[RestResponse[T]])
   }
 
   class LocalBinder extends Binder {
-    def request(request: RestRequest)(callback: RestResponse => Unit) {
+    def request[T](request: RestRequest[T])(callback: RestResponse[T] => Unit) {
       new RestRequestTask(callback).execute(request)
+    }
+
+    def parseRequest[T](request: JsonParseRequest[T])(callback: JsonParseResult[T] => Unit) {
+      new JsonParseTask(callback).execute(request)
     }
   }
 

@@ -11,12 +11,12 @@ import android.os.AsyncTask;
  * Our solution: the Java method doInBackground(String... args) forwards
  * the call to the Scala method doInBackground1(String[] args).
  */
-public abstract class RestRequestTaskBase extends AsyncTask<RestRequest<?>, Void, RestResponse<?>> {
-    protected abstract RestResponse<?> doInBackground1(RestRequest<?>[] args);
+public abstract class JsonParseTaskBase extends AsyncTask<JsonParseRequest<?>, Void, JsonParseResult<?>> {
+    protected abstract JsonParseResult<?> doInBackground1(JsonParseRequest<?>[] args);
 
     @Override
-    protected RestResponse<?> doInBackground(RestRequest<?>... args) {
-        RestRequest[] args1 = new RestRequest[args.length];
+    protected JsonParseResult<?> doInBackground(JsonParseRequest<?>... args) {
+        JsonParseRequest[] args1 = new JsonParseRequest[args.length];
         for (int i = 0; i < args.length; i++) {
             args1[i] = args[i];
         }

@@ -77,14 +77,14 @@ trait SmartActivity extends Activity {// this: Activity =>
   implicit def implicitContext: SmartActivity = this
   protected def geocode(loc: Location)(callback: Option[Address] => Unit) {
     restServiceConnection.request(
-      RestRequest("http://maps.googleapis.com/maps/api/geocode/json?latlng=%s,%s&sensor=true".format(loc.getLatitude,
-      loc.getLongitude))) { handleGeocodeResponse(callback) }
+      RestRequest[GoogleResponse]("http://maps.googleapis.com/maps/api/geocode/json?latlng=%s,%s&sensor=true".format(loc.getLatitude,
+      loc.getLongitude), parseFunc = Parser.parseAsList[GoogleResponse])) { handleGeocodeResponse(callback) }
   }
 
-  private def handleGeocodeResponse(callback: Option[Address] => Unit)(restResponse: RestResponse) {
+  private def handleGeocodeResponse(callback: Option[Address] => Unit)(restResponse: RestResponse[GoogleResponse]) {
     val response = Parser.parse[GoogleResponse](restResponse.body)
 
-    callback(response.results match {
+    callback(restResponse.parsedVals.headOption.flatMap { _.results match {
       case Nil => None
       case x :: xs =>
         val address = new Address(Locale.getDefault)
@@ -101,13 +101,13 @@ trait SmartActivity extends Activity {// this: Activity =>
           Some(address)
         else
           None
-    })
+    }})
   }
 
   protected def geocode(str: String)(callback: Option[Address] => Unit) {
     restServiceConnection.request(
-      RestRequest("http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=true"
-        .format(URLEncoder.encode(str, "UTF-8")))) { handleGeocodeResponse(callback) }
+      RestRequest[GoogleResponse]("http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=true"
+        .format(URLEncoder.encode(str, "UTF-8")), parseFunc = Parser.parseAsList[GoogleResponse])) { handleGeocodeResponse(callback) }
   }
 
   protected def createTextItem(string: String, klass: Class[_]): TextItem = {
@@ -118,7 +118,7 @@ trait SmartActivity extends Activity {// this: Activity =>
 
   /** Display a warning when we can't access network resources; max once warning per 10
       minutes. */
-  def networkError(request: RestResponse) {
+  def networkError(request: RestResponse[_]) {
     if(SmartActivity.canToast) {
       SmartActivity.canToast = false
       toast("Oops, couldn't access the Internet.")

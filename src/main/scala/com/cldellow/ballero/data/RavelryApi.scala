@@ -25,7 +25,7 @@ object RavelryApi {
 
   def makeProjectDetailsResource(id: Int): NetworkResource[Project] =
     new TransformedNetworkResource[ProjectWrapper, Project](
-      new NetworkResource[ProjectWrapper](RavelryApi.projectDetails(id), false),
+      new SignedNetworkResource[ProjectWrapper](RavelryApi.projectDetails(id), false),
       { qp => List(qp.project) })
 
 

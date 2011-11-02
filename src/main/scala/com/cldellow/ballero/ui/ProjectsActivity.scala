@@ -120,34 +120,31 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
   private def refreshAll(policy: RefreshPolicy) {
     refreshButton.setLoading(true)
-    numPending += 2
+    numPending += 4
     Data.currentUser.get.queuedProjects.render(policy, onQueueChanged)
     Data.currentUser.get.projects.render(policy, onProjectsChanged)
   }
 
-  private def updatePendings(pending: Boolean) {
-    if(!pending) {
-      numPending -= 1
-      if(numPending <= 0) {
-        numPending = 0
-        refreshButton.setLoading(false)
-      }
+  private def updatePendings(delta: Int) {
+    numPending += delta
+    if(numPending <= 0) {
+      numPending = 0
+      refreshButton.setLoading(false)
     }
   }
 
-  private def onQueueChanged(queued: List[RavelryQueue], pending: Boolean) {
+  private def onQueueChanged(queued: List[RavelryQueue], delta: Int) {
     val curTime = System.currentTimeMillis
     this.queued = queued.map { q =>
-      QueueWithPattern(q, q.pattern_id.map { id =>
-        RavelryApi.makePatternDetailsResource(id).get }.getOrElse(Nil).headOption)
+      QueueWithPattern(q, q.pattern)
     }
     info("time for onQueueChanged to map: %s".format(System.currentTimeMillis - curTime))
-    updatePendings(pending)
+    updatePendings(delta)
     updateItems
   }
 
-  private def onProjectsChanged(projects: List[Project], pending: Boolean) {
-    updatePendings(pending)
+  private def onProjectsChanged(projects: List[Project], delta: Int) {
+    updatePendings(delta)
     this.projects = projects
     updateItems
   }

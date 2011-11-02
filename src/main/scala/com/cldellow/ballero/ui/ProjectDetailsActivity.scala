@@ -42,7 +42,10 @@ class ProjectDetailsActivity extends GDActivity with SmartActivity {
 
   }
 
-  def onProjectLoaded(projects: List[Project], pending: Boolean) {
+
+  var pending = 0
+  def onProjectLoaded(projects: List[Project], delta: Int) {
+    pending += delta
     projects.headOption.map { project =>
       setTitle(project.uiName)
       patternName.setVisibility(View.GONE)
@@ -126,6 +129,7 @@ class ProjectDetailsActivity extends GDActivity with SmartActivity {
     super.onResume()
     progressBarLoading.setVisibility(View.VISIBLE)
     linearLayout.setVisibility(View.GONE)
+    pending += 2
     RavelryApi.makeProjectDetailsResource(currentId).render(FetchIfNeeded, onProjectLoaded)
   }
 }

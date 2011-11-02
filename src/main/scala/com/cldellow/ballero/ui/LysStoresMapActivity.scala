@@ -62,7 +62,7 @@ class LysStoresMapActivity extends GDMapActivity with SmartActivity {
 
   private def makeDetails(shop: LocalYarnStore): String = {
     import shop._
-    List[Option[String]](Some(address), Some(zip), shop_email, Some(phone), twitter_id map { "@" + _ }, Some(url))
+    List[Option[String]](address, zip, shop_email, phone, twitter_id map { "@" + _ }, url)
       .flatten.mkString("\n")
   }
 

@@ -80,26 +80,49 @@ extends FrameLayout(context) {
 
   def urlClick(v: View) {
     item foreach { item =>
-      val url = item.shop.url
-      if(url != "") {
-        context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(item.shop.url)))
+      item.shop.url.foreach { url =>
+        if(url != "") {
+          context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }
       }
     }
   }
 
+  def cleanTwitter(twit: Option[String]): Option[String] = {
+    val clean = twit.map { twit =>
+      val indexOf = twit.lastIndexOf("/")
+
+      if(indexOf >= 0)
+        twit.substring(indexOf + 1)
+      else
+        twit
+    }
+
+    if(clean.isDefined && clean.get.trim != "")
+      Some(clean.get.trim)
+    else
+      None
+  }
+
   def twitterClick(v: View) {
-    item map { item => new Intent(Intent.ACTION_VIEW, Uri.parse("https://mobile.twitter.com/" + item.shop.twitter_id.get)) } map {
-      context.startActivity(_) }
+    item map { item =>
+      cleanTwitter(item.shop.twitter_id).map { twit =>
+        new Intent(Intent.ACTION_VIEW,
+          Uri.parse("https://mobile.twitter.com/" + twit))
+      } map { context.startActivity(_) }
+    }
   }
 
 
   def phoneClick(v: View) {
     item map { item =>
-      new Intent(Intent.ACTION_CALL, Uri.parse("tel:%s".format(
-        item.shop.phone.replace("(", "")
-          .replace(")", "")
-          .replace("-", ""))))
-    } map { context.startActivity(_) }
+      item.shop.phone.map { phone =>
+        new Intent(Intent.ACTION_CALL, Uri.parse("tel:%s".format(
+          phone.replace("(", "")
+            .replace(")", "")
+            .replace("-", ""))))
+        } map { context.startActivity(_) }
+    }
   }
   /**
    * Sets the view data from a given overlay item.
@@ -124,7 +147,13 @@ extends FrameLayout(context) {
       title.setVisibility(View.GONE)
     }
 
-    phone.setText(item.shop.phone)
+    if(item.shop.phone.isDefined) {
+      phone.setVisibility(View.VISIBLE)
+      phone.setText(item.shop.phone.get)
+    }
+    else
+      phone.setVisibility(View.GONE)
+
     if (item.getSnippet() != null) {
       snippet.setVisibility(View.VISIBLE)
       snippet.setText(item.getSnippet())
@@ -132,9 +161,10 @@ extends FrameLayout(context) {
       snippet.setVisibility(View.GONE)
     }
 
-    if (item.shop.twitter_id != None && item.shop.twitter_id.get.trim != "") {
+    val twit = cleanTwitter(item.shop.twitter_id)
+    if (twit.isDefined) {
       twitter.setVisibility(View.VISIBLE)
-      twitter.setText(Html.fromHtml("<span><u>@%s</u></span>".format(item.shop.twitter_id.get)))
+      twitter.setText(Html.fromHtml("<span><u>@%s</u></span>".format(twit.get)))
     } else {
       twitter.setVisibility(View.GONE)
     }

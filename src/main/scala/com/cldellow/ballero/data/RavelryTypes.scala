@@ -269,17 +269,17 @@ case class Needle(
 ) extends IdKey
 
 case class LocalYarnStore(
-  address: String,
+  address: Option[String],
   city: String,
   latitude: BigDecimal,
   longitude: BigDecimal,
   name: String,
-  phone: String,
+  phone: Option[String],
   shop_email: Option[String],
   site: Option[String],
   twitter_id: Option[String],
-  url: String,
-  zip: String
+  url: Option[String],
+  zip: Option[String]
 )
 
 case class ShopResponse(

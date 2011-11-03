@@ -30,6 +30,7 @@ class FindLysActivity extends GDActivity with SmartActivity {
   lazy val btnFindStores = findButton(R.id.btnFindStores)
   lazy val btnFindCity = findButton(R.id.btnFindCity)
   lazy val txtCityName = findTextView(R.id.txtCityName)
+  lazy val txtCantWait = findLabel(R.id.txtCantWait)
   lazy val lblFound = findLabel(R.id.lblFound)
   lazy val lblSearchingLocation = findLabel(R.id.lblSearchingLocation)
   lazy val progressBar = findProgressBar(R.id.progressBar)
@@ -84,23 +85,50 @@ class FindLysActivity extends GDActivity with SmartActivity {
   private lazy val locationListener = new MyLocationListener()
 
   private def hunt() {
-    val providers  = locationManager.getAllProviders().toList
-    Log.e(TAG, providers.toString)
+    var providers  = locationManager.getAllProviders().toList
+    Log.e(TAG, "All providers: " + providers.toString)
+    providers = providers.filter { locationManager.isProviderEnabled(_) }
+    Log.e(TAG, "Enabled providers: " + providers.toString)
 
-    val provider = "gps"
-    val mostRecentLocation: Location = locationManager.getLastKnownLocation(provider)
+    val provider =
+      if(providers.contains("gps"))
+        Some("gps")
+      else if(providers.contains("network"))
+        Some("network")
+      else
+        None
 
-    if(mostRecentLocation != null)
-      newLocation(mostRecentLocation)
-
-    locationManager.requestLocationUpdates(provider, 60000, 100, locationListener)
     btnFindStores.setVisibility(View.GONE)
+
+    provider.map { provider =>
+      val mostRecentLocation: Location = locationManager.getLastKnownLocation(provider)
+
+      if(mostRecentLocation != null)
+        newLocation(mostRecentLocation)
+
+      locationManager.requestLocationUpdates(provider, 60000, 100, locationListener)
+    }
+
+    if(provider.isEmpty) {
+      lblSearchingLocation.setVisibility(View.GONE)
+      progressBar.setVisibility(View.GONE)
+      btnTryAgain.setVisibility(View.GONE)
+      txtCantWait.setVisibility(View.VISIBLE)
+      txtCantWait.setText("enter city name")
+    } else {
+      lblSearchingLocation.setVisibility(View.VISIBLE)
+      progressBar.setVisibility(View.VISIBLE)
+      btnTryAgain.setVisibility(View.VISIBLE)
+      txtCantWait.setVisibility(View.VISIBLE)
+      txtCantWait.setText("can't wait?")
+    }
   }
 
   private var currentAddress: Option[Address] = None
 
   private def geocodeCallback(fromGPS: Boolean)(address: Option[Address]) {
     progressBar.setVisibility(View.GONE)
+    currentAddress = address
     address match {
       case None =>
         progressBar.setVisibility(View.GONE)
@@ -113,8 +141,10 @@ class FindLysActivity extends GDActivity with SmartActivity {
         lblFound.setText("%s, %s".format(address.getLocality, address.getAdminArea))
         lblFound.setVisibility(View.VISIBLE)
         btnFindStores.setVisibility(View.VISIBLE)
+
+        if(!fromGPS)
+          btnFindStoresClick(null)
     }
-    currentAddress = address
   }
 
   private def newLocation(loc: Location) {

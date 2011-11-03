@@ -69,11 +69,11 @@ class AddRavelryAccountActivity extends GDActivity with SmartActivity {
     val request = RestRequest[AuthResponse](appSigned, parseFunc = Parser.parseAsList[AuthResponse])
     restServiceConnection.request(request) { response =>
       info("got ersponse: %s".format(response))
-      val authResponse = Parser.parse[AuthResponse](response.body)
-      if(authResponse.auth_token.isEmpty || authResponse.signing_key.isEmpty)
+      val authResponse = response.parsedVals
+      if(authResponse.isEmpty || authResponse.head.auth_token.isEmpty || authResponse.head.signing_key.isEmpty)
         badLogin()
       else
-        goodLogin(username, authResponse.auth_token.get, authResponse.signing_key.get)
+        goodLogin(username, authResponse.head.auth_token.get, authResponse.head.signing_key.get)
     }
   }
 

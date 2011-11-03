@@ -26,7 +26,6 @@ class MainActivity extends GDListActivity with NavigableListActivity with SmartA
     registerForContextMenu(getListView())
 
     setTitle("Ballero")
-    rebuildOptions
 
   }
 
@@ -38,6 +37,8 @@ class MainActivity extends GDListActivity with NavigableListActivity with SmartA
       val intent = new Intent(this, classOf[RavellerHomeActivity])
       intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, Data.currentUser.get.name)
       startActivity(intent)
+    } else {
+      rebuildOptions
     }
   }
 

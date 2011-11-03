@@ -36,6 +36,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   var sortButton: ActionBarItem = null
   var actions: QuickActionBar = null
   var filter: ProjectStatus = Unknown
+  var fetchedQueue = false
+  var fetchedProjects = false
 
   case class ActionItem(action: QuickAction, label: String, filter: ProjectStatus)
 
@@ -104,7 +106,9 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     var savedFilter = Data.currentUser.get.uiPref("projects_filter", "Unknown")
     filter = ProjectStatus(savedFilter)
     updateTitle
-    refreshAll(FetchIfNeeded)
+
+    if(!fetchedProjects || !fetchedQueue)
+      refreshAll(FetchIfNeeded)
   }
 
   private def updateTitle {
@@ -121,6 +125,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   private def refreshAll(policy: RefreshPolicy) {
     refreshButton.setLoading(true)
     numPending += 4
+    fetchedQueue = false
+    fetchedProjects = false
     Data.currentUser.get.queuedProjects.render(policy, onQueueChanged)
     Data.currentUser.get.projects.render(policy, onProjectsChanged)
   }
@@ -134,6 +140,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   }
 
   private def onQueueChanged(queued: List[RavelryQueue], delta: Int) {
+    fetchedQueue = true
     val curTime = System.currentTimeMillis
     this.queued = queued.map { q =>
       QueueWithPattern(q, q.pattern)
@@ -144,6 +151,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   }
 
   private def onProjectsChanged(projects: List[Project], delta: Int) {
+    fetchedProjects = true
     updatePendings(delta)
     this.projects = projects
     updateItems

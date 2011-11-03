@@ -82,7 +82,7 @@ trait SmartActivity extends Activity {// this: Activity =>
   }
 
   private def handleGeocodeResponse(callback: Option[Address] => Unit)(restResponse: RestResponse[GoogleResponse]) {
-    val response = Parser.parse[GoogleResponse](restResponse.body)
+    val response = restResponse.parsedVals
 
     callback(restResponse.parsedVals.headOption.flatMap { _.results match {
       case Nil => None

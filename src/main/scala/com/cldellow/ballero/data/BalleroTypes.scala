@@ -69,7 +69,7 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
 
           response.statusCode match {
             case OK =>
-              val newValues = fromString(response.body)
+              val newValues = response.parsedVals
               _cachedGet = Some(newValues)
 
               val saving = Parser.serializeList(newValues)(mf)

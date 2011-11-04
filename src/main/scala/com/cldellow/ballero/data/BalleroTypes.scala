@@ -73,7 +73,7 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
               _cachedGet = Some(newValues)
 
               val saving = Parser.serializeList(newValues)(mf)
-              Log.i("NETWORK_RESOURCE", "saving %s".format(saving))
+              //Log.i("NETWORK_RESOURCE", "saving %s".format(saving))
               Data.save(name, saving)
             callback(newValues, -1)
             case _ =>

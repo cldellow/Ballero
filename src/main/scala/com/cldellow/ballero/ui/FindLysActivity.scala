@@ -137,13 +137,18 @@ class FindLysActivity extends GDActivity with SmartActivity {
         else
           lblSearchingLocation.setText("couldn't find that city")
       case Some(address) =>
-        lblSearchingLocation.setVisibility(View.GONE)
-        lblFound.setText("%s, %s".format(address.getLocality, address.getAdminArea))
-        lblFound.setVisibility(View.VISIBLE)
-        btnFindStores.setVisibility(View.VISIBLE)
-
-        if(!fromGPS)
+        if(fromGPS) {
+          lblSearchingLocation.setVisibility(View.GONE)
+          lblFound.setText("%s, %s".format(address.getLocality, address.getAdminArea))
+          lblFound.setVisibility(View.VISIBLE)
+          btnFindStores.setVisibility(View.VISIBLE)
+        } else {
+          lblSearchingLocation.setVisibility(View.GONE)
+          lblFound.setText("finding stores near %s, %s".format(address.getLocality, address.getAdminArea))
+          lblFound.setVisibility(View.VISIBLE)
+          btnFindStores.setVisibility(View.GONE)
           btnFindStoresClick(null)
+        }
     }
   }
 

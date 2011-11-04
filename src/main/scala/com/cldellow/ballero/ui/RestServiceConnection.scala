@@ -20,13 +20,11 @@ class RestServiceConnection() extends ServiceConnection {
    *
    * Long term, may want to enforce a max # of outstanding requests anyway.
    */
+  var permittedConnections = 4
   def request[T](restRequest: RestRequest[T])(callback: RestResponse[T] => Unit) {
-    Log.i("REST", "Outgoing: " + restRequest.toString)
+    _stack = Pair[T](restRequest, callback) :: _stack
     if(_boundService != null)
-      _boundService.request(restRequest)(callback)
-    else {
-      _stack = Pair[T](restRequest, callback) :: _stack
-    }
+      pumpRequests()
   }
 
   def parseRequest[T](request: JsonParseRequest[T])(callback: JsonParseResult[T] => Unit) {
@@ -37,22 +35,45 @@ class RestServiceConnection() extends ServiceConnection {
     }
   }
 
+  def freeConnection() = {
+    permittedConnections = permittedConnections + 1
+  }
+
+  /** Centralized limit on how many outstanding network connections we permit. */
+  def pumpRequests() {
+    if(_stack.isEmpty)
+      return
+
+    if(permittedConnections == 0) {
+      Log.i("REST", "queuing connection")
+      return
+    }
+
+    val newConnection = _stack.head
+    _stack = _stack.tail
+    permittedConnections = permittedConnections - 1
+
+    println("new connection is " + newConnection)
+    Log.i("REST", "Outgoing: " + newConnection.request.toString)
+    newConnection match {
+      case x: Pair[_] =>
+        _boundService.request(x.request){ response =>
+          Log.i("REST", "freeing connection")
+          freeConnection()
+          pumpRequests()
+          x.callback(response)
+        }
+    }
+  }
 
   def onServiceConnected(className: ComponentName, service: IBinder) {
     Log.i(TAG, "onServiceConnected")
     _boundService = service.asInstanceOf[RestService#LocalBinder]
 
     // flush the queue
-    val oldQueue = _stack
+    pumpRequests()
     val oldJsonQueue = _jsonStack
     _jsonStack = Nil
-    _stack = Nil
-    oldQueue.foreach { x => 
-      (x.request, x.callback) match {
-        case (requestData:RestRequest[Any], callback: (RestResponse[Any] => Unit)) =>
-          request(requestData)(callback)
-        }
-    }
 
     oldJsonQueue.foreach { x => 
       (x.request, x.callback) match {

@@ -21,6 +21,7 @@ class RestServiceConnection() extends ServiceConnection {
    * Long term, may want to enforce a max # of outstanding requests anyway.
    */
   var permittedConnections = 4
+  var parseSlots = 1
   def request[T](restRequest: RestRequest[T])(callback: RestResponse[T] => Unit) {
     _stack = Pair[T](restRequest, callback) :: _stack
     if(_boundService != null)
@@ -28,15 +29,17 @@ class RestServiceConnection() extends ServiceConnection {
   }
 
   def parseRequest[T](request: JsonParseRequest[T])(callback: JsonParseResult[T] => Unit) {
+    _jsonStack = JsonPair[T](request, callback) :: _jsonStack
     if(_boundService != null)
-      _boundService.parseRequest(request)(callback)
-    else {
-      _jsonStack = JsonPair[T](request, callback) :: _jsonStack
-    }
+      pumpParseRequests()
   }
 
   def freeConnection() = {
     permittedConnections = permittedConnections + 1
+  }
+
+  def freeParseRequest() = {
+    parseSlots = parseSlots + 1
   }
 
   /** Centralized limit on how many outstanding network connections we permit. */
@@ -72,16 +75,32 @@ class RestServiceConnection() extends ServiceConnection {
 
     // flush the queue
     pumpRequests()
-    val oldJsonQueue = _jsonStack
-    _jsonStack = Nil
+    pumpParseRequests()
+  }
 
-    oldJsonQueue.foreach { x => 
-      (x.request, x.callback) match {
-        case (requestData:JsonParseRequest[Any], callback: (JsonParseResult[Any] => Unit)) =>
-          parseRequest(requestData)(callback)
+  def pumpParseRequests() {
+    if(_jsonStack.isEmpty)
+      return
+
+    if(parseSlots == 0) {
+      Log.i("REST", "queuing parse")
+      return
+    }
+
+    val newConnection = _jsonStack.head
+    _jsonStack = _jsonStack.tail
+    parseSlots = parseSlots - 1
+
+    newConnection match {
+      case x: JsonPair[_] =>
+        _boundService.parseRequest(x.request){ response =>
+          freeParseRequest()
+          pumpParseRequests()
+          x.callback(response)
         }
     }
   }
+
 
   def onServiceDisconnected(className: ComponentName) {
     Log.i(TAG, "onServiceDisconnected")

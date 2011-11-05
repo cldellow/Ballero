@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import android.util.Log;
 
 /**
  * A JSONArray is an ordered sequence of values. Its external text form is a
@@ -143,6 +144,7 @@ public class JSONArray {
      */
     public JSONArray(String source) throws JSONException {
         this(new JSONTokener(source));
+        Log.i("JSON", "USING CROCKFORD");
     }
 
 

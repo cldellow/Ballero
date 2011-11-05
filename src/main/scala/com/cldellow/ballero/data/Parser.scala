@@ -5,15 +5,14 @@ import scala.collection.JavaConversions
 import android.util.Log
 import org.json.{JSONArray, JSONObject}
 
-object Parser {
-
+final object Parser {
   // Java reflection doesn't keep the names of parameters; but if we require T to be a
   // Product, we can rely on the totally unstated and non-supported reality that
   // getFields() after Dexing returns the fields in alphabetical order.
   //
   // Other options include using the Scala compiler library to parse the bytecode--
   // this bloats the # of classes to an unacceptable level.
-  private def sanityCheck(klazz: Class[_]) {
+  private final def sanityCheck(klazz: Class[_]) {
     val constructors = klazz.getConstructors
 
     val crazyFields = klazz.getDeclaredFields.filter { _.getName.startsWith("$") }
@@ -26,22 +25,21 @@ object Parser {
     // Are there any generic fields that don't have higher kind attributes?
   }
 
-  def parseList[T](str: String)(implicit mf: Manifest[T]): List[T] = {
+  final def parseList[T](str: String)(implicit mf: Manifest[T]): List[T] = {
     val tm = System.currentTimeMillis
     val arr = new JSONArray(str)
-    Log.i("PARSER", "parseList parse took %s".format(System.currentTimeMillis - tm))
     val newtm = System.currentTimeMillis
     val rv = parseArray(arr, mf.erasure).asInstanceOf[List[T]]
     Log.i("PARSER", "parseArray parse took %s".format(System.currentTimeMillis - newtm))
     rv
   }
 
-  def parseAsList[T <: Product](str: String)(implicit mf: Manifest[T]): List[T] = {
+  final def parseAsList[T <: Product](str: String)(implicit mf: Manifest[T]): List[T] = {
     //Log.i("PARSER", "trying to parse %s from %s".format(mf.erasure.getName, str))
     List(parse[T](str))
   }
 
-  def parse[T <: Product](str: String)(implicit mf: Manifest[T]): T = {
+  final def parse[T <: Product](str: String)(implicit mf: Manifest[T]): T = {
     //sanityCheck(mf.erasure)
     //Log.i("PARSER", "trying to parse %s".format(str))
     val tm = System.currentTimeMillis
@@ -50,13 +48,13 @@ object Parser {
     parse(jsonObject, mf.erasure)
   }
 
-  private def parseOption(value: Any, desiredType: Type): Option[_] =
+  private final def parseOption(value: Any, desiredType: Type): Option[_] =
     if(value != null && value.asInstanceOf[AnyRef] != null && value.toString != "null")
       Some(parseType(value, desiredType))
     else
       None
 
-  private def parseArray(jsonArray: JSONArray, desiredType: Type): List[_] = {
+  private final def parseArray(jsonArray: JSONArray, desiredType: Type): List[_] = {
     val length = jsonArray.length
 
     if(length == 0)
@@ -74,7 +72,7 @@ object Parser {
   val isProductMap: collection.mutable.ConcurrentMap[(Class[_], Class[_]), Boolean] = 
     new java.util.concurrent.ConcurrentHashMap[(Class[_], Class[_]), Boolean]
 
-  private def actualInstanceOf(what: Class[_], target: Class[_]): Boolean =
+  private final def actualInstanceOf(what: Class[_], target: Class[_]): Boolean =
     if(what.getName == target.getName)
       true
     else
@@ -83,7 +81,7 @@ object Parser {
         case x => instanceOf(x, target)
       }
 
-  private def instanceOf(what: Class[_], target: Class[_]): Boolean = {
+  private final def instanceOf(what: Class[_], target: Class[_]): Boolean = {
     if(isProductMap.contains(what, target)) {
       isProductMap(what, target)
     }
@@ -95,12 +93,14 @@ object Parser {
     }
   }
 
-  private def parseTypeFromObject(jsonObject: JSONObject, name: String, desiredType: Type): Any = {
+  /*
+  private final def parseTypeFromObject(jsonObject: JSONObject, name: String, desiredType: Type): Any = {
     //Log.i("PARSER", "parsing field %s".format(name))
     parseType(jsonObject.opt(name), desiredType)
   }
+  */
 
-  private def parseType(value: Any, desiredType: Type): Any = desiredType match {
+  private final def parseType(value: Any, desiredType: Type): Any = desiredType match {
     case desiredType: Class[_] =>
       //Log.i("PARSER", "attempting to parse %s".format(value))
       desiredType.getName match {
@@ -146,7 +146,7 @@ object Parser {
       error("unknown type: %s".format(x))
   }
 
-  private def javaObject(x: Any): Object = x.asInstanceOf[Object]
+  private final def javaObject(x: Any): Object = x.asInstanceOf[Object]
 
 
   case class ParseInfo(fields: List[Field], nameToIndex: Map[String, Int], constructor: Constructor[_], fieldNames:
@@ -155,7 +155,7 @@ object Parser {
     new java.util.concurrent.ConcurrentHashMap[Class[_], ParseInfo]
 
 
-  def parse[T <: Product](jsonObject: JSONObject, klazz: Class[_]): T = {
+  final def parse[T <: Product](jsonObject: JSONObject, klazz: Class[_]): T = {
     if(!klazzReflectors.contains(klazz)) {
       val constructors = klazz.getConstructors
 
@@ -185,24 +185,8 @@ object Parser {
     // constructor.
     val values: Map[String, Any] = Map() ++ fields.flatMap { field =>
       val name = field.getName
-      if(jsonObject has name) {
-        val desiredType = field.getGenericType
-        List(name -> parseTypeFromObject(jsonObject, name, desiredType))
-      } else {
-        // not found: if it's optional, use none
-        field.getGenericType match {
-          case pt: ParameterizedType =>
-            pt.getRawType match {
-              case c: Class[_] =>
-                if(c.getName == "scala.Option")
-                  List(name -> None)
-                else
-                  Nil
-              case _ => Nil
-            }
-          case _ => Nil
-        }
-      }
+      val desiredType = field.getGenericType
+      List(name -> parseType(jsonObject.opt(name), desiredType))
     }
 
     val missingKeys = fieldNameSet -- values.keySet
@@ -221,9 +205,9 @@ object Parser {
     x.asInstanceOf[T]
   }
 
-  def serialize[T <: Product](item: T)(implicit mf: Manifest[T]): String = serialize(item, mf.erasure).toString
+  final def serialize[T <: Product](item: T)(implicit mf: Manifest[T]): String = serialize(item, mf.erasure).toString
 
-  private def toSerializedForm(_type: Type, value: Any): Option[Any] = {
+  private final def toSerializedForm(_type: Type, value: Any): Option[Any] = {
     _type match {
       case desiredType: Class[_] =>
         Some(desiredType.getName match {
@@ -263,13 +247,13 @@ object Parser {
     }
   }
 
-  def serializeList[T](xs: List[T])(implicit mf: Manifest[T]): String = {
+  final def serializeList[T](xs: List[T])(implicit mf: Manifest[T]): String = {
     new JSONArray(
       JavaConversions.asJavaCollection(xs.map { item => 
         toSerializedForm(mf.erasure, item) }.flatten)).toString
   }
 
-  private def serializeTypeToObject(item: Any, field: Field, _type: Type, jsonObject: JSONObject) {
+  private final def serializeTypeToObject(item: Any, field: Field, _type: Type, jsonObject: JSONObject) {
     // see http://stackoverflow.com/questions/6756442/scala-class-declared-fields-and-access-modifiers
     field.setAccessible(true)
     val name = field.getName
@@ -308,7 +292,7 @@ object Parser {
       }      
   }
 
-  def serialize[T <: Product](item: T, klazz: Class[_]): JSONObject = {
+  final def serialize[T <: Product](item: T, klazz: Class[_]): JSONObject = {
     val result = new JSONObject
     val fields = klazz.getDeclaredFields.filter { field => !field.getName.startsWith("$") &&
     !field.getName.startsWith("_")}.toList

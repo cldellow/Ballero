@@ -23,7 +23,9 @@ class RestService extends Service {
   private class JsonParseTask[T](f: JsonParseResult[T] => Unit) extends JsonParseTaskBase {
     def doInBackground1(args: Array[JsonParseRequest[_]]): JsonParseResult[_] = {
       val request = args(0)
+      val tm = System.currentTimeMillis
       val parsedValues = request.parseFunc(request.data).map { _.asInstanceOf[T] }
+      Log.i("REST", "parse of %s chars took %s ms".format(request.data.length, System.currentTimeMillis - tm))
       JsonParseResult[T](parsedValues)
     }
 

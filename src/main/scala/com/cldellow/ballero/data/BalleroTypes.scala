@@ -77,8 +77,7 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
               Data.save(name, saving)
             callback(newValues, -1)
             case _ =>
-              Log.e("NETWORK_RESOURCE", "Failed request: %s".format(restRequest))
-              Log.e("NETWORK_RESOURCE", "Response: %s".format(response))
+              Log.e("NETWORK_RESOURCE", "Failed request: %s with reponse %s".format(restRequest, response))
               a.networkError(response)
               get(callback, -1)
           }

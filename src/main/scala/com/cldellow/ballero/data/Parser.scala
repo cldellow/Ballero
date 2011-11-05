@@ -27,8 +27,13 @@ object Parser {
   }
 
   def parseList[T](str: String)(implicit mf: Manifest[T]): List[T] = {
+    val tm = System.currentTimeMillis
     val arr = new JSONArray(str)
-    parseArray(arr, mf.erasure).asInstanceOf[List[T]]
+    Log.i("PARSER", "parseList parse took %s".format(System.currentTimeMillis - tm))
+    val newtm = System.currentTimeMillis
+    val rv = parseArray(arr, mf.erasure).asInstanceOf[List[T]]
+    Log.i("PARSER", "parseArray parse took %s".format(System.currentTimeMillis - newtm))
+    rv
   }
 
   def parseAsList[T <: Product](str: String)(implicit mf: Manifest[T]): List[T] = {
@@ -38,7 +43,10 @@ object Parser {
 
   def parse[T <: Product](str: String)(implicit mf: Manifest[T]): T = {
     //sanityCheck(mf.erasure)
+    //Log.i("PARSER", "trying to parse %s".format(str))
+    val tm = System.currentTimeMillis
     val jsonObject = new JSONObject(str)
+    Log.i("PARSER", "parse parse took %s".format(System.currentTimeMillis - tm))
     parse(jsonObject, mf.erasure)
   }
 
@@ -48,16 +56,23 @@ object Parser {
     else
       None
 
-  private def parseArray(jsonArray: JSONArray, desiredType: Type): List[_] =
-    if(jsonArray.length == 0)
+  private def parseArray(jsonArray: JSONArray, desiredType: Type): List[_] = {
+    val length = jsonArray.length
+
+    if(length == 0)
       Nil
     else {
       val listBuffer = new collection.mutable.ListBuffer[Any]
-      for(i <- 0 until jsonArray.length) {
+      for(i <- 0 until length) {
         listBuffer += parseType(jsonArray.get(i), desiredType)
       }
       listBuffer.toList
     }
+  }
+
+  import scala.collection.JavaConversions._
+  val isProductMap: collection.mutable.ConcurrentMap[(Class[_], Class[_]), Boolean] = 
+    new java.util.concurrent.ConcurrentHashMap[(Class[_], Class[_]), Boolean]
 
   private def actualInstanceOf(what: Class[_], target: Class[_]): Boolean =
     if(what.getName == target.getName)
@@ -68,9 +83,17 @@ object Parser {
         case x => instanceOf(x, target)
       }
 
-  private def instanceOf(what: Class[_], target: Class[_]): Boolean =
-    (what :: what.getInterfaces.toList)
-      .exists { actualInstanceOf(_, target) }
+  private def instanceOf(what: Class[_], target: Class[_]): Boolean = {
+    if(isProductMap.contains(what, target)) {
+      isProductMap(what, target)
+    }
+    else {
+      val rv = (what :: what.getInterfaces.toList)
+        .exists { actualInstanceOf(_, target) }
+      isProductMap((what, target)) = rv
+      rv
+    }
+  }
 
   private def parseTypeFromObject(jsonObject: JSONObject, name: String, desiredType: Type): Any = {
     //Log.i("PARSER", "parsing field %s".format(name))
@@ -103,17 +126,19 @@ object Parser {
       //Log.i("PARSER", "attempting to parse %s".format(value))
       // OK, desiredType.getActualTypeArguments gives Class... now, how do we know
       // what the outer one is?
-      require(desiredType.getRawType.isInstanceOf[Class[_]], "rawType is not an instance of Class[T]")
-      require(desiredType.getActualTypeArguments.forall { arg => arg.isInstanceOf[Class[_]] ||
-      arg.isInstanceOf[ParameterizedType] },
+      val rawRawType = desiredType.getRawType
+      val actualTypes = desiredType.getActualTypeArguments
+      require(rawRawType.isInstanceOf[Class[_]], "rawType is not an instance of Class[T]")
+      require(actualTypes.forall { arg => arg.isInstanceOf[Class[_]] ||
+        arg.isInstanceOf[ParameterizedType] },
         "one of the actualTypeArguments is not an instance of Class[T]")
-      val rawType = desiredType.getRawType.asInstanceOf[Class[_]]
+      val rawType = rawRawType.asInstanceOf[Class[_]]
       rawType.getName match {
         case "scala.collection.immutable.List" =>
           val array = value.asInstanceOf[JSONArray]
-          parseArray(array, desiredType.getActualTypeArguments.head)
+          parseArray(array, actualTypes.head)
         case "scala.Option" =>
-          parseOption(value, desiredType.getActualTypeArguments.head)
+          parseOption(value, actualTypes.head)
       }
     case x => 
       println("x is TypeVar: %s".format(x.isInstanceOf[TypeVariable[_]]))
@@ -123,18 +148,38 @@ object Parser {
 
   private def javaObject(x: Any): Object = x.asInstanceOf[Object]
 
+
+  case class ParseInfo(fields: List[Field], nameToIndex: Map[String, Int], constructor: Constructor[_], fieldNames:
+  List[String], fieldNameSet: Set[String])
+  val klazzReflectors: collection.mutable.ConcurrentMap[Class[_], ParseInfo] = 
+    new java.util.concurrent.ConcurrentHashMap[Class[_], ParseInfo]
+
+
   def parse[T <: Product](jsonObject: JSONObject, klazz: Class[_]): T = {
-    val constructors = klazz.getConstructors
+    if(!klazzReflectors.contains(klazz)) {
+      val constructors = klazz.getConstructors
 
-    // Sort them alphabetically descending so dexing can't screw us up
-    val fields = klazz.getDeclaredFields.filter { f => 
-      val name = f.getName
-      !name.startsWith("$") && !name.startsWith("_")
-    }.toList.sortBy { _.getName }
+      // Sort them alphabetically descending so dexing can't screw us up
+      val fields = klazz.getDeclaredFields.filter { f => 
+        val name = f.getName
+        !name.startsWith("$") && !name.startsWith("_")
+      }.toList.sortBy { _.getName }
 
-    val nameToIndex = Map() ++ fields.map { _.getName }.zipWithIndex
+      val nameToIndex = Map() ++ fields.map { _.getName }.zipWithIndex
 
-    val constructor = constructors.head
+      val constructor = constructors.head
+      constructor.setAccessible(true)
+      fields.foreach { field => field.setAccessible(true) }
+      val fieldNames = fields.map { _.getName }
+      val fieldNameSet = fieldNames.toSet
+      klazzReflectors(klazz) = ParseInfo(fields, nameToIndex, constructor, fieldNames, fieldNameSet)
+    }
+    val parseInfo = klazzReflectors(klazz)
+    val fields = parseInfo.fields
+    val fieldNames = parseInfo.fieldNames
+    val fieldNameSet = parseInfo.fieldNameSet
+    val nameToIndex = parseInfo.nameToIndex
+    val constructor = parseInfo.constructor
 
     // Need to pair up stuff from the JSON object with fields in the case class
     // constructor.
@@ -160,14 +205,14 @@ object Parser {
       }
     }
 
-    val missingKeys = fields.map { _.getName }.toSet -- values.keySet
+    val missingKeys = fieldNameSet -- values.keySet
     if(!missingKeys.isEmpty)
       error("failed to deserialize %s: missing these keys: %s".format(klazz.getSimpleName, missingKeys.mkString(", ")))
 
     // Invoke the constructor
     //Log.i("PARSER", "fields: %s".format(fields))
     //Log.i("PARSER", "values: %s".format(values))
-    val inputs = fields.map { _.getName }.map { values(_) }
+    val inputs = fieldNames.map { values(_) }
     //Log.i("PARSER", "inputs: %s".format(inputs))
     val javaObjects = inputs.map { javaObject(_) }
     //Log.i("PARSER", "java inputs: %s".format(javaObjects))

@@ -54,12 +54,7 @@ class RestService extends Service {
           */
       }
 
-      val parsedVals =
-        if(responseCode == 200)
-          request.parseFunc(body)
-        else
-          Nil
-      RestResponse(responseCode, body, responseCodeMessage, parsedVals)
+      RestResponse(responseCode, body, responseCodeMessage, parsedVals = Nil)
     }
 
     private def executeRequest(request: HttpUriRequest) {

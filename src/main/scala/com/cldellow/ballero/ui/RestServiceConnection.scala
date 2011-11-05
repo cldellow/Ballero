@@ -64,7 +64,15 @@ class RestServiceConnection() extends ServiceConnection {
           Log.i("REST", "freeing connection")
           freeConnection()
           pumpRequests()
-          x.callback(response)
+          if(response.status != 200) {
+            response.parsedVals = Nil
+            x.callback(response)
+          } else {
+            parseRequest(JsonParseRequest(response.body, x.request.parseFunc)) { parseResponse => 
+              response.parsedVals = parseResponse.parsedVals
+              x.callback(response)
+            }
+          }
         }
     }
   }

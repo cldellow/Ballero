@@ -28,7 +28,7 @@ object StatusCode {
   }
 }
 
-case class RestResponse[T](status: Int, body: String, statusMessage: String, parsedVals: List[T]) {
+case class RestResponse[T](status: Int, body: String, statusMessage: String, var parsedVals: List[T]) {
   lazy val statusCode: StatusCode = StatusCode(status)
 }
 

@@ -30,7 +30,7 @@ final object Parser {
     val arr = new JSONArray(str)
     val newtm = System.currentTimeMillis
     val rv = parseArray(arr, mf.erasure).asInstanceOf[List[T]]
-    Log.i("PARSER", "parseArray parse took %s".format(System.currentTimeMillis - newtm))
+    //Log.i("PARSER", "parseArray parse took %s".format(System.currentTimeMillis - newtm))
     rv
   }
 
@@ -44,12 +44,12 @@ final object Parser {
     //Log.i("PARSER", "trying to parse %s".format(str))
     val tm = System.currentTimeMillis
     val jsonObject = new JSONObject(str)
-    Log.i("PARSER", "parse parse took %s".format(System.currentTimeMillis - tm))
+    //Log.i("PARSER", "parse parse took %s".format(System.currentTimeMillis - tm))
     parse(jsonObject, mf.erasure)
   }
 
   private final def parseOption(value: Any, desiredType: Type): Option[_] =
-    if(value != null && value.asInstanceOf[AnyRef] != null && value.toString != "null")
+    if(value != null && value.asInstanceOf[AnyRef] != null && value != JSONObject.NULL)
       Some(parseType(value, desiredType))
     else
       None
@@ -183,20 +183,15 @@ final object Parser {
 
     // Need to pair up stuff from the JSON object with fields in the case class
     // constructor.
-    val values: Map[String, Any] = Map() ++ fields.flatMap { field =>
+    val inputs: List[Any] = fields.map { field =>
       val name = field.getName
       val desiredType = field.getGenericType
-      List(name -> parseType(jsonObject.opt(name), desiredType))
+      parseType(jsonObject.opt(name), desiredType)
     }
-
-    val missingKeys = fieldNameSet -- values.keySet
-    if(!missingKeys.isEmpty)
-      error("failed to deserialize %s: missing these keys: %s".format(klazz.getSimpleName, missingKeys.mkString(", ")))
 
     // Invoke the constructor
     //Log.i("PARSER", "fields: %s".format(fields))
     //Log.i("PARSER", "values: %s".format(values))
-    val inputs = fieldNames.map { values(_) }
     //Log.i("PARSER", "inputs: %s".format(inputs))
     val javaObjects = inputs.map { javaObject(_) }
     //Log.i("PARSER", "java inputs: %s".format(javaObjects))

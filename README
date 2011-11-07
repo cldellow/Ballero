@@ -21,3 +21,4 @@ Thanks to the folks who made useful libraries with permissive licenses:
  - Android-MapViewBalloons, by readyState Software
  - Doug Crockford's reference JSON implementation
  - Ben Biddington's OAuth.Coriander
+ - Henrik Gustafsson's PredicateLayout

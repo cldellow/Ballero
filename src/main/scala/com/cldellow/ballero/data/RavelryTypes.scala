@@ -200,15 +200,24 @@ trait Projectish {
         }],
         */
 
+case class Yarn(
+  id: Int,
+  name: Option[String],
+  permalink: Option[String],
+  yarn_company_name: Option[String]
+)
+
 case class YarnPack (
   colorway: Option[String],
   skeins: Option[BigDecimal],
   total_grams: Option[Int],
   total_yards: Option[BigDecimal],
+  yarn: Option[Yarn],
   yarn_id: Option[Int],
   yarn_name: Option[String]
 )
 case class Project (
+  completed: Option[String],
   craft_name: Option[String],
   first_photo: Option[Photo],
   id: Int,
@@ -222,8 +231,11 @@ case class Project (
   permalink: String,
   photos: Option[List[Photo]],
   progress: Option[Int],
+  rating: Option[Int],
+  started: Option[String],
   /* "In progress", "Finished" */
-  status_name: Option[String]
+  status_name: Option[String],
+  tag_names: Option[List[String]]
 ) extends Projectish with IdKey {
   /* TODO: parse the other statuses */
   def status: ProjectStatus = status_name.getOrElse("In progress") match {

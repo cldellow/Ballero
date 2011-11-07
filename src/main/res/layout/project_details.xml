@@ -1,183 +1,345 @@
 <?xml version="1.0" encoding="utf-8"?>
-<greendroid.widget.ActionBarHost
-  xmlns:android="http://schemas.android.com/apk/res/android"
+<greendroid.widget.ActionBarHost xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:greendroid="http://schemas.android.com/apk/res/com.cyrilmottier.android.gdcatalog"
-  
-  android:id="@id/gd_action_bar_host"
-  android:layout_width="fill_parent"
-  android:layout_height="fill_parent"
-  android:orientation="vertical">
-
-  <greendroid.widget.ActionBar
-    android:id="@id/gd_action_bar"
-    android:layout_height="@dimen/gd_action_bar_height"
+    android:id="@id/gd_action_bar_host"
     android:layout_width="fill_parent"
-    android:background="?attr/gdActionBarBackground" />
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <greendroid.widget.ActionBar
+        android:id="@id/gd_action_bar"
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/gd_action_bar_height"
+        android:background="?attr/gdActionBarBackground" />
 
     <FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-      android:id="@id/gd_action_bar_content_view"
-      android:layout_height="fill_parent"
-      android:layout_width="fill_parent"
-      android:layout_weight="1">
-  
-<ScrollView
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	android:padding="4dp"
-	android:background="@android:color/black">
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
-    
-    <ProgressBar android:id="@+id/progressBarLoading"
-    android:layout_width="wrap_content" android:layout_height="wrap_content"
-    android:layout_gravity="center" android:layout_marginTop="20dp">
-        
-    </ProgressBar>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/linearLayout"
-    android:visibility="gone"
-    android:orientation="vertical" >
-
-    <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
+        android:id="@id/gd_action_bar_content_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1" >
 
-        <LinearLayout
+        <ScrollView
             xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_parent"
-                        android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:background="@android:color/black"
+            android:padding="4dp" >
 
-            <TextView
-                android:id="@+id/lblPatternName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pattern Name"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+            <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical" >
 
-            <TextView
-                android:id="@+id/lblCraftName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Knitting"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="#c0c0c0" />
-        </LinearLayout>
-        <greendroid.widget.AsyncImageView
-          xmlns:android="http://schemas.android.com/apk/res/android"
-          android:id="@+id/image_view"
-                      android:layout_weight="1"
-          android:layout_width="fill_parent"
-          android:layout_height="wrap_content"
-          android:layout_gravity="center"
-          />
-            
-    </LinearLayout>
+                <ProgressBar
+                    android:id="@+id/progressBarLoading"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="20dp" >
+                </ProgressBar>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/layoutMakeFor"
-        android:orientation="horizontal" >
+                <LinearLayout
+                    xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:id="@+id/linearLayout"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:orientation="vertical"
+                    android:visibility="gone" >
 
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10sp"
-            android:text="Made for"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-
-        <TextView
-            android:id="@+id/lblMadeForValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="(no one)"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-    </LinearLayout>
-
-    <LinearLayout
+                        <Gallery
+        android:id="@+id/gallery"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
+        android:layout_weight="0.07" />
+                    <!-- 
+                    <greendroid.widget.AsyncImageView
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/image_view"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_weight="1" />
+ -->
+                    <LinearLayout
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical" >
 
-        <TextView
-            android:id="@+id/lblStatus"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Status"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="#c0c0c0" />
+                        <TextView
+                            android:id="@+id/lblPatternName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pattern Name"
+                            android:textAppearance="?android:attr/textAppearanceLarge" />
+                    </LinearLayout>
 
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
-    </LinearLayout>
+                    <TableLayout
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:stretchColumns="1" >
 
+                        <TableRow >
 
-<TextView
-        android:id="@+id/lblNeedleDetails"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:id="@+id/yarnLayout"
-     >
-      
-     <TextView
-        android:id="@+id/lblYarnName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Yarn Name"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+                            <TextView
+                                android:id="@+id/lblMadeFor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginRight="8dip"
+                                android:text="made for"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textColor="#c0c0c0" />
 
-    <TextView
-        android:id="@+id/lblYarnAmount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0 skeins" />
-    
-    
-    <TextView
-        android:id="@+id/lblYarnColor"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Yarn Color" />
-    </LinearLayout>
-        <TextView
-        android:id="@+id/lblNotes"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Notes"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+                            <TextView
+                                android:id="@+id/lblMadeForValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="(no one)"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textColor="#c0c0c0" />
+                        </TableRow>
 
-    <TextView
-        android:id="@+id/lblNotesValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="(no notes)" />
-        
-</LinearLayout>
+                        <TableRow >
 
-</LinearLayout>
-</ScrollView>
-</FrameLayout>
+                            <TextView
+                                android:id="@+id/lblStartedOn"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginRight="8dip"
+                                android:layout_marginTop="7dip"
+                                android:text="started on"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textColor="#c0c0c0" />
+
+                            <TextView
+                                android:id="@+id/lblStartedOnValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="7dip"
+                                android:text="unknown"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textColor="#c0c0c0" />
+                        </TableRow>
+
+                        <TableRow >
+
+                            <TextView
+                                android:id="@+id/lblCompletedOn"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginRight="8dip"
+                                android:layout_marginTop="7dip"
+                                android:text="completed on"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textColor="#c0c0c0" />
+
+                            <TextView
+                                android:id="@+id/lblCompletedOnValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="7dip"
+                                android:text="unknown"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textColor="#c0c0c0" />
+                        </TableRow>
+
+                        <TableRow       android:layout_gravity="center_vertical">
+
+                            <TextView
+                                android:id="@+id/lblStatus"
+                                android:layout_width="fill_parent"
+                                android:layout_height="wrap_content"
+
+                                android:layout_marginRight="8dip"
+                                android:layout_marginTop="7dip"
+                                android:layout_weight="1"
+                                android:text="status"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textColor="#c0c0c0" />
+
+                            <ProgressBar
+                                android:id="@+id/progressBar"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="fill_parent"
+                                android:layout_height="wrap_content"
+
+                                android:layout_marginTop="7dip"
+                                android:layout_weight="1" />
+                        </TableRow>
+
+                        <TableRow          android:layout_gravity="center_vertical" >
+
+                            <TextView
+                                android:id="@+id/lblHappiness"
+                                android:layout_width="fill_parent"
+                                android:layout_height="wrap_content"
+                       
+                                android:layout_marginRight="8dip"
+                                android:layout_marginTop="7dip"
+                       
+                                android:layout_weight="1"
+                                android:text="happiness"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textColor="#c0c0c0" />
+ 
+                            <ImageView
+                                android:id="@+id/imageHappiness"
+                                android:layout_width="24dip"
+                                android:layout_height="24dip"
+                                android:layout_marginTop="7dip"
+                                android:src="@drawable/rating5" />
+                        </TableRow>
+                    </TableLayout>
+
+                    <LinearLayout
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/tagsLayout"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" >
+
+                        <LinearLayout
+                            xmlns:android="http://schemas.android.com/apk/res/android"
+                            android:layout_width="fill_parent"
+                            android:layout_height="fill_parent"
+                            android:layout_gravity="center_vertical"
+                            android:orientation="horizontal" >
+
+                            <View
+                                android:layout_width="fill_parent"
+                                android:layout_height="2dip"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginRight="2dip"
+                                android:layout_weight="1"
+                                android:background="#c0c0c0" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="0"
+                                android:text="tags" />
+                        </LinearLayout>
+
+                        <se.fnord.android.layout.PredicateLayout
+                            android:id="@+id/tagsContentLayout"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/needleLayout"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="vertical" >
+
+                        <LinearLayout
+                            xmlns:android="http://schemas.android.com/apk/res/android"
+                            android:layout_width="fill_parent"
+                            android:layout_height="fill_parent"
+                            android:layout_gravity="center_vertical"
+                            android:orientation="horizontal" >
+
+                            <View
+                                android:layout_width="fill_parent"
+                                android:layout_height="2dip"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginRight="2dip"
+                                android:layout_weight="1"
+                                android:background="#c0c0c0" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="0"
+                                android:text="needles" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/lblNeedleDetails"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="needle sizes"
+                            android:textColor="#c0c0c0"
+                            android:textAppearance="?android:attr/textAppearanceMedium" />
+                    </LinearLayout>
+ 
+                    <LinearLayout
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/yarnLayout"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="vertical" >
+
+                        <LinearLayout
+                            xmlns:android="http://schemas.android.com/apk/res/android"
+                            android:layout_width="fill_parent"
+                            android:layout_height="fill_parent"
+                            android:layout_gravity="center_vertical"
+                            android:orientation="horizontal" >
+
+                            <View
+                                android:layout_width="fill_parent"
+                                android:layout_height="2dip"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginRight="2dip"
+                                android:layout_weight="1"
+                                android:background="#c0c0c0" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="0"
+                                android:text="yarns" />
+                        </LinearLayout>
+
+                        <com.cldellow.ballero.ui.LinearListView
+                            android:id="@+id/listViewYarn"
+                            android:orientation="vertical"    
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            >
+                        </com.cldellow.ballero.ui.LinearListView>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:layout_gravity="center_vertical"
+                        android:orientation="horizontal" >
+
+                        <View
+                            android:layout_width="fill_parent"
+                            android:layout_height="2dip"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginRight="2dip"
+                            android:layout_weight="1"
+                            android:background="#c0c0c0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="0"
+                            android:text="notes" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/lblNotesValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="(no notes)" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+
 </greendroid.widget.ActionBarHost>

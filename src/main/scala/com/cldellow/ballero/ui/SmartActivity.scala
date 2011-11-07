@@ -11,7 +11,7 @@ import android.content._
 import android.location._
 import android.os._
 import android.util.Log
-import android.view.View
+import android.view._
 import android.widget._
 import java.util.Locale
 import greendroid.widget._
@@ -22,12 +22,17 @@ trait SmartActivity extends Activity {// this: Activity =>
   def find[T](i: Int): T =
     findViewById(i).asInstanceOf[T]
 
-  def findView(i: Int): View = find(i)
   def findAsyncImageView(i: Int): AsyncImageView = find(i)
-  def findLabel(i: Int): TextView = find(i)
-  def findTextView(i: Int): TextView = find(i)
-  def findProgressBar(i: Int): ProgressBar = find(i)
   def findButton(i: Int): Button = find(i)
+  def findGallery(i: Int): Gallery = find(i)
+  def findImageView(i: Int): ImageView = find(i)
+  def findLabel(i: Int): TextView = find(i)
+  def findListView(i: Int): ListView = find(i)
+  def findLinearListView(i: Int): LinearListView = find(i)
+  def findProgressBar(i: Int): ProgressBar = find(i)
+  def findTextView(i: Int): TextView = find(i)
+  def findViewGroup(i: Int): ViewGroup = find(i)
+  def findView(i: Int): View = find(i)
 
   def toast(s: String) {
     Toast.makeText(this, s, Toast.LENGTH_SHORT).show()

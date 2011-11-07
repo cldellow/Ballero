@@ -19,6 +19,8 @@ import greendroid.widget.item._
 
 class ProjectDetailsActivity extends ProjectishActivity {
   val TAG = "ProjectDetailsActivity"
+  val isProject = true
+  val patternId = None
 
   override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
     item.getItemId match {

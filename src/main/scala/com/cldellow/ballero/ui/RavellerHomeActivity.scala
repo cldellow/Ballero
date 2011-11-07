@@ -26,6 +26,7 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
 
   var needlesItem: SubtitleItem = null
   var projectsItem: SubtitleItem = null
+  var stashedItem: SubtitleItem = null
 
   var refreshButton: LoaderActionBarItem = null
 
@@ -40,7 +41,9 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
 
     needlesItem = new SubtitleItem("needles", "", true).goesTo[NeedlesActivity]
     projectsItem = new SubtitleItem("projects", "", true).goesTo[ProjectsActivity]
+    stashedItem = new SubtitleItem("stashed", "", true).goesTo[StashListActivity]
     adapter.add(projectsItem)
+    adapter.add(stashedItem)
     adapter.add(needlesItem)
 
     setListAdapter(adapter)
@@ -63,11 +66,14 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
 
   private var projectsPending = 0
   private var needlesPending = 0
+  private var stashPending = 0
   private def refreshAll(policy: RefreshPolicy) {
     refreshButton.setLoading(true)
-    numPending += 6
+    numPending += 8
     projectsPending += 4
     needlesPending += 2
+    stashPending += 2
+    Data.currentUser.get.stash.render(policy, onStashChanged)
     Data.currentUser.get.needles.render(policy, onNeedlesChanged)
     Data.currentUser.get.queue.render(policy, onQueueChanged)
     Data.currentUser.get.projects.render(policy, onProjectsChanged)
@@ -120,6 +126,19 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
 
     onContentChanged
   }
+
+  private def onStashChanged(stash: List[SentinelStashedYarn], delta: Int) {
+    updatePendings(delta)
+    stashPending += delta
+
+    val subtitle = if(stash.isEmpty) "no stashed yarn" else "%s yarns stashed".format(stash.length)
+
+    stashedItem.subtitle = subtitle
+    stashedItem.inProgress = stashPending > 0
+
+    onContentChanged
+  }
+
 
   private def onNeedlesChanged(needles: List[Needle], delta: Int) {
     updatePendings(delta)

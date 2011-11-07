@@ -19,6 +19,8 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
   val TAG = "QueuedProjectDetailsActivity"
   var pending = 0
   var policy: RefreshPolicy = FetchIfNeeded
+  val isProject = false
+  var patternId: Option[Int] = None
 
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
@@ -55,6 +57,7 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
   private def onQueueDetails(ravelryQueue: List[RavelryQueue], delta: Int) {
     pending += delta
     ravelryQueue map { q =>
+      patternId = q.pattern_id
       q.pattern_id.map { id =>
         pending += 2
         RavelryApi.makePatternDetailsResource(id).render(policy, onPatternDetails(q))
@@ -133,18 +136,22 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
 
     yarnLayout.setVisibility(View.GONE)
 
+    var yarnRequirementsVis = View.GONE
     lblYarnYardage.setVisibility(View.GONE)
     lblYarnSize.setVisibility(View.GONE)
     pattern.yardage_description.foreach { d =>
       if(!("yards".equals(d.trim))) {
+        yarnRequirementsVis = View.VISIBLE
         lblYarnYardage.setVisibility(View.VISIBLE)
         lblYarnYardage.setText(d)
       }
     }
     pattern.yarn_weight_description.foreach { d =>
+      yarnRequirementsVis = View.VISIBLE
       lblYarnSize.setVisibility(View.VISIBLE)
       lblYarnSize.setText(d)
     }
+    yarnRequirementsLayout.setVisibility(yarnRequirementsVis)
     lblYarns.setText("suggested yarns")
     val adapter: ItemAdapter = new ItemAdapter(this)
     pattern.packs.foreach { packs =>

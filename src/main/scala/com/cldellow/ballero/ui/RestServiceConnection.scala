@@ -20,7 +20,7 @@ class RestServiceConnection() extends ServiceConnection {
    *
    * Long term, may want to enforce a max # of outstanding requests anyway.
    */
-  var permittedConnections = 4
+  var permittedConnections = 8
   var parseSlots = 1
   def request[T](restRequest: RestRequest[T])(callback: RestResponse[T] => Unit) {
     _stack = Pair[T](restRequest, callback) :: _stack

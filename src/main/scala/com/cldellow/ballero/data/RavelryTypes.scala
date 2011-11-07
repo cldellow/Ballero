@@ -222,6 +222,24 @@ trait Projectish {
         }],
         */
 
+case class StashedYarn(
+  id: Int
+)
+case class StashedYarnWrapper(stash: StashedYarn)
+
+case class SentinelStashedYarn(
+//  first_photo: Option[Photo],
+  id: Int
+  //location: Option[String],
+  //permalink: Option[String]
+)
+
+case class StashedYarns(stash: List[SentinelStashedYarn])
+
+case class MinimalStashedYarn(
+  id: Int
+)
+
 case class Yarn(
   id: Int,
   name: Option[String],

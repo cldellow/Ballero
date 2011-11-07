@@ -43,6 +43,7 @@
     android:layout_height="wrap_content" android:layout_marginTop="20dp"></TextView>
   <EditText android:id="@+id/txtCityName" android:layout_width="fill_parent"
     android:layout_height="wrap_content" android:text=""
+     android:singleLine="true"
     android:onClick="txtCityNameClick"
     android:textColor="#808080">
   </EditText>

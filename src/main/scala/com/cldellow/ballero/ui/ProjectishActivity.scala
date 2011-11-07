@@ -16,8 +16,11 @@ import greendroid.app._
 import se.fnord.android.layout._
 import greendroid.widget._
 import greendroid.widget.item._
+import android.widget.AdapterView._
 
 abstract class ProjectishActivity extends GDActivity with SmartActivity {
+  def isProject: Boolean
+  def patternId: Option[Int]
   lazy val yarnLayout = findView(R.id.yarnLayout)
   lazy val myYarnLayout = findView(R.id.myYarnLayout)
   lazy val yarnRequirementsLayout = findView(R.id.yarnRequirementsLayout)
@@ -54,6 +57,29 @@ abstract class ProjectishActivity extends GDActivity with SmartActivity {
     super.onCreate(savedInstanceState)
     currentId = getParams[Id].get.id
     refreshButton = addActionBarItem(Type.Refresh, R.id.action_bar_refresh).asInstanceOf[LoaderActionBarItem]
+  }
+
+  override def onResume() {
+    super.onResume()
+    val outer = this
+    gallery.setOnItemClickListener(new OnItemClickListener() {
+      override def onItemClick(parent: AdapterView[_], v: View, position: Int, id: Long) {
+        val intent: Intent = new Intent(outer, classOf[PhotoViewerActivity])
+        intent.putExtra("com.cldellow.params",
+          Parser.serialize(PhotoIntent(
+            if(isProject)
+              currentId
+            else
+              patternId.get
+            ,
+            position,
+            if(isProject)
+              "project"
+            else
+              "pattern")))
+        startActivity(intent)
+      }
+    })
   }
 
 

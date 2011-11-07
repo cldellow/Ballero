@@ -14,6 +14,8 @@ android:versionName="0.2a" android:versionCode="3" package="com.cldellow.ballero
       <uses-library android:name="com.google.android.maps" />
         <service android:name=".service.RestService"/>
         <activity android:name=".ui.RavellerHomeActivity"/>
+        <activity android:name=".ui.PhotoViewerActivity"/>
+        <activity android:name=".ui.StashListActivity"/>
         <activity android:name=".ui.NeedlesActivity"/>
         <activity android:name=".ui.ProjectDetailsActivity"/>
         <activity android:name=".ui.QueuedProjectDetailsActivity"/>

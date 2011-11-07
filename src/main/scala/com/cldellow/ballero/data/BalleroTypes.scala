@@ -11,6 +11,8 @@ object Constants {
   val DB_VERSION = 4
 }
 
+case class PhotoIntent(id: Int, index: Int, name: String)
+
 sealed trait RefreshPolicy
 case object ForceNetwork extends RefreshPolicy
 case object FetchIfNeeded extends RefreshPolicy
@@ -54,7 +56,8 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
       (url.base.replace("{user}", Data.currentUser.map { _.name }.getOrElse(""))),
       url.params)
 
-  def stale(implicit a: SmartActivity): Boolean = getAge > 3600
+  // Stale if 28 days old - basically, never
+  def stale(implicit a: SmartActivity): Boolean = getAge > (3600 * 24 * 28)
 
   def render(refreshPolicy: RefreshPolicy, callback: (List[T], Int) => Unit)(implicit a: SmartActivity) {
     val doNetwork = (refreshPolicy == ForceNetwork ||
@@ -221,6 +224,11 @@ case class User(name: String, oauth_token: Option[OAuthCredential]) {
       new SignedNetworkResource[QueuedProjects](RavelryApi.queueList, false),
       { qp => qp.queued_projects })
 
+  private val _stashResource =
+    new TransformedNetworkResource[StashedYarns, SentinelStashedYarn](
+      new SignedNetworkResource[StashedYarns](RavelryApi.stashList, false),
+      { qp => qp.stash })
+
   private val _projectResource =
     new TransformedNetworkResource[SimpleProjects, Project](
       new SignedNetworkResource[SimpleProjects](RavelryApi.projectList, false),
@@ -235,6 +243,7 @@ case class User(name: String, oauth_token: Option[OAuthCredential]) {
   def queuedProjects: NetworkResource[RavelryQueue] = _queuedProjectsResource
   def projects: NetworkResource[Project] = _projectResource
   def needles: NetworkResource[Needle] = _needleResource
+  def stash: NetworkResource[SentinelStashedYarn] = _stashResource
 
 }
 case class Users(users: List[User])

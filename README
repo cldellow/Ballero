@@ -14,6 +14,13 @@ Beta 0.2:
 - can remove your account from Ballero by long-pressing on your name
 - back from projects page is faster and remembers where you were
 
+Beta 0.3:
+
+- faster loading of projects page
+- UI polish! pages are useful now!
+- stash list
+- photo viewer
+
 GitHub's heuristics to the contrary, the app is written in Scala, not Java.
 
 Thanks to the folks who made useful libraries with permissive licenses:

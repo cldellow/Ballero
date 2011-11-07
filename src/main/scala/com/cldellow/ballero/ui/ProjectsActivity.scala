@@ -30,6 +30,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   private var projects: List[Project] = Nil
   case class QueueWithPattern(q: RavelryQueue, pattern: Option[Pattern])
   private var queued: List[QueueWithPattern] = Nil
+  private var minimalProjects: List[MinimalProjectish] = Nil
 
   var refreshButton: LoaderActionBarItem = null
   var numPending: Int = 0
@@ -82,7 +83,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
       filter = quickActions(position).filter
       updateTitle
-      updateItems
+      redraw()
     }
   }
 
@@ -108,8 +109,86 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     updateTitle
 
     if(!fetchedProjects || !fetchedQueue)
-      refreshAll(FetchIfNeeded)
+      maybeFetch()
   }
+
+  private def maybeFetch() {
+    val toParse = Data.get(ProjectsActivity.MINIMAL_PROJECTS, "[]")
+    if(toParse == "[]") {
+      refreshAll(FetchIfNeeded)
+    } else {
+      doParse(toParse)
+    }
+  }
+
+  private def doParse(str: String) {
+    restServiceConnection.parseRequest[MinimalProjectish](JsonParseRequest[MinimalProjectish](str,
+    Parser.parseList[MinimalProjectish]))(onMinimalProjectsLoaded)
+  }
+
+  def onMinimalProjectsLoaded(response: JsonParseResult[MinimalProjectish]) {
+    minimalProjects = response.parsedVals
+    redraw()
+  }
+
+  def redraw() {
+    adapter = new ItemAdapter(this)
+
+    val kept: List[MinimalProjectish] = 
+      minimalProjects.filter { filterProjects }
+    if(filter != Unknown)
+      adapter.add(new SeparatorItem(filter match {
+        case Hibernated => "hibernating projects"
+        case Queued => "queued projects"
+        case Finished => "finished projects"
+        case Frogged => "frogged projects"
+        case InProgress => "in progress projects"
+        // just to avoid match warning - never shows up
+        case Unknown => "all projects"
+      }))
+    if(kept.isEmpty) {
+      adapter.add(new TextItem("no projects found"))
+    }
+
+    val useQueueOrder = kept.forall { _._actualStatus == Queued }
+
+    val sorted: List[MinimalProjectish] =
+      if(useQueueOrder)
+        kept.collect { case q if q._actualStatus == Queued => q}.sortBy { -_.order.getOrElse(999) }
+      else
+        kept.sortBy { _.uiName.toLowerCase }
+
+    sorted.zipWithIndex.foreach { case (projectish, index) =>
+      projectish match {
+        case q if q._actualStatus == Queued =>
+          val subtitle = if(!useQueueOrder) "in queue" else "queue item %s".format(index + 1)
+          val item = q.imgUrl match {
+              case Some(url) => new ThumbnailItem(q.uiName, subtitle, R.drawable.ic_gdcatalog, url)
+              case None => new SubtitleItem(q.uiName, subtitle)
+            }
+          item.goesToWithData[QueuedProjectDetailsActivity, Id](Id(q.id))
+          adapter.add(item)
+        case p =>
+          val subtitle = p._actualStatus match {
+            case Finished => "finished"
+            case InProgress => "in progress"
+            case Frogged => "frogged"
+            case Hibernated => "hibernating"
+            case Unknown => "unknown"
+          }
+
+          val item = p.imgUrl match {
+            case Some(url) => new ThumbnailItem(p.uiName, subtitle, R.drawable.ic_gdcatalog, url)
+            case None => new SubtitleItem(p.uiName, subtitle)
+          }
+          item.goesToWithData[ProjectDetailsActivity, Id](Id(p.id))
+          adapter.add(item)
+      }
+    }
+
+    setListAdapter(adapter)
+  }
+
 
   private def updateTitle {
     setTitle(filter match {
@@ -157,69 +236,39 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     updateItems
   }
 
-  private def filterProjects(projectish: Either[QueueWithPattern, Project]): Boolean = projectish match {
-    case Left(q) =>
+  private def filterProjects(projectish: MinimalProjectish): Boolean = projectish._actualStatus match {
+    case Queued =>
       filter == Unknown || filter == Queued
-    case Right(p) =>
-      filter == Unknown ||
-      filter == p.status
+    case x =>
+      filter == Unknown || filter == x
   }
 
   private def updateItems {
-    adapter = new ItemAdapter(this)
+    if(numPending != 0)
+      return
 
-    val kept: List[Either[QueueWithPattern, Project]] =
-      ((queued.map { Left(_) }) ::: (projects.map { Right(_) })).filter { filterProjects }
-    if(filter != Unknown)
-      adapter.add(new SeparatorItem(filter match {
-        case Hibernated => "hibernating projects"
-        case Queued => "queued projects"
-        case Finished => "finished projects"
-        case Frogged => "frogged projects"
-        case InProgress => "in progress projects"
-        // just to avoid match warning - never shows up
-        case Unknown => "all projects"
-      }))
-    if(kept.isEmpty) {
-      adapter.add(new TextItem("no projects found"))
-    }
-
-    val useQueueOrder = kept.forall { _.isLeft }
-    val sorted =
-      if(useQueueOrder)
-        kept.collect { case Left(q) => Left(q)}.sortBy { -_.left.get.q.sort_order }
-      else
-        kept.sortBy { x => (x match { case Left(q) => q.q.uiName case Right(p) => p.uiName }).toLowerCase }
-
-    sorted.zipWithIndex.foreach { case (projectish, index) =>
-      projectish match {
-        case Left(q) =>
-          val subtitle = if(!useQueueOrder) "in queue" else "queue item %s".format(index + 1)
-          val photos: List[Photo] = q.pattern.map { _.photos.getOrElse(Nil) }.getOrElse(Nil)
-          val item = photos match {
-              case photo :: xs => new ThumbnailItem(q.q.uiName, subtitle, R.drawable.ic_gdcatalog, photo.thumbnail_url)
-              case Nil => new SubtitleItem(q.q.uiName, subtitle)
-            }
-          item.goesToWithData[QueuedProjectDetailsActivity, Id](Id(q.q.id))
-          adapter.add(item)
+    val allProjects: List[Either[QueueWithPattern, Project]] =
+      ((queued.map { Left(_) }) ::: (projects.map { Right(_) }))
+    val minimalProjects: List[MinimalProjectish] = allProjects.map { x =>
+      x match {
+        case Left(qwp) =>
+          val photos: List[Photo] = qwp.pattern.map { _.photos.getOrElse(Nil) }.getOrElse(Nil)
+          val photo = photos.headOption map { _.thumbnail_url }
+          MinimalProjectish(qwp.q.id,
+            photo,
+            Some(qwp.q.sort_order),
+            Some("Queued"),
+            qwp.q.uiName)
         case Right(p) =>
-          val subtitle = p.status match {
-            case Finished => "finished"
-            case InProgress => "in progress"
-            case Frogged => "frogged"
-            case Hibernated => "hibernating"
-            case Unknown => "unknown"
-          }
-
-          val item = p.first_photo match {
-            case Some(photo) => new ThumbnailItem(p.uiName, subtitle, R.drawable.ic_gdcatalog, photo.thumbnail_url)
-            case None => new SubtitleItem(p.uiName, subtitle)
-          }
-          item.goesToWithData[ProjectDetailsActivity, Id](Id(p.id))
-          adapter.add(item)
+          MinimalProjectish(p.id, p.first_photo.map { _.thumbnail_url }, None, Some(p.status.toString), p.uiName)
       }
     }
-
-    setListAdapter(adapter)
+    val saved = Parser.serializeList[MinimalProjectish](minimalProjects)
+    Data.save(ProjectsActivity.MINIMAL_PROJECTS, saved)
+    doParse(saved)
   }
+}
+
+object ProjectsActivity {
+  val MINIMAL_PROJECTS = "minimal_projects"
 }

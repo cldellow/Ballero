@@ -93,13 +93,6 @@ final object Parser {
     }
   }
 
-  /*
-  private final def parseTypeFromObject(jsonObject: JSONObject, name: String, desiredType: Type): Any = {
-    //Log.i("PARSER", "parsing field %s".format(name))
-    parseType(jsonObject.opt(name), desiredType)
-  }
-  */
-
   private final def parseType(value: Any, desiredType: Type): Any = desiredType match {
     case desiredType: Class[_] =>
       //Log.i("PARSER", "attempting to parse %s".format(value))
@@ -162,7 +155,7 @@ final object Parser {
       // Sort them alphabetically descending so dexing can't screw us up
       val fields = klazz.getDeclaredFields.filter { f => 
         val name = f.getName
-        !name.startsWith("$") && !name.startsWith("_")
+        !name.contains("$") && !name.startsWith("_")
       }.toList.sortBy { _.getName }
 
       val nameToIndex = Map() ++ fields.map { _.getName }.zipWithIndex
@@ -186,6 +179,7 @@ final object Parser {
     val inputs: List[Any] = fields.map { field =>
       val name = field.getName
       val desiredType = field.getGenericType
+      //Log.i("PARSER", "parsing field: %s".format(name))
       parseType(jsonObject.opt(name), desiredType)
     }
 
@@ -289,7 +283,7 @@ final object Parser {
 
   final def serialize[T <: Product](item: T, klazz: Class[_]): JSONObject = {
     val result = new JSONObject
-    val fields = klazz.getDeclaredFields.filter { field => !field.getName.startsWith("$") &&
+    val fields = klazz.getDeclaredFields.filter { field => !field.getName.contains("$") &&
     !field.getName.startsWith("_")}.toList
     fields.foreach { field =>
       serializeTypeToObject(item, field, field.getGenericType, result)

@@ -81,7 +81,6 @@ class RestService extends Service {
           }
           body = stringBuilder.toString
 
-          Log.i("REST", "got response: %s".format(body))
           // Closing the input stream will trigger connection release
           inputStream.close();
         }

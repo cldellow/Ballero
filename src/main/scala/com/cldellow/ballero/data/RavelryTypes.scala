@@ -154,6 +154,16 @@ case object InProgress extends ProjectStatus { def human = "in progress" }
 case object Finished extends ProjectStatus { def human = "finished" }
 case object Unknown extends ProjectStatus { def human = "unknown" }
 
+case class MinimalProjectish(
+  id: Int,
+  imgUrl: Option[String],
+  order: Option[Int],
+  status: Option[String],
+  uiName: String
+) {
+  lazy val _actualStatus: ProjectStatus = ProjectStatus(status.getOrElse(""))
+}
+
 trait Projectish {
   def uiName: String
 }

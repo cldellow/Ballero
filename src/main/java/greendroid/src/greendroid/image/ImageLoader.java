@@ -19,6 +19,8 @@ import greendroid.util.Config;
 import greendroid.util.GDUtils;
 
 import java.io.InputStream;
+import java.io.IOException;
+import java.io.FilterInputStream;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -139,7 +141,7 @@ public class ImageLoader {
                 }
 
                 // TODO Cyril: Use a AndroidHttpClient?
-                bitmap = BitmapFactory.decodeStream(inputStream, null, (mOptions == null) ? sDefaultOptions : mOptions);
+                bitmap = BitmapFactory.decodeStream(new FlushedInputStream(inputStream), null, (mOptions == null) ? sDefaultOptions : mOptions);
                 
                 if (mBitmapProcessor != null && bitmap != null) {
                     final Bitmap processedBitmap = mBitmapProcessor.processImage(bitmap);
@@ -213,4 +215,27 @@ public class ImageLoader {
         };
     }
 
+    static class FlushedInputStream extends FilterInputStream {
+        public FlushedInputStream(InputStream inputStream) {
+            super(inputStream);
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            long totalBytesSkipped = 0L;
+            while (totalBytesSkipped < n) {
+                long bytesSkipped = in.skip(n - totalBytesSkipped);
+                if (bytesSkipped == 0L) {
+                      int b = read();
+                      if (b < 0) {
+                          break;  // we reached EOF
+                      } else {
+                          bytesSkipped = 1; // we read one byte
+                      }
+               }
+                totalBytesSkipped += bytesSkipped;
+            }
+            return totalBytesSkipped;
+        }
+    }
 }

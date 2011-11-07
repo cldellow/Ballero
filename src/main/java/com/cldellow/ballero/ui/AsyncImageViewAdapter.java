@@ -29,10 +29,15 @@ import com.cldellow.ballero.R;
 public class AsyncImageViewAdapter extends BaseAdapter {
     private Context mContext;
     private String[] mUrls;
+    int mGalleryItemBackground;
 
     public AsyncImageViewAdapter(Context c, String[] urls) {
         mContext = c;
         mUrls = urls;
+        TypedArray attr = mContext.obtainStyledAttributes(R.styleable.HelloGallery);
+        mGalleryItemBackground = attr.getResourceId(
+        R.styleable.HelloGallery_android_galleryItemBackground, 0);
+        attr.recycle();
     }
 
     public int getCount() {
@@ -49,10 +54,12 @@ public class AsyncImageViewAdapter extends BaseAdapter {
 
     public View getView(int position, View convertView, ViewGroup parent) {
         AsyncImageView imageView = new AsyncImageView(mContext);
+        imageView.setAdjustViewBounds(true);
 
         imageView.setUrl(mUrls[position]);
         imageView.setLayoutParams(new Gallery.LayoutParams(150, 100));
-        imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        imageView.setBackgroundResource(mGalleryItemBackground);
         return imageView;
     }
 }

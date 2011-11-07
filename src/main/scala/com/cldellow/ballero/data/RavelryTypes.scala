@@ -45,11 +45,14 @@ case class Pattern(
   id: Int,
   name: String,
   notes: Option[String],
+  packs: Option[List[YarnPack]],
+  pattern_needle_sizes: Option[List[RavelryNeedle]],
   permalink: String,
   photos: Option[List[Photo]],
   price: Option[BigDecimal],
   row_gauge: Option[BigDecimal],
   yardage: Option[Int],
+  yardage_description: Option[String],
   yarn_weight_description: Option[String]
 ) extends IdKey
 /*
@@ -111,14 +114,23 @@ case class Pattern(
         "queued_stashes": [],
         "yarn_name": ""
         */
+case class QueuedStash(
+  stash_id: Int
+)
+
 case class RavelryQueue(
+  created_at: Option[String],
+  finish_by: Option[String],
   id: Int,
   make_for: Option[String],
   name: String,
   var pattern: Option[Pattern],
   pattern_id: Option[Int],
   pattern_name: Option[String],
-  sort_order: Int
+  queued_stashes: Option[List[QueuedStash]],
+  skeins: Option[Int],
+  sort_order: Int,
+  yarn_name: Option[String]
 )  extends Projectish with IdKey {
   def uiName: String = pattern.map { _.name }.getOrElse(pattern_name.getOrElse(name))
 }

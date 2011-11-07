@@ -56,6 +56,12 @@ public class SubtitleItemView2 extends LinearLayout implements ItemView {
         mTextView.setText(item.text);
         mSubtitleView.setText(item.subtitle);
         mSubtitleView2.setText(item.subtitle2);
+        if(item.subtitle == null || item.subtitle.equals("")) {
+          mSubtitleView.setVisibility(View.GONE);
+        } else {
+          mSubtitleView.setVisibility(View.VISIBLE);
+        }
+
         if(item.subtitle2 == null || item.subtitle2.equals("")) {
           mSubtitleView2.setVisibility(View.GONE);
         } else {

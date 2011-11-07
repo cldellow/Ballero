@@ -17,38 +17,8 @@ import se.fnord.android.layout._
 import greendroid.widget._
 import greendroid.widget.item._
 
-class ProjectDetailsActivity extends GDActivity with SmartActivity {
+class ProjectDetailsActivity extends ProjectishActivity {
   val TAG = "ProjectDetailsActivity"
-
-  var currentId: Int = 0
-
-  lazy val yarnLayout = findView(R.id.yarnLayout)
-  lazy val lblCompletedOnValue = findLabel(R.id.lblCompletedOnValue)
-  lazy val lblStartedOnValue = findLabel(R.id.lblStartedOnValue)
-  lazy val listViewYarn = findLinearListView(R.id.listViewYarn)
-  lazy val imageViewHappiness = findImageView(R.id.imageHappiness)
-  lazy val gallery = findGallery(R.id.gallery)
-  lazy val needleLayout = findView(R.id.needleLayout)
-  lazy val tagsContentLayout = findViewGroup(R.id.tagsContentLayout)
-  lazy val tagsLayout = findView(R.id.tagsLayout)
-  lazy val needleDetails = findLabel(R.id.lblNeedleDetails)
-  lazy val notesValue = findLabel(R.id.lblNotesValue)
-  lazy val madeForValue = findLabel(R.id.lblMadeForValue)
-  lazy val progressBar = findProgressBar(R.id.progressBar)
-  lazy val progressBarLoading = findProgressBar(R.id.progressBarLoading)
-  lazy val linearLayout = findView(R.id.linearLayout)
-  lazy val status = findLabel(R.id.lblStatus)
-  lazy val patternName = findLabel(R.id.lblPatternName)
-  //lazy val imageView = findAsyncImageView(R.id.image_view)
-
-  var refreshButton: LoaderActionBarItem = null
-
-
-  override def onCreate(savedInstanceState: Bundle) {
-    super.onCreate(savedInstanceState)
-    currentId = getParams[Id].get.id
-    refreshButton = addActionBarItem(Type.Refresh, R.id.action_bar_refresh).asInstanceOf[LoaderActionBarItem]
-  }
 
   override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
     item.getItemId match {
@@ -67,6 +37,8 @@ class ProjectDetailsActivity extends GDActivity with SmartActivity {
       refreshButton.setLoading(false)
     }
 
+    yarnRequirementsLayout.setVisibility(View.GONE)
+    myYarnLayout.setVisibility(View.GONE)
     projects.headOption.map { project =>
       setTitle(project.uiName)
       patternName.setVisibility(View.GONE)
@@ -178,16 +150,6 @@ class ProjectDetailsActivity extends GDActivity with SmartActivity {
     }
     progressBarLoading.setVisibility(View.GONE)
     linearLayout.setVisibility(View.VISIBLE)
-  }
-
-  override def createLayout(): Int = {
-    return R.layout.project_details
-  }
-
-  override def onPause() {
-    super.onPause()
-    progressBarLoading.setVisibility(View.VISIBLE)
-    linearLayout.setVisibility(View.GONE)
   }
 
   override def onResume() {

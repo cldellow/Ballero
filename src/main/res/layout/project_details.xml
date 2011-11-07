@@ -48,12 +48,12 @@
                     android:orientation="vertical"
                     android:visibility="gone" >
 
-                        <Gallery
-        android:id="@+id/gallery"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.07" />
-                    <!-- 
+                    <Gallery
+                        android:id="@+id/gallery"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.07" />
+                    <!--
                     <greendroid.widget.AsyncImageView
                         xmlns:android="http://schemas.android.com/apk/res/android"
                         android:id="@+id/image_view"
@@ -61,7 +61,8 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_weight="1" />
- -->
+                    -->
+
                     <LinearLayout
                         xmlns:android="http://schemas.android.com/apk/res/android"
                         android:layout_width="fill_parent"
@@ -147,13 +148,12 @@
                                 android:textColor="#c0c0c0" />
                         </TableRow>
 
-                        <TableRow       android:layout_gravity="center_vertical">
+                        <TableRow android:layout_gravity="center_vertical" >
 
                             <TextView
                                 android:id="@+id/lblStatus"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
-
                                 android:layout_marginRight="8dip"
                                 android:layout_marginTop="7dip"
                                 android:layout_weight="1"
@@ -166,26 +166,23 @@
                                 style="?android:attr/progressBarStyleHorizontal"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
-
                                 android:layout_marginTop="7dip"
                                 android:layout_weight="1" />
                         </TableRow>
 
-                        <TableRow          android:layout_gravity="center_vertical" >
+                        <TableRow android:layout_gravity="center_vertical" >
 
                             <TextView
                                 android:id="@+id/lblHappiness"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
-                       
                                 android:layout_marginRight="8dip"
                                 android:layout_marginTop="7dip"
-                       
                                 android:layout_weight="1"
                                 android:text="happiness"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
                                 android:textColor="#c0c0c0" />
- 
+
                             <ImageView
                                 android:id="@+id/imageHappiness"
                                 android:layout_width="24dip"
@@ -266,13 +263,13 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="needle sizes"
-                            android:textColor="#c0c0c0"
-                            android:textAppearance="?android:attr/textAppearanceMedium" />
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textColor="#c0c0c0" />
                     </LinearLayout>
- 
+
                     <LinearLayout
                         xmlns:android="http://schemas.android.com/apk/res/android"
-                        android:id="@+id/yarnLayout"
+                        android:id="@+id/yarnRequirementsLayout"
                         android:layout_width="fill_parent"
                         android:layout_height="fill_parent"
                         android:orientation="vertical" >
@@ -297,15 +294,100 @@
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_vertical"
                                 android:layout_weight="0"
+                                android:text="yarn requirements" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/lblYarnSize"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="yarn size"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textColor="#c0c0c0" />
+
+                        <TextView
+                            android:id="@+id/lblYarnYardage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="yardage"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textColor="#c0c0c0" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/yarnLayout"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="vertical" >
+
+                        <LinearLayout
+                            xmlns:android="http://schemas.android.com/apk/res/android"
+                            android:layout_width="fill_parent"
+                            android:layout_height="fill_parent"
+                            android:layout_gravity="center_vertical"
+                            android:orientation="horizontal" >
+
+                            <View
+                                android:layout_width="fill_parent"
+                                android:layout_height="2dip"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginRight="2dip"
+                                android:layout_weight="1"
+                                android:background="#c0c0c0" />
+
+                            <TextView
+                                android:id="@+id/lblYarns"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="0"
                                 android:text="yarns" />
                         </LinearLayout>
 
                         <com.cldellow.ballero.ui.LinearListView
                             android:id="@+id/listViewYarn"
-                            android:orientation="vertical"    
                             android:layout_width="fill_parent"
                             android:layout_height="wrap_content"
-                            >
+                            android:orientation="vertical" >
+                        </com.cldellow.ballero.ui.LinearListView>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/myYarnLayout"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="vertical" >
+
+                        <LinearLayout
+                            xmlns:android="http://schemas.android.com/apk/res/android"
+                            android:layout_width="fill_parent"
+                            android:layout_height="fill_parent"
+                            android:layout_gravity="center_vertical"
+                            android:orientation="horizontal" >
+
+                            <View
+                                android:layout_width="fill_parent"
+                                android:layout_height="2dip"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginRight="2dip"
+                                android:layout_weight="1"
+                                android:background="#c0c0c0" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="0"
+                                android:text="i&apos;ll use" />
+                        </LinearLayout>
+
+                        <com.cldellow.ballero.ui.LinearListView
+                            android:id="@+id/listViewMyYarn"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" >
                         </com.cldellow.ballero.ui.LinearListView>
                     </LinearLayout>
 

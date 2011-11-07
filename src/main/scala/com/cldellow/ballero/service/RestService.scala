@@ -25,7 +25,6 @@ class RestService extends Service {
       val request = args(0)
       val tm = System.currentTimeMillis
       val parsedValues = request.parseFunc(request.data).map { _.asInstanceOf[T] }
-      Log.i("REST", "parse of %s chars took %s ms".format(request.data.length, System.currentTimeMillis - tm))
       JsonParseResult[T](parsedValues)
     }
 

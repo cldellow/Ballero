@@ -74,6 +74,8 @@ class RestServiceConnection() extends ServiceConnection {
             }
           }
         }
+
+        pumpRequests()
     }
   }
 

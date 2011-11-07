@@ -128,6 +128,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
   def onMinimalProjectsLoaded(response: JsonParseResult[MinimalProjectish]) {
     minimalProjects = response.parsedVals
+    fetchedProjects = true
+    fetchedQueue = true
     redraw()
   }
 

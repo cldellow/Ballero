@@ -8,7 +8,7 @@ import com.cldellow.ballero.service._
 import java.util.concurrent.atomic._
 
 object Constants {
-  val DB_VERSION = 4
+  val DB_VERSION = 5
 }
 
 case class PhotoIntent(id: Int, index: Int, name: String)
@@ -31,7 +31,7 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
       Parser.parseList[T](string)
     else
       List(Parser.parse[T](string))
-    Log.i("NETWORK_RESOURCE", "Parse took %s ms".format(System.currentTimeMillis - currentTime))
+    //Log.i("NETWORK_RESOURCE", "Parse took %s ms".format(System.currentTimeMillis - currentTime))
     rv
   }
 
@@ -129,11 +129,11 @@ NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")
     if(_cachedGet.isDefined)
       callback(_cachedGet.get, delta)
     else
-      in.render(ForceDisk, fetchAll(ForceDisk, callback, delta))
+      in.render(ForceDisk, fetchAll(new AtomicInteger(2), ForceDisk, callback, delta))
   }
 
   /** rawDelta is the delta the original caller is expecting to see */
-  private def fetchAll(policy: RefreshPolicy, callback: (List[RavelryQueue], Int) => Unit, rawDelta: Int)(ids:
+  private def fetchAll(sanity: AtomicInteger, policy: RefreshPolicy, callback: (List[RavelryQueue], Int) => Unit, rawDelta: Int)(ids:
   List[SimpleQueuedProject], delta: Int)(implicit a: SmartActivity) {
     val counter = new AtomicInteger(ids.length * 2)
     import scala.collection.JavaConversions._
@@ -143,7 +143,12 @@ NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")
       new java.util.concurrent.ConcurrentHashMap[Int, RavelryQueue]
     val syncObject = new Object
 
+    val rv = sanity.addAndGet(delta)
+    if(rv != 0)
+      return
+
     def fire() {
+      Log.i("BALLEROTYPES", "FIRE!")
       if(policy != ForceDisk)
         Data.save(ageName, System.currentTimeMillis.toString)
       val ravelryQueue = queueMap.values.toList
@@ -195,7 +200,7 @@ NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")
     get(callback, delta)
 
     if(doNetwork) {
-      in.render(refreshPolicy, fetchAll(refreshPolicy, callback, delta))
+      in.render(refreshPolicy, fetchAll(new AtomicInteger(2), refreshPolicy, callback, delta))
     }
   }
 }

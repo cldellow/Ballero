@@ -85,8 +85,8 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
     val sq = queue.filter { _.id == currentId }.head
 
     myYarnLayout.setVisibility(View.GONE)
-    if(q.queued_stashes.isDefined && !q.queued_stashes.isEmpty) {
-    } else if(q.skeins.isDefined || q.yarn_name.isDefined) {
+    if(!q.queued_stashes.map { _.isEmpty }.getOrElse(true)) {
+    } else if(q.skeins.isDefined || (q.yarn_name.isDefined && q.yarn_name.get.trim != "")) {
       val useYarnsAdapter = new ItemAdapter(this)
       useYarnsAdapter.add(
         new SubtitleItem2(

@@ -48,20 +48,18 @@ class RestServiceConnection() extends ServiceConnection {
       return
 
     if(permittedConnections == 0) {
-      Log.i("REST", "queuing connection")
       return
     }
 
-    val newConnection = _stack.head
-    _stack = _stack.tail
+    val rev = _stack.reverse
+    val newConnection = rev.head
+    _stack = rev.tail.reverse
     permittedConnections = permittedConnections - 1
 
-    println("new connection is " + newConnection)
-    Log.i("REST", "Outgoing: " + newConnection.request.toString)
+    //Log.i("REST", "Outgoing: " + newConnection.request.toString)
     newConnection match {
       case x: Pair[_] =>
         _boundService.request(x.request){ response =>
-          Log.i("REST", "freeing connection")
           freeConnection()
           pumpRequests()
           if(response.status != 200) {
@@ -80,7 +78,6 @@ class RestServiceConnection() extends ServiceConnection {
   }
 
   def onServiceConnected(className: ComponentName, service: IBinder) {
-    Log.i(TAG, "onServiceConnected")
     _boundService = service.asInstanceOf[RestService#LocalBinder]
 
     // flush the queue
@@ -93,12 +90,12 @@ class RestServiceConnection() extends ServiceConnection {
       return
 
     if(parseSlots == 0) {
-      Log.i("REST", "queuing parse")
       return
     }
 
-    val newConnection = _jsonStack.head
-    _jsonStack = _jsonStack.tail
+    val rev = _jsonStack.reverse
+    val newConnection = rev.head
+    _jsonStack = rev.tail.reverse
     parseSlots = parseSlots - 1
 
     newConnection match {

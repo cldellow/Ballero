@@ -186,6 +186,7 @@
                             <ImageView
                                 android:id="@+id/imageHappiness"
                                 android:layout_width="24dip"
+                                android:layout_gravity="left"
                                 android:layout_height="24dip"
                                 android:layout_marginTop="7dip"
                                 android:src="@drawable/rating5" />
@@ -370,7 +371,7 @@
                             <View
                                 android:layout_width="fill_parent"
                                 android:layout_height="2dip"
-                                android:layout_gravity="center_vertical"
+                                  android:layout_gravity="center_vertical"
                                 android:layout_marginRight="2dip"
                                 android:layout_weight="1"
                                 android:background="#c0c0c0" />

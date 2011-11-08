@@ -34,6 +34,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
   var refreshButton: LoaderActionBarItem = null
   var numPending: Int = 0
+  var queuePending: Int = 0
+  var projectsPending: Int = 0
   var sortButton: ActionBarItem = null
   var actions: QuickActionBar = null
   var filter: ProjectStatus = Unknown
@@ -156,7 +158,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
     val sorted: List[MinimalProjectish] =
       if(useQueueOrder)
-        kept.collect { case q if q._actualStatus == Queued => q}.sortBy { -_.order.getOrElse(999) }
+        kept.collect { case q if q._actualStatus == Queued => q}.sortBy { _.order.getOrElse(999) }
       else
         kept.sortBy { _.uiName.toLowerCase }
 
@@ -206,6 +208,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   private def refreshAll(policy: RefreshPolicy) {
     refreshButton.setLoading(true)
     numPending += 4
+    queuePending += 2
+    projectsPending += 2
     fetchedQueue = false
     fetchedProjects = false
     Data.currentUser.get.queuedProjects.render(policy, onQueueChanged)
@@ -221,21 +225,34 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   }
 
   private def onQueueChanged(queued: List[RavelryQueue], delta: Int) {
-    fetchedQueue = true
-    val curTime = System.currentTimeMillis
-    this.queued = queued.map { q =>
-      QueueWithPattern(q, q.pattern)
-    }
-    info("time for onQueueChanged to map: %s".format(System.currentTimeMillis - curTime))
+    queuePending += delta
     updatePendings(delta)
-    updateItems
+
+    info("!")
+    info("!")
+    info("!")
+    info("got queue: q.length = %s".format(queued.length))
+    if(queuePending <= 0) {
+      queuePending = 0
+      fetchedQueue = true
+      val curTime = System.currentTimeMillis
+      this.queued = queued.map { q =>
+        QueueWithPattern(q, q.pattern)
+      }
+      info("time for onQueueChanged to map: %s".format(System.currentTimeMillis - curTime))
+      updateItems
+    }
   }
 
   private def onProjectsChanged(projects: List[Project], delta: Int) {
-    fetchedProjects = true
+    projectsPending += delta
     updatePendings(delta)
-    this.projects = projects
-    updateItems
+    if(projectsPending <= 0) {
+      projectsPending = 0
+      fetchedProjects = true
+      this.projects = projects
+      updateItems
+    }
   }
 
   private def filterProjects(projectish: MinimalProjectish): Boolean = projectish._actualStatus match {
@@ -246,9 +263,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   }
 
   private def updateItems {
-    if(numPending != 0)
+    if(numPending > 0)
       return
-
     val allProjects: List[Either[QueueWithPattern, Project]] =
       ((queued.map { Left(_) }) ::: (projects.map { Right(_) }))
     val minimalProjects: List[MinimalProjectish] = allProjects.map { x =>

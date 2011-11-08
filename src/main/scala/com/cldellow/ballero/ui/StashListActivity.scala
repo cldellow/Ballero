@@ -64,8 +64,11 @@ class StashListActivity extends GDListActivity with NavigableListActivity with S
 
     updateTitle
 
+    toast("tease! nothing here yet")
+    /*
     if(!fetchedYarns)
       maybeFetch()
+      */
   }
 
   private def maybeFetch() {

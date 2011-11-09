@@ -3,6 +3,7 @@ package com.cldellow.ballero.ui
 import com.cldellow.ballero.R
 import com.cldellow.ballero.service._
 import com.cldellow.ballero.data._
+import java.util.concurrent.atomic._
 import scala.xml.XML
 
 import scala.collection.JavaConversions._
@@ -107,7 +108,7 @@ class StashListActivity extends GDListActivity with NavigableListActivity with S
     refreshButton.setLoading(true)
     numPending += 2
     fetchedYarns = false
-    Data.currentUser.get.stash.render(policy, onYarnsChanged(policy))
+    Data.currentUser.get.stash.render(policy, onYarnsChanged(new AtomicInteger(2), policy))
   }
 
   private def updatePendings(delta: Int) {
@@ -118,14 +119,18 @@ class StashListActivity extends GDListActivity with NavigableListActivity with S
     }
   }
 
-  private def onYarnsChanged(policy: RefreshPolicy)(stashed: List[SentinelStashedYarn], delta: Int) {
+  private def onYarnsChanged(sanity: AtomicInteger, policy: RefreshPolicy)(stashed: List[SentinelStashedYarn], delta: Int) {
+    val rv = sanity.addAndGet(delta)
+    updatePendings(delta)
+
+    if(rv > 0)
+      return
     fetchedYarns = true
     stashed.foreach { stash =>
       numPending += 2
       RavelryApi.makeStashDetailsResource(stash.id).render(policy, onStashDetailsChanged)
     }
     _stashedYarns = stashed
-    updatePendings(delta)
   }
 
   private def onStashDetailsChanged(stashedDetails: List[StashedYarn], delta: Int) {

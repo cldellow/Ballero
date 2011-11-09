@@ -1,5 +1,5 @@
 package com.cldellow.ballero.ui
-
+import com.bugsense.trace.BugSenseHandler;
 import com.cldellow.ballero.R
 import com.cldellow.ballero.service._
 import com.cldellow.ballero.data._
@@ -26,7 +26,7 @@ class MainActivity extends GDListActivity with NavigableListActivity with SmartA
     registerForContextMenu(getListView())
 
     setTitle("Ballero")
-
+BugSenseHandler.setup(this, "1d4be5ef");
   }
 
   override def onResume() {

@@ -35,10 +35,11 @@ class RestService extends Service {
     var responseCode: Int = 0
     var responseCodeMessage: String = ""
     var body: String = ""
+    var request: RestRequest[_] = null
 
     def doInBackground1(args: Array[RestRequest[_]]): RestResponse[_] = {
       // do something
-      val request = args(0)
+      request = args(0)
       request.verb match {
         case GET =>
           val httpRequest = new HttpGet(request.url + request.getParams)
@@ -80,7 +81,7 @@ class RestService extends Service {
           }
           body = stringBuilder.toString
 
-          Log.i("REST", "got response: %s".format(body))
+          Log.i("REST", "got response for url %s: %s".format(this.request.url + this.request.getParams, body))
           // Closing the input stream will trigger connection release
           inputStream.close();
         }

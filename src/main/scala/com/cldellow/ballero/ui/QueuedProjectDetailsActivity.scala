@@ -3,6 +3,7 @@ package com.cldellow.ballero.ui
 import com.cldellow.ballero.R
 import com.cldellow.ballero.data._
 import android.graphics._
+import java.util.concurrent.atomic._
 import scala.collection.JavaConversions._
 import android.app.Activity
 import android.content._
@@ -41,7 +42,7 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
     refreshButton.setLoading(true)
 
     pending += 2
-    RavelryApi.makeQueueDetailsResource(currentId).render(policy, onQueueDetails)
+    RavelryApi.makeQueueDetailsResource(currentId).render(policy, onQueueDetails(new AtomicInteger(2)))
   }
 
   override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
@@ -54,27 +55,39 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
     }
 
 
-  private def onQueueDetails(ravelryQueue: List[RavelryQueue], delta: Int) {
+  private def onQueueDetails(sanity: AtomicInteger)(ravelryQueue: List[RavelryQueue], delta: Int) {
     pending += delta
+    val rv = sanity.addAndGet(delta)
+    if(rv>0)
+      return
+
     ravelryQueue map { q =>
       patternId = q.pattern_id
       q.pattern_id.map { id =>
         pending += 2
-        RavelryApi.makePatternDetailsResource(id).render(policy, onPatternDetails(q))
+        RavelryApi.makePatternDetailsResource(id).render(policy, onPatternDetails(new AtomicInteger(2), q))
       }
     }
   }
 
-  private def onPatternDetails(q: RavelryQueue)(patternDetails: List[Pattern], delta: Int) {
+  private def onPatternDetails(sanity: AtomicInteger, q: RavelryQueue)(patternDetails: List[Pattern], delta: Int) {
     pending += delta
+    val rv = sanity.addAndGet(delta)
+    if(rv > 0)
+      return
+
     patternDetails map { patternDetails =>
       pending += 2
-      Data.currentUser.get.queue.render(policy, onSimpleQueue(q, patternDetails))
+      Data.currentUser.get.queue.render(policy, onSimpleQueue(new AtomicInteger(2), q, patternDetails))
     }
   }
 
-  private def onSimpleQueue(q: RavelryQueue, pattern: Pattern)(queue: List[SimpleQueuedProject], delta: Int) {
+  private def onSimpleQueue(sanity: AtomicInteger, q: RavelryQueue, pattern: Pattern)(queue: List[SimpleQueuedProject], delta: Int) {
     pending += delta
+    val rv = sanity.addAndGet(delta)
+    if(rv > 0)
+      return
+
     if(pending <= 0) {
       pending = 0
       refreshButton.setLoading(false)

@@ -17,7 +17,8 @@ object General {
     TypedResources.settings ++
     AndroidMarketPublish.settings ++ Seq (
       keyalias in Android := "ballero",
-      libraryDependencies ++= Seq("org.scalatest" %% "scalatest" % "1.5.1" % "test")
+      libraryDependencies ++= Seq("org.scalatest" %% "scalatest" % "1.5.1" % "test",
+        "com.bugsense" % "trace" % "1.1")
     )
 }
 

@@ -21,6 +21,10 @@ Beta 0.3:
 - stash list
 - photo viewer
 
+Beta 0.4:
+
+- edit project details: notes, made for, started/completed date, progress, happiness
+
 GitHub's heuristics to the contrary, the app is written in Scala, not Java.
 
 Thanks to the folks who made useful libraries with permissive licenses:

@@ -8,7 +8,7 @@ import com.cldellow.ballero.service._
 import java.util.concurrent.atomic._
 
 object Constants {
-  val DB_VERSION = 5
+  val DB_VERSION = 6
 }
 
 case class PhotoIntent(id: Int, index: Int, name: String)

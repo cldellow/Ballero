@@ -2,14 +2,16 @@ package com.cldellow.ballero.ui
 
 import com.cldellow.ballero.R
 import greendroid.widget.ActionBarItem.Type
+import com.cldellow.ballero.service._
 import com.cldellow.ballero.data._
 import android.graphics._
 import scala.collection.JavaConversions._
-import android.app.Activity
+import android.app._
 import android.content._
 import android.location._
 import android.os.Bundle
 import android.util.Log
+import android.text._
 import android.view._
 import android.widget._
 import greendroid.app._
@@ -22,6 +24,8 @@ class ProjectDetailsActivity extends ProjectishActivity {
   val isProject = true
   val patternId = None
 
+  var cachedProject: Option[Project] = None
+
   override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
     item.getItemId match {
       case R.id.action_bar_refresh =>
@@ -32,6 +36,7 @@ class ProjectDetailsActivity extends ProjectishActivity {
     }
 
   var pending = 0
+
   def onProjectLoaded(projects: List[Project], delta: Int) {
     pending += delta
     if(pending <= 0) {
@@ -39,9 +44,11 @@ class ProjectDetailsActivity extends ProjectishActivity {
       refreshButton.setLoading(false)
     }
 
+    btnEditNotes.setVisibility(View.VISIBLE)
     yarnRequirementsLayout.setVisibility(View.GONE)
     myYarnLayout.setVisibility(View.GONE)
     projects.headOption.map { project =>
+      cachedProject = Some(project)
       setTitle(project.uiName)
       patternName.setVisibility(View.GONE)
 
@@ -64,6 +71,7 @@ class ProjectDetailsActivity extends ProjectishActivity {
       } else {
         gallery.setVisibility(View.GONE)
       }
+
       status.setText(project.status.human)
 
       // TODO: set default happiness to grey unknown
@@ -152,6 +160,200 @@ class ProjectDetailsActivity extends ProjectishActivity {
     }
     progressBarLoading.setVisibility(View.GONE)
     linearLayout.setVisibility(View.VISIBLE)
+  }
+
+  def sign[T <: Product](request: RestRequest[T])(implicit mf: Manifest[T]): RestRequest[T] = {
+    val oauthCred = Data.currentUser.get.oauth_token.get
+    val token = oauthCred.auth_token
+    val secret = oauthCred.signing_key
+
+    RestRequest[T](
+      request.url,
+      request.verb,
+      Crypto.signParams(
+        request.url,
+        request.params,
+        token,
+        secret),
+      parseFunc = Parser.parseAsList[T])
+  }
+
+  override def startedOnClick(v: View) {
+    showDialog(DATE_DIALOG_STARTED)
+  }
+
+  override def completedOnClick(v: View) {
+    showDialog(DATE_DIALOG_COMPLETED)
+  }
+
+  def btnEditNotesClick(v: View) {
+    val builder: AlertDialog.Builder = new AlertDialog.Builder(this)
+    builder.setTitle("Notes")
+    val input: EditText = new EditText(this)
+    input.setSingleLine(false)
+    cachedProject.map { _.notes.map { input.setText(_) } }
+    builder.setView(input);
+    builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+      def onClick(dialog: DialogInterface, item: Int) {
+        restServiceConnection.request(
+          sign(RestRequest[ProjectWrapper](
+            "http://api.ravelry.com/projects/%s/%s.json"
+              .format(Data.currentUser.get.name, currentId),
+            POST,
+            Map("project.notes" -> input.getText().toString),
+            parseFunc = Parser.parseAsList[ProjectWrapper]))) { response =>
+          response.parsedVals.map { project =>
+            saveAndUpdate(project)
+          }
+        }
+        toast("Updating Ravelry...")
+      }
+    });
+    val alert: AlertDialog = builder.create()
+    alert.show()
+  }
+
+
+  override def madeForClick(v: View) {
+    val builder: AlertDialog.Builder = new AlertDialog.Builder(this)
+    builder.setTitle("Made for")
+    val input: EditText = new EditText(this)
+    cachedProject.map { _.made_for.map { input.setText(_) } }
+    builder.setView(input);
+    builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+      def onClick(dialog: DialogInterface, item: Int) {
+        restServiceConnection.request(
+          sign(RestRequest[ProjectWrapper](
+            "http://api.ravelry.com/projects/%s/%s.json"
+              .format(Data.currentUser.get.name, currentId),
+            POST,
+            Map("project.made_for" -> input.getText().toString),
+            parseFunc = Parser.parseAsList[ProjectWrapper]))) { response =>
+          response.parsedVals.map { project =>
+            saveAndUpdate(project)
+          }
+        }
+        toast("Updating Ravelry...")
+      }
+    });
+    val alert: AlertDialog = builder.create()
+    alert.show()
+  }
+
+
+  final val DATE_DIALOG_STARTED = 0
+  final val DATE_DIALOG_COMPLETED = 1
+
+  case class RavDate(year: Int, month: Int, day: Int)
+
+  def parseDate(str: Option[String]): RavDate = {
+    val dateRe = "([0-9]{1,4})/([0-9]{1,2})/([0-9]{1,2})".r
+    val rv = str.flatMap { str =>
+      str match {
+        case dateRe(year, month, day) => Some(RavDate(year.toInt, month.toInt, day.toInt))
+        case _ => None
+      }
+    }
+
+    rv.getOrElse {
+      val d = new java.util.Date()
+      RavDate(d.getYear() + 1900, d.getMonth() + 1, d.getDate())
+    }
+  }
+
+  override def onCreateDialog(id: Int): Dialog = id match {
+    case DATE_DIALOG_STARTED =>
+      val date = parseDate(cachedProject.flatMap { _.started })
+      new DatePickerDialog(this, setDate("started"), date.year, date.month - 1, date.day)
+    case DATE_DIALOG_COMPLETED =>
+      val date = parseDate(cachedProject.flatMap { _.completed })
+      new DatePickerDialog(this, setDate("completed"), date.year, date.month - 1, date.day)
+    case _ => null
+  }
+
+  def setDate(field: String): DatePickerDialog.OnDateSetListener =
+    new DatePickerDialog.OnDateSetListener() {
+      def onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
+        restServiceConnection.request(
+          sign(RestRequest[ProjectWrapper](
+            "http://api.ravelry.com/projects/%s/%s.json"
+              .format(Data.currentUser.get.name, currentId),
+            POST,
+            Map("project.%s".format(field) -> "%s/%s/%s".format(year, month + 1, day)),
+            parseFunc = Parser.parseAsList[ProjectWrapper]))) { response =>
+          response.parsedVals.map { project =>
+            saveAndUpdate(project)
+          }
+        }
+        toast("Updating Ravelry...")
+      }
+    }
+
+  def happinessClick(v: View) {
+    val builder: AlertDialog.Builder = new AlertDialog.Builder(this)
+    builder.setTitle("Rate this project")
+
+    val adapter = new ItemAdapter(this)
+    val items = List(
+      R.drawable.rating0 -> "ugh",
+      R.drawable.rating1 -> "meh",
+      R.drawable.rating2 -> "it's ok",
+      R.drawable.rating3 -> "like it",
+      R.drawable.rating4 -> "love it")
+    items.foreach { item =>
+      val thumb = new ThumbnailItem(item._2, "", item._1)
+      thumb.viewId = R.layout.black_thumbnail_item_view
+      adapter.add(thumb)
+    }
+    builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+      def onClick(dialog: DialogInterface, item: Int) {
+        restServiceConnection.request(
+          sign(RestRequest[ProjectWrapper](
+            "http://api.ravelry.com/projects/%s/%s.json"
+              .format(Data.currentUser.get.name, currentId),
+            POST,
+            Map("project.rating" -> item.toString),
+            parseFunc = Parser.parseAsList[ProjectWrapper]))) { response =>
+          response.parsedVals.map { project =>
+            saveAndUpdate(project)
+          }
+        }
+        toast("Updating Ravelry...")
+      }
+    });
+    val alert: AlertDialog = builder.create()
+    alert.show()
+  }
+
+  def saveAndUpdate(project: ProjectWrapper) {
+    onProjectLoaded(List(project.project), 0)
+    Data.save("project_%s".format(project.project.id), Parser.serializeList[ProjectWrapper](List(project)))
+    toast("Saved.")
+  }
+
+  def progressClick(v: View) {
+    val items = ((0 to 20) map { x => "%s%%".format(x * 5).asInstanceOf[CharSequence]}).toArray
+
+    val builder: AlertDialog.Builder = new AlertDialog.Builder(this)
+    builder.setTitle("Update progress")
+    builder.setItems(items, new DialogInterface.OnClickListener() {
+      def onClick(dialog: DialogInterface, item: Int) {
+        restServiceConnection.request(
+          sign(RestRequest[ProjectWrapper](
+            "http://api.ravelry.com/projects/%s/%s.json"
+              .format(Data.currentUser.get.name, currentId),
+            POST,
+            Map("project.progress" -> items(item).toString.replace("%", "")),
+            parseFunc = Parser.parseAsList[ProjectWrapper]))) { response =>
+          response.parsedVals.map { project =>
+            saveAndUpdate(project)
+          }
+        }
+        toast("Updating Ravelry...")
+      }
+    });
+    val alert: AlertDialog = builder.create()
+    alert.show()
   }
 
   override def onResume() {

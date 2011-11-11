@@ -99,6 +99,8 @@
                                 android:id="@+id/lblMadeForValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:clickable="true"
+                                android:onClick="madeForClick"
                                 android:text="(no one)"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
                                 android:textColor="#c0c0c0" />
@@ -111,7 +113,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginRight="8dip"
-                                android:layout_marginTop="7dip"
+                                android:paddingTop="15dip"
                                 android:text="started on"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
                                 android:textColor="#c0c0c0" />
@@ -120,7 +122,9 @@
                                 android:id="@+id/lblStartedOnValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="7dip"
+                                android:clickable="true"
+                                android:onClick="startedOnClick"
+                                android:paddingTop="15dip"
                                 android:text="unknown"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
                                 android:textColor="#c0c0c0" />
@@ -133,7 +137,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginRight="8dip"
-                                android:layout_marginTop="7dip"
+                                android:paddingTop="15dip"
                                 android:text="completed on"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
                                 android:textColor="#c0c0c0" />
@@ -142,21 +146,23 @@
                                 android:id="@+id/lblCompletedOnValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="7dip"
+                                android:clickable="true"
+                                android:onClick="completedOnClick"
+                                android:paddingTop="15dip"
                                 android:text="unknown"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
                                 android:textColor="#c0c0c0" />
                         </TableRow>
 
-                        <TableRow android:layout_gravity="center_vertical" >
+                        <TableRow >
 
                             <TextView
                                 android:id="@+id/lblStatus"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginRight="8dip"
-                                android:layout_marginTop="7dip"
                                 android:layout_weight="1"
+                                android:paddingTop="15dip"
                                 android:text="status"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
                                 android:textColor="#c0c0c0" />
@@ -166,29 +172,33 @@
                                 style="?android:attr/progressBarStyleHorizontal"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="7dip"
-                                android:layout_weight="1" />
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:onClick="progressClick"
+                                android:paddingTop="15dip" />
                         </TableRow>
 
-                        <TableRow android:layout_gravity="center_vertical" >
+                        <TableRow >
 
                             <TextView
                                 android:id="@+id/lblHappiness"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginRight="8dip"
-                                android:layout_marginTop="7dip"
                                 android:layout_weight="1"
+                                android:paddingTop="15dip"
                                 android:text="happiness"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
                                 android:textColor="#c0c0c0" />
 
                             <ImageView
                                 android:id="@+id/imageHappiness"
-                                android:layout_width="24dip"
+                                android:layout_width="36dip"
+                                android:layout_height="36dip"
                                 android:layout_gravity="left"
-                                android:layout_height="24dip"
-                                android:layout_marginTop="7dip"
+                                android:clickable="true"
+                                android:onClick="happinessClick"
+                                android:paddingTop="15dip"
                                 android:src="@drawable/rating5" />
                         </TableRow>
                     </TableLayout>
@@ -371,7 +381,7 @@
                             <View
                                 android:layout_width="fill_parent"
                                 android:layout_height="2dip"
-                                  android:layout_gravity="center_vertical"
+                                android:layout_gravity="center_vertical"
                                 android:layout_marginRight="2dip"
                                 android:layout_weight="1"
                                 android:background="#c0c0c0" />
@@ -415,11 +425,36 @@
                             android:text="notes" />
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/lblNotesValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="(no notes)" />
+                    <LinearLayout
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="horizontal" >
+
+                        <TextView
+                            android:id="@+id/lblNotesValue"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="(no notes)" />
+
+                        <Button
+                            android:id="@+id/btnEditNotes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0"
+                            android:paddingTop="-1dip"
+                            android:paddingBottom="-1dip"
+                            android:layout_marginTop="0dip"
+                            android:layout_marginBottom="0dip"
+                            android:paddingLeft="7dip"
+                            android:paddingRight="7dip"
+                            android:onClick="btnEditNotesClick"
+                            android:visibility="gone"
+                            android:text="edit"
+                            android:textAppearance="?android:attr/textAppearanceSmall" >
+                        </Button>
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>

@@ -57,7 +57,7 @@ public class AsyncImageViewAdapter extends BaseAdapter {
         imageView.setAdjustViewBounds(true);
 
         imageView.setUrl(mUrls[position]);
-        imageView.setLayoutParams(new Gallery.LayoutParams(150, 100));
+        imageView.setLayoutParams(new Gallery.LayoutParams(200, 150));
         imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         imageView.setBackgroundResource(mGalleryItemBackground);
         return imageView;

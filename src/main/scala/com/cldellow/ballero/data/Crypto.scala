@@ -18,11 +18,22 @@ import org.coriander.oauth.core.cryptography._
 
 /** Wrappers for crypto functions */
 object Crypto {
-  private def finalsign(url: String, params: Map[String, String], secret: String): String = {
-    val proveMe = "%s?%s".format(url, params.keySet.toList.sorted
+  def getSignedParams(url: String, params: Map[String, String], secret: String): Map[String, String] = {
+    val proveMe = getProveMe(url, params)
+    val hmac256 = new HmacSha256
+    val signature = Base64.encode(hmac256.create(secret, proveMe))
+
+    params ++ List("signature" -> signature)
+  }
+
+  def getProveMe(url: String, params: Map[String, String]): String =
+    "%s?%s".format(url, params.keySet.toList.sorted
       .map { name => (name, params(name)) }
       .map { case (name, value) => "%s=%s".format(encode(name), encode(value)) }.mkString("&")
     )
+
+  private def finalsign(url: String, params: Map[String, String], secret: String): String = {
+    val proveMe = getProveMe(url, params)
 
     val hmac256 = new HmacSha256
     val signature = Base64.encode(hmac256.create(secret, proveMe))
@@ -38,11 +49,22 @@ object Crypto {
     finalsign(url, paramsToSign, secret)
   }
 
+  def signParams(url: String, params: Map[String, String], token: String, secret: String): Map[String, String] = {
+    val paramsToSign = params ++ commonParams ++ Map("auth_token" -> token)
+    getSignedParams(url, paramsToSign, secret)
+  }
+
   /** Sign a request as Ballero */
   def appsign(url: String, params: Map[String, String]): String = {
     val paramsToSign = params ++ commonParams
     finalsign(url, paramsToSign, Keys.secret)
   }
+
+  def appSignParams(url: String, params: Map[String, String]): Map[String, String] = {
+    val paramsToSign = params ++ commonParams
+    getSignedParams(url, paramsToSign, Keys.secret)
+  }
+
 
   private def hash(input: String): Array[Byte] = {
     val digest = MessageDigest.getInstance("SHA-256")
@@ -74,7 +96,7 @@ object Crypto {
     sdf.format( now )
   }
 
-  private def encode(str: String): String = java.net.URLEncoder.encode(str, "UTF-8")
+  def encode(str: String): String = java.net.URLEncoder.encode(str, "UTF-8")
 }
 
 // vim: set ts=2 sw=2 et:

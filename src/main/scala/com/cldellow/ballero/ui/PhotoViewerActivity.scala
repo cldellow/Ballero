@@ -62,7 +62,7 @@ class PhotoViewerActivity extends GDActivity with SmartActivity {
     info("small: %s".format(smallUrls))
     info("big: %s".format(imageUrls))
     gallery.setAdapter(imageAdapter)
-
+    gallery.setSelection(photoIntent.index)
     setImage(photoIntent.index)
 
     gallery.setOnItemClickListener(new OnItemClickListener() {

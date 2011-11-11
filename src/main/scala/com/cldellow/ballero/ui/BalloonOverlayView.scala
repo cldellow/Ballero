@@ -113,7 +113,6 @@ extends FrameLayout(context) {
     }
   }
 
-
   def phoneClick(v: View) {
     item map { item =>
       item.shop.phone.map { phone =>

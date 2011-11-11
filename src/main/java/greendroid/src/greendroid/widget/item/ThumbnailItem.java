@@ -56,6 +56,7 @@ public class ThumbnailItem extends SubtitleItem {
      * The resource ID for the Drawable.
      */
     public int drawableId;
+    public int viewId = R.layout.gd_thumbnail_item_view;
 
     /**
      * An optional URL that may be used to retrieve an image
@@ -97,7 +98,7 @@ public class ThumbnailItem extends SubtitleItem {
 
     @Override
     public ItemView newView(Context context, ViewGroup parent) {
-        return createCellFromXml(context, R.layout.gd_thumbnail_item_view, parent);
+        return createCellFromXml(context, viewId, parent);
     }
 
     @Override

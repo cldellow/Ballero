@@ -48,6 +48,7 @@ abstract class ProjectishActivity extends GDActivity with SmartActivity {
   lazy val linearLayout = findView(R.id.linearLayout)
   lazy val status = findLabel(R.id.lblStatus)
   lazy val patternName = findLabel(R.id.lblPatternName)
+  lazy val btnEditNotes = findButton(R.id.btnEditNotes)
   //lazy val imageView = findAsyncImageView(R.id.image_view)
 
   var refreshButton: LoaderActionBarItem = null
@@ -87,6 +88,11 @@ abstract class ProjectishActivity extends GDActivity with SmartActivity {
     return R.layout.project_details
   }
 
+
+  def startedOnClick(v: View) {}
+  def completedOnClick(v: View) {}
+  def madeForClick(v: View) {}
+  def statusClick(v: View) {}
 
   override def onPause() {
     super.onPause()

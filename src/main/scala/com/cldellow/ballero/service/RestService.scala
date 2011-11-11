@@ -1,5 +1,6 @@
 package com.cldellow.ballero.service
 
+import com.cldellow.ballero.data._
 import android.app._
 import android.os._
 import android.util.Log
@@ -45,13 +46,18 @@ class RestService extends Service {
           val httpRequest = new HttpGet(request.url + request.getParams)
           //addHeaderParams(request)
           executeRequest(httpRequest)
-        case POST => error("not supported")
-          /*
-          HttpPost request = new HttpPost(url);
-          request = (HttpPost) addHeaderParams(request);
-          request = (HttpPost) addBodyParams(request);
-          executeRequest(request, url);
-          */
+        case POST =>
+          val httpRequest = new HttpPost(request.url)
+          val params = request.params
+          Log.i("REST", "got post params %s".format(params))
+
+          import scala.collection.JavaConversions._
+          val nvc = params.map { case (k, v) => new BasicNameValuePair(k, v) }.toList
+          httpRequest.setEntity(
+            new UrlEncodedFormEntity(
+              nvc,
+              HTTP.UTF_8))
+          executeRequest(httpRequest)
       }
 
       RestResponse(responseCode, body, responseCodeMessage, parsedVals = Nil)

@@ -67,6 +67,11 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
         pending += 2
         RavelryApi.makePatternDetailsResource(id).render(policy, onPatternDetails(new AtomicInteger(2), q))
       }
+
+      if(q.pattern_id.isEmpty) {
+        pending += 2
+        Data.currentUser.get.queue.render(policy, onSimpleQueue(new AtomicInteger(2), q, None))
+      }
     }
   }
 
@@ -78,11 +83,11 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
 
     patternDetails map { patternDetails =>
       pending += 2
-      Data.currentUser.get.queue.render(policy, onSimpleQueue(new AtomicInteger(2), q, patternDetails))
+      Data.currentUser.get.queue.render(policy, onSimpleQueue(new AtomicInteger(2), q, Some(patternDetails)))
     }
   }
 
-  private def onSimpleQueue(sanity: AtomicInteger, q: RavelryQueue, pattern: Pattern)(queue: List[SimpleQueuedProject], delta: Int) {
+  private def onSimpleQueue(sanity: AtomicInteger, q: RavelryQueue, pattern: Option[Pattern])(queue: List[SimpleQueuedProject], delta: Int) {
     pending += delta
     val rv = sanity.addAndGet(delta)
     if(rv > 0)
@@ -112,9 +117,15 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
     }
 
     patternName.setVisibility(View.VISIBLE)
-    patternName.setText(pattern.name)
+    q.pattern_name.foreach { name =>
+      patternName.setText(name)
+    }
 
-    val imageUrls = pattern.photos.map { photos =>
+    pattern.foreach { pattern =>
+      patternName.setText(pattern.name)
+    }
+
+    val imageUrls = pattern.flatMap { _.photos }.map { photos =>
       photos.map { photo =>
         photo.square_url.getOrElse(photo.thumbnail_url)
       }
@@ -152,22 +163,22 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
     var yarnRequirementsVis = View.GONE
     lblYarnYardage.setVisibility(View.GONE)
     lblYarnSize.setVisibility(View.GONE)
-    pattern.yardage_description.foreach { d =>
+    pattern.foreach { _.yardage_description.foreach { d =>
       if(!("yards".equals(d.trim))) {
         yarnRequirementsVis = View.VISIBLE
         lblYarnYardage.setVisibility(View.VISIBLE)
         lblYarnYardage.setText(d)
       }
-    }
-    pattern.yarn_weight_description.foreach { d =>
+    } }
+    pattern.foreach { _.yarn_weight_description.foreach { d =>
       yarnRequirementsVis = View.VISIBLE
       lblYarnSize.setVisibility(View.VISIBLE)
       lblYarnSize.setText(d)
-    }
+    } }
     yarnRequirementsLayout.setVisibility(yarnRequirementsVis)
     lblYarns.setText("suggested yarns")
     val adapter: ItemAdapter = new ItemAdapter(this)
-    pattern.packs.foreach { packs =>
+    pattern.foreach { _.packs.foreach { packs =>
       packs.filter { pk => pk.yarn.isDefined && pk.yarn.get.name.isDefined }.foreach { pack =>
         yarnLayout.setVisibility(View.VISIBLE)
         val title = pack.yarn.flatMap { _.yarn_company_name }.getOrElse("Unknown brand")
@@ -179,7 +190,7 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
 
         adapter.add(new SubtitleItem2(title, subtitle, subtitle2))
       }
-    }
+    } }
     listViewYarn.setAdapter(adapter)
 
     lblCompletedOnValue.setText("unknown")
@@ -211,7 +222,7 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
     }
 
     needleLayout.setVisibility(View.GONE)
-    pattern.pattern_needle_sizes.foreach { needle_sizes =>
+    pattern.foreach { _.pattern_needle_sizes.foreach { needle_sizes =>
       val needles = needle_sizes.map { needle =>
         needle.name
       }.flatten.mkString("\n")
@@ -219,7 +230,7 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
         needleLayout.setVisibility(View.VISIBLE)
         needleDetails.setText(needles)
       }
-    }
+    } }
 
     tagsLayout.setVisibility(View.GONE)
     /** TODO: tags 

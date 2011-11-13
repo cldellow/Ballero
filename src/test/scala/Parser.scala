@@ -6,15 +6,16 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.Spec
 
 import org.json._
+import org.codehaus.jackson._
 
 class Parser extends Spec with ShouldMatchers {
   describe("json parser") {
-    it("can parse a case class with 1 string and ignore extra crap") {
-      val x: OneString = Parser.parse[OneString]("""{ "foo" : "bar", "baz" :"foo" }""")
-      assert(x === OneString("bar"))
-    }
     it("can parse a case class with 1 string") {
       val x: OneString = Parser.parse[OneString]("""{ "foo" : "bar" }""")
+      assert(x === OneString("bar"))
+    }
+    it("can parse a case class with 1 string and ignore extra crap") {
+      val x: OneString = Parser.parse[OneString]("""{ "foo" : "bar", "baz" :"foo" }""")
       assert(x === OneString("bar"))
     }
     it("can parse a case class with list of strings") {
@@ -49,8 +50,6 @@ class Parser extends Spec with ShouldMatchers {
     }
     it("can parse the empty Google result") {
       val x: GoogleResponse = Parser.parse[GoogleResponse]("""{   "results" : [],   "status" : "ZERO_RESULTS"}""")
-      println(x.results)
-      println(x.status)
     }
     it("can parse a case class with a Boolean") {
       val x: CaseBoolean = Parser.parse[CaseBoolean]("""{"foo":true}""")
@@ -66,6 +65,8 @@ class Parser extends Spec with ShouldMatchers {
       val x: OptionListCaseClass = Parser.parse[OptionListCaseClass]("""{"foo":[{"foo":"bar"}]}""")
       assert(x === OptionListCaseClass(Some(List(OneString("bar")))))
     }
+  /*
+  */
 
   }
 }

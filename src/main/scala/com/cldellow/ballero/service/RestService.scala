@@ -25,7 +25,11 @@ class RestService extends Service {
     def doInBackground1(args: Array[JsonParseRequest[_]]): JsonParseResult[_] = {
       val request = args(0)
       val tm = System.currentTimeMillis
-      val parsedValues = request.parseFunc(request.data).map { _.asInstanceOf[T] }
+      val parsedValues = 
+        if(request.dataBytes == null)
+          request.parseFunc(request.data).map { _.asInstanceOf[T] }
+        else
+          request.parseBytesFunc(request.dataBytes, request.dataBytesSize).map { _.asInstanceOf[T] }
       JsonParseResult[T](parsedValues)
     }
 
@@ -35,7 +39,8 @@ class RestService extends Service {
   private class RestRequestTask[T](f: RestResponse[T] => Unit) extends RestRequestTaskBase {
     var responseCode: Int = 0
     var responseCodeMessage: String = ""
-    var body: String = ""
+    var body: Array[Byte] = new Array[Byte](0)
+    var bodySize: Int = 0
     var request: RestRequest[_] = null
 
     def doInBackground1(args: Array[RestRequest[_]]): RestResponse[_] = {
@@ -60,7 +65,7 @@ class RestService extends Service {
           executeRequest(httpRequest)
       }
 
-      RestResponse(responseCode, body, responseCodeMessage, parsedVals = Nil)
+      RestResponse(responseCode, body, bodySize, responseCodeMessage, parsedVals = Nil)
     }
 
     private def executeRequest(request: HttpUriRequest) {
@@ -81,11 +86,16 @@ class RestService extends Service {
         if (entity != null) {
 
           val inputStream: InputStream = entity.getContent
-          val stringBuilder = new StringBuilder(2048)
-          scala.io.Source.fromInputStream(inputStream).getLines.foreach { line =>
-            stringBuilder.append(line)
-          }
-          body = stringBuilder.toString
+          val unsafe = new UnsafeByteArrayOutputStream(2048)
+          val bytes = new Array[Byte](1024)
+          var read = 0
+          do {
+            read = inputStream.read(bytes, 0, 1024)
+            if(read > 0)
+              unsafe.write(bytes, 0, read)
+          } while(read != -1)
+          body = unsafe.unsafe()
+          bodySize = unsafe.size()
 
           Log.i("REST", "got response for url %s: %s".format(this.request.url + this.request.getParams, body))
           // Closing the input stream will trigger connection release

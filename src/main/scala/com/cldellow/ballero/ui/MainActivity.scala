@@ -27,7 +27,6 @@ class MainActivity extends GDListActivity with NavigableListActivity with SmartA
 
     setTitle("Ballero")
     BugSenseHandler.setup(this, "1d4be5ef");
-    Data.globalSave("currentUser", "")
   }
 
   override def onResume() {
@@ -39,6 +38,8 @@ class MainActivity extends GDListActivity with NavigableListActivity with SmartA
       intent.putExtra(ActionBarActivity.GD_ACTION_BAR_TITLE, Data.currentUser.get.name)
       startActivity(intent)
     } else {
+      Data.currentUser = None
+      Data.globalSave("currentUser", "")
       rebuildOptions
     }
   }

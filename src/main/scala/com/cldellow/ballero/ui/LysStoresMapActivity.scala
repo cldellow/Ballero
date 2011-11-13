@@ -93,7 +93,7 @@ class LysStoresMapActivity extends GDMapActivity with SmartActivity {
       Map("lat" -> lat.toString, "units" -> "km", "lng" -> lng.toString, "shop_type_id" -> "1",
             "radius" -> "40"))
     info("lys url: %s".format(url))
-    restServiceConnection.request(RestRequest[ShopResponse](url, parseFunc = Parser.parseAsList[ShopResponse])) { response =>
+    restServiceConnection.request(RestRequest[ShopResponse](url, parseFunc = Parser.helperParseAsList[ShopResponse])) { response =>
       response.parsedVals.headOption.foreach { handleResponse(_) }
     }
   }

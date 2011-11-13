@@ -19,11 +19,11 @@ class Serializer extends Spec with ShouldMatchers {
     }
     it("can serialize a case class with an optional string absent") {
       val out = Parser.serialize(OptionalString(None))
-      assert(out === """{}""")
+      assert(out === """{"foo":null}""")
     }
     it("can serialize a case class with a string/int") {
       val out = Parser.serialize(StringInt(3, "foo"))
-      assert(out === """{"foo":"foo","bar":3}""")
+      assert(out === """{"bar":3,"foo":"foo"}""")
     }
     it("can serialize a case class with an empty list of string") {
       val out = Parser.serialize(ListString(Nil))

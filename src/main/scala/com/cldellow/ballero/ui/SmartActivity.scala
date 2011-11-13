@@ -101,7 +101,7 @@ trait SmartActivity extends Activity {// this: Activity =>
   protected def geocode(loc: Location)(callback: Option[Address] => Unit) {
     restServiceConnection.request(
       RestRequest[GoogleResponse]("http://maps.googleapis.com/maps/api/geocode/json?latlng=%s,%s&sensor=true".format(loc.getLatitude,
-      loc.getLongitude), parseFunc = Parser.parseAsList[GoogleResponse])) { handleGeocodeResponse(callback) }
+      loc.getLongitude), parseFunc = Parser.helperParseAsList[GoogleResponse])) { handleGeocodeResponse(callback) }
   }
 
   private def handleGeocodeResponse(callback: Option[Address] => Unit)(restResponse: RestResponse[GoogleResponse]) {
@@ -130,7 +130,7 @@ trait SmartActivity extends Activity {// this: Activity =>
   protected def geocode(str: String)(callback: Option[Address] => Unit) {
     restServiceConnection.request(
       RestRequest[GoogleResponse]("http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=true"
-        .format(URLEncoder.encode(str, "UTF-8")), parseFunc = Parser.parseAsList[GoogleResponse])) { handleGeocodeResponse(callback) }
+        .format(URLEncoder.encode(str, "UTF-8")), parseFunc = Parser.helperParseAsList[GoogleResponse])) { handleGeocodeResponse(callback) }
   }
 
   protected def createTextItem(string: String, klass: Class[_]): TextItem = {

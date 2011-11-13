@@ -66,7 +66,7 @@ class AddRavelryAccountActivity extends GDActivity with SmartActivity {
     val appSigned = Crypto.appsign("http://api.ravelry.com/authenticate.json",
       Map("credentials" -> Crypto.aes256("%s:%s".format(username, password))))
     info("request: %s".format(appSigned))
-    val request = RestRequest[AuthResponse](appSigned, parseFunc = Parser.parseAsList[AuthResponse])
+    val request = RestRequest[AuthResponse](appSigned, parseFunc = Parser.helperParseAsList[AuthResponse])
     restServiceConnection.request(request) { response =>
       info("got ersponse: %s".format(response))
       val authResponse = response.parsedVals

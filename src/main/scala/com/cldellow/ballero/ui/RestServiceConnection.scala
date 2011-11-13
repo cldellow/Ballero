@@ -66,7 +66,7 @@ class RestServiceConnection() extends ServiceConnection {
             response.parsedVals = Nil
             x.callback(response)
           } else {
-            parseRequest(JsonParseRequest(response.body, x.request.parseFunc)) { parseResponse => 
+            parseRequest(JsonParseRequest(response.bytes, response.size, x.request.parseFunc)) { parseResponse => 
               response.parsedVals = parseResponse.parsedVals
               x.callback(response)
             }

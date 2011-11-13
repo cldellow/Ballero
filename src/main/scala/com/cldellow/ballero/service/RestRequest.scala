@@ -5,8 +5,13 @@ import java.net.URLEncoder
 sealed trait HttpVerb
 case object GET extends HttpVerb
 case object POST extends HttpVerb
+
+case class ParseFuncs[T](
+  fromString: String => List[T],
+  fromBytes: (Array[Byte], Int) => List[T])
+
 case class RestRequest[T](url: String, verb: HttpVerb = GET, params: Map[String, String] = Map(),
-  parseFunc: String => List[T]) {
+  parseFunc: ParseFuncs[T]) {
   def getParams: String =
     if(params.isEmpty)
       ""
@@ -28,7 +33,7 @@ object StatusCode {
   }
 }
 
-case class RestResponse[T](status: Int, body: String, statusMessage: String, var parsedVals: List[T]) {
+case class RestResponse[T](status: Int, bytes: Array[Byte], size: Int, statusMessage: String, var parsedVals: List[T]) {
   lazy val statusCode: StatusCode = StatusCode(status)
 }
 

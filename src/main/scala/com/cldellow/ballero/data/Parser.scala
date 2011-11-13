@@ -1,11 +1,18 @@
 package com.cldellow.ballero.data
 
-import java.lang.reflect._
+import java.lang.reflect.{Field, Method, Constructor, TypeVariable, ParameterizedType, Type}
+import com.cldellow.ballero.service.ParseFuncs
 import scala.collection.JavaConversions
 import android.util.Log
-import org.json.{JSONArray, JSONObject}
+import org.codehaus.jackson._
+
+/*
+ JsonFactory jsonFactory = new JsonFactory(); // or, for data binding, org.codehaus.jackson.mapper.MappingJsonFactory 
+  JsonParser jp = jsonFactory.createJsonParser(file); // or URL, Stream, Reader, String, byte[]*/
 
 final object Parser {
+  lazy val jsonFactory = new JsonFactory()
+
   // Java reflection doesn't keep the names of parameters; but if we require T to be a
   // Product, we can rely on the totally unstated and non-supported reality that
   // getFields() after Dexing returns the fields in alphabetical order.
@@ -25,47 +32,80 @@ final object Parser {
     // Are there any generic fields that don't have higher kind attributes?
   }
 
+  final def parseListFromBytes[T](bytes: Array[Byte], size: Int)(implicit mf: Manifest[T]): List[T] = {
+    val jsonParser = jsonFactory.createJsonParser(bytes, 0, size)
+    parseListFromParser[T](jsonParser)
+  }
+
+
   final def parseList[T](str: String)(implicit mf: Manifest[T]): List[T] = {
-    val tm = System.currentTimeMillis
-    val arr = new JSONArray(str)
-    val newtm = System.currentTimeMillis
-    val rv = parseArray(arr, mf.erasure).asInstanceOf[List[T]]
+    val jsonParser = jsonFactory.createJsonParser(str)
+    parseListFromParser[T](jsonParser)
+  }
+
+  private final def parseListFromParser[T](jsonParser: JsonParser)(implicit mf: Manifest[T]): List[T] = {
+    // consume the START_ARRAY token
+    val startObject = jsonParser.nextToken()
+    require(startObject == JsonToken.START_ARRAY, "expected start array, got %s".format(jsonParser.getCurrentToken))
+    val rv = parseArray(jsonParser, mf.erasure).asInstanceOf[List[T]]
     //Log.i("PARSER", "parseArray parse took %s".format(System.currentTimeMillis - newtm))
+    jsonParser.close()
     rv
   }
+
+  final def helperParseAsList[T <: Product](implicit mf: Manifest[T]): ParseFuncs[T] =
+    ParseFuncs[T](parseAsList[T] _, parseAsListFromBytes[T] _)
 
   final def parseAsList[T <: Product](str: String)(implicit mf: Manifest[T]): List[T] = {
     //Log.i("PARSER", "trying to parse %s from %s".format(mf.erasure.getName, str))
     List(parse[T](str))
   }
 
-  final def parse[T <: Product](str: String)(implicit mf: Manifest[T]): T = {
-    //sanityCheck(mf.erasure)
-    //Log.i("PARSER", "trying to parse %s".format(str))
-    val tm = System.currentTimeMillis
-    val jsonObject = new JSONObject(str)
-    //Log.i("PARSER", "parse parse took %s".format(System.currentTimeMillis - tm))
-    parse(jsonObject, mf.erasure)
+  final def parseAsListFromBytes[T <: Product](bytes: Array[Byte], size: Int)(implicit mf: Manifest[T]): List[T] = {
+    //Log.i("PARSER", "trying to parse %s from %s".format(mf.erasure.getName, str))
+    List(parseFromBytes[T](bytes, size))
   }
 
-  private final def parseOption(value: Any, desiredType: Type): Option[_] =
-    if(value != null && value.asInstanceOf[AnyRef] != null && value != JSONObject.NULL)
-      Some(parseType(value, desiredType))
-    else
+  final def parseFromBytes[T <: Product](bytes: Array[Byte], size: Int)(implicit mf: Manifest[T]): T = {
+    //sanityCheck(mf.erasure)
+    val jsonParser = jsonFactory.createJsonParser(bytes, 0, size)
+    parseFromParser[T](jsonParser)
+  }
+
+
+  final def parse[T <: Product](str: String)(implicit mf: Manifest[T]): T = {
+    //sanityCheck(mf.erasure)
+    val jsonParser = jsonFactory.createJsonParser(str)
+    parseFromParser[T](jsonParser)
+  }
+
+  private final def parseFromParser[T <: Product](jsonParser: JsonParser)(implicit mf: Manifest[T]): T = {
+    val tm = System.currentTimeMillis
+    // consume the START_OBJECT token
+    val startObject = jsonParser.nextToken()
+    require(startObject == JsonToken.START_OBJECT, "expected start object")
+
+    //Log.i("PARSER", "parse parse took %s".format(System.currentTimeMillis - tm))
+
+    val rv = parse[T](jsonParser, mf.erasure)
+    jsonParser.close()
+    rv
+  }
+
+  private final def parseOption(parser: JsonParser, desiredType: Type): Option[_] = {
+    if(parser.getCurrentToken == JsonToken.VALUE_NULL)
       None
+    else
+      Some(parseType(parser, desiredType))
+  }
 
-  private final def parseArray(jsonArray: JSONArray, desiredType: Type): List[_] = {
-    val length = jsonArray.length
+  private final def parseArray(jsonParser: JsonParser, desiredType: Type): List[_] = {
+    val listBuffer = new collection.mutable.ListBuffer[Any]
 
-    if(length == 0)
-      Nil
-    else {
-      val listBuffer = new collection.mutable.ListBuffer[Any]
-      for(i <- 0 until length) {
-        listBuffer += parseType(jsonArray.get(i), desiredType)
-      }
-      listBuffer.toList
+    while(jsonParser.nextToken != JsonToken.END_ARRAY) {
+      listBuffer += parseType(jsonParser, desiredType)
     }
+    listBuffer.toList
   }
 
   import scala.collection.JavaConversions._
@@ -93,23 +133,17 @@ final object Parser {
     }
   }
 
-  private final def parseType(value: Any, desiredType: Type): Any = desiredType match {
+  private final def parseType(jsonParser: JsonParser, desiredType: Type): Any = desiredType match {
     case desiredType: Class[_] =>
       //Log.i("PARSER", "attempting to parse %s".format(value))
       desiredType.getName match {
-        case "int"|"java.lang.Integer" => value.asInstanceOf[Int]
-        case "boolean" => value.asInstanceOf[Boolean]
-        case "java.lang.String" => value.asInstanceOf[String]
-        case "scala.math.BigDecimal" => BigDecimal(
-          if(value.isInstanceOf[Int])
-            value.asInstanceOf[Int]
-          else if(value.isInstanceOf[Double])
-            value.asInstanceOf[Double]
-          else
-            error("unknown numeric type: %s".format(value))
-          )
+        case "int"|"java.lang.Integer" => jsonParser.getNumberValue().intValue()
+        case "boolean" => 
+          jsonParser.getCurrentToken == JsonToken.VALUE_TRUE
+        case "java.lang.String" => jsonParser.getText()
+        case "scala.math.BigDecimal" => BigDecimal(jsonParser.getNumberValue().doubleValue())
         case x if instanceOf(desiredType, classOf[Product]) =>
-          parse(value.asInstanceOf[JSONObject], desiredType)
+          parse(jsonParser, desiredType)
         case x => error("unknown class: %s (%s)"
           .format(x,
             desiredType
@@ -128,10 +162,9 @@ final object Parser {
       val rawType = rawRawType.asInstanceOf[Class[_]]
       rawType.getName match {
         case "scala.collection.immutable.List" =>
-          val array = value.asInstanceOf[JSONArray]
-          parseArray(array, actualTypes.head)
+          parseArray(jsonParser, actualTypes.head)
         case "scala.Option" =>
-          parseOption(value, actualTypes.head)
+          parseOption(jsonParser, actualTypes.head)
       }
     case x => 
       println("x is TypeVar: %s".format(x.isInstanceOf[TypeVariable[_]]))
@@ -142,13 +175,18 @@ final object Parser {
   private final def javaObject(x: Any): Object = x.asInstanceOf[Object]
 
 
-  case class ParseInfo(fields: List[Field], nameToIndex: Map[String, Int], constructor: Constructor[_], fieldNames:
-  List[String], fieldNameSet: Set[String])
+  case class ParseInfo(
+    fields: List[Field],
+    nameToIndex: Map[String, Int],
+    constructor: Constructor[_],
+    fieldNames: List[String],
+    fieldNameSet: Set[String],
+    fieldMap: Map[String, Field])
   val klazzReflectors: collection.mutable.ConcurrentMap[Class[_], ParseInfo] = 
     new java.util.concurrent.ConcurrentHashMap[Class[_], ParseInfo]
 
 
-  final def parse[T <: Product](jsonObject: JSONObject, klazz: Class[_]): T = {
+  final def parse[T <: Product](jsonParser: JsonParser, klazz: Class[_]): T = {
     if(!klazzReflectors.contains(klazz)) {
       val constructors = klazz.getConstructors
 
@@ -165,7 +203,8 @@ final object Parser {
       fields.foreach { field => field.setAccessible(true) }
       val fieldNames = fields.map { _.getName }
       val fieldNameSet = fieldNames.toSet
-      klazzReflectors(klazz) = ParseInfo(fields, nameToIndex, constructor, fieldNames, fieldNameSet)
+      val fieldMap: Map[String, Field] = Map() ++ fields.map { f => f.getName -> f }
+      klazzReflectors(klazz) = ParseInfo(fields, nameToIndex, constructor, fieldNames, fieldNameSet, fieldMap)
     }
     val parseInfo = klazzReflectors(klazz)
     val fields = parseInfo.fields
@@ -173,15 +212,34 @@ final object Parser {
     val fieldNameSet = parseInfo.fieldNameSet
     val nameToIndex = parseInfo.nameToIndex
     val constructor = parseInfo.constructor
+    val fieldMap = parseInfo.fieldMap
 
     // Need to pair up stuff from the JSON object with fields in the case class
     // constructor.
-    val inputs: List[Any] = fields.map { field =>
-      val name = field.getName
-      val desiredType = field.getGenericType
-      //Log.i("PARSER", "parsing field: %s".format(name))
-      parseType(jsonObject.opt(name), desiredType)
+    val map: collection.mutable.Map[String, Any] = collection.mutable.Map()
+    while(jsonParser.nextToken() != JsonToken.END_OBJECT) {
+      /*
+      val inputs: List[Any] = fields.map { field =>
+        val name = field.getName
+        val desiredType = field.getGenericType
+        //Log.i("PARSER", "parsing field: %s".format(name))
+        parseType(jsonParser.opt(name), desiredType)
+      }
+      */
+      val fieldName = jsonParser.getCurrentName()
+      jsonParser.nextToken()
+      // do we recognize this field?
+      if(fieldNames.contains(fieldName)) {
+        //println("known field: %s".format(fieldName))
+        map(fieldName) = parseType(jsonParser, fieldMap(fieldName).getGenericType)
+      } else {
+        // Unknown field, skip it
+        //println("unknown field: %s".format(fieldName))
+        jsonParser.skipChildren()
+      }
     }
+
+    val inputs = fieldNames.map { name => map.getOrElse(name, None) }
 
     // Invoke the constructor
     //Log.i("PARSER", "fields: %s".format(fields))
@@ -194,18 +252,24 @@ final object Parser {
     x.asInstanceOf[T]
   }
 
-  final def serialize[T <: Product](item: T)(implicit mf: Manifest[T]): String = serialize(item, mf.erasure).toString
+  final def serialize[T <: Product](item: T)(implicit mf: Manifest[T]): String = {
+    val sw = new java.io.StringWriter()
+    val generator = jsonFactory.createJsonGenerator(sw)
+    serialize(generator, item, mf.erasure)
+    generator.close()
+    sw.toString
+  }
 
-  private final def toSerializedForm(_type: Type, value: Any): Option[Any] = {
+  private final def toSerializedForm(gen: JsonGenerator, _type: Type, value: Any) {
     _type match {
       case desiredType: Class[_] =>
         Some(desiredType.getName match {
-          case "int"|"java.lang.Integer" => value.asInstanceOf[Int]
-          case "boolean" => value.asInstanceOf[Boolean]
-          case "java.lang.String" => value.asInstanceOf[String]
-          case "scala.math.BigDecimal" => value.asInstanceOf[BigDecimal].toDouble
+          case "int"|"java.lang.Integer" => gen.writeNumber(value.asInstanceOf[Int])
+          case "boolean" => gen.writeBoolean(value.asInstanceOf[Boolean])
+          case "java.lang.String" => gen.writeString(value.asInstanceOf[String])
+          case "scala.math.BigDecimal" => gen.writeNumber(value.asInstanceOf[BigDecimal].toDouble)
           case x if instanceOf(desiredType, classOf[Product]) =>
-            serialize(value.asInstanceOf[Product], desiredType)
+            serialize(gen, value.asInstanceOf[Product], desiredType)
           case x => error("unknown: %s".format(x))
         })
       case desiredType: ParameterizedType =>
@@ -218,18 +282,18 @@ final object Parser {
           case "scala.collection.immutable.List" =>
             val listValue = value
             // Scala's compiler blows at overloaded methods
-            val rv = new JSONArray
+            gen.writeStartArray
             listValue.asInstanceOf[List[_]].foreach { item =>
-              toSerializedForm(actualTypes.head, item) map { rv.put(_) }
+              toSerializedForm(gen, actualTypes.head, item)
             }
-            Some(rv)
+            gen.writeEndArray
           case "scala.Option" =>
             val optionalValue = value
             if(optionalValue != None) {
               val realValue = optionalValue.asInstanceOf[Option[_]].get
-              toSerializedForm(actualTypes.head, realValue)
+              toSerializedForm(gen, actualTypes.head, realValue)
             } else {
-              None
+              gen.writeNull()
             }
         }
       case x => error("unknown type: %s".format(x))
@@ -237,18 +301,27 @@ final object Parser {
   }
 
   final def serializeList[T](xs: List[T])(implicit mf: Manifest[T]): String = {
-    new JSONArray(
-      JavaConversions.asJavaCollection(xs.map { item => 
-        toSerializedForm(mf.erasure, item) }.flatten)).toString
+    val sw = new java.io.StringWriter()
+    val gen = jsonFactory.createJsonGenerator(sw)
+
+    gen.writeStartArray()
+    xs.foreach { item => 
+      toSerializedForm(gen, mf.erasure, item)
+    }
+    gen.writeEndArray()
+
+    gen.close()
+    sw.toString
   }
 
-  private final def serializeTypeToObject(item: Any, field: Field, _type: Type, jsonObject: JSONObject) {
+  private final def serializeTypeToObject(gen: JsonGenerator, item: Any, field: Field, _type: Type) {
     // see http://stackoverflow.com/questions/6756442/scala-class-declared-fields-and-access-modifiers
     field.setAccessible(true)
     val name = field.getName
+    gen.writeFieldName(name)
     _type match {
       case desiredType: Class[_] =>
-        toSerializedForm(_type, field.get(item)) map { rv => jsonObject.put(name, rv) }
+        toSerializedForm(gen, _type, field.get(item))
       case desiredType: ParameterizedType =>
         // OK, desiredType.getActualTypeArguments gives Class... now, how do we know
         // what the outer one is?
@@ -259,37 +332,35 @@ final object Parser {
           case "scala.collection.immutable.List" =>
             val listValue = field.get(item)
             // Scala's compiler blows at overloaded methods
-            jsonObject.put(name, new JSONArray)
+            gen.writeStartArray()
             listValue.asInstanceOf[List[_]].foreach { item =>
-              toSerializedForm(actualTypes.head, item) map { rv => 
-                jsonObject.accumulate(name, rv)
-              }
+              toSerializedForm(gen, actualTypes.head, item)
             }
+            gen.writeEndArray()
           case "scala.Option" =>
             val optionalValue = field.get(item)
             if(optionalValue != None) {
               val realValue = optionalValue.asInstanceOf[Option[_]].get
-              toSerializedForm(actualTypes.head, realValue) map { rv =>
-                jsonObject.put(name, rv)
-              }
+              toSerializedForm(gen, actualTypes.head, realValue)
+            } else {
+              gen.writeNull()
             }
         }
       case x => 
         println("x is TypeVar: %s".format(x.isInstanceOf[TypeVariable[_]]))
         println("x is ParamType: %s".format(x.isInstanceOf[ParameterizedType]))
         error("unknown type: %s".format(x))
-      }      
+      }
   }
 
-  final def serialize[T <: Product](item: T, klazz: Class[_]): JSONObject = {
-    val result = new JSONObject
+  final def serialize[T <: Product](gen: JsonGenerator, item: T, klazz: Class[_]) {
+    gen.writeStartObject
     val fields = klazz.getDeclaredFields.filter { field => !field.getName.contains("$") &&
     !field.getName.startsWith("_")}.toList
     fields.foreach { field =>
-      serializeTypeToObject(item, field, field.getGenericType, result)
+      serializeTypeToObject(gen, item, field, field.getGenericType)
     }
-
-    result
+    gen.writeEndObject
   }
 
 }

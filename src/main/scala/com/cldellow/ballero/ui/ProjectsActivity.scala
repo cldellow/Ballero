@@ -37,7 +37,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   var queuePending: Int = 0
   var projectsPending: Int = 0
   var sortButton: ActionBarItem = null
-  var actions: QuickActionBar = null
+  var actions: QuickActionGrid = null
   var filter: ProjectStatus = Unknown
   var fetchedQueue = false
   var fetchedProjects = false
@@ -58,7 +58,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "queued"), "queued projects", Queued),
     ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "finished"), "finished projects", Finished),
     ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "zzz"), "hibernating projects", Hibernated),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "frogged"), "frogged projects", Frogged)
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "frogged"), "frogged projects", Frogged),
+    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "tagged..."), "tagged projects", Unknown)
   )
 
   override def onPause{
@@ -75,7 +76,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     sortButton = addActionBarItem(Type.Export, R.id.action_bar_locate)
 
     ensureLayout()
-    actions = new QuickActionBar(this)
+    actions = new QuickActionGrid(this)
     quickActions.foreach { qa => actions.addQuickAction(qa.action) }
 
     actions.setOnQuickActionClickListener(new Listener)
@@ -125,7 +126,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
   private def doParse(str: String) {
     restServiceConnection.parseRequest[MinimalProjectish](JsonParseRequest[MinimalProjectish](str,
-    Parser.parseList[MinimalProjectish]))(onMinimalProjectsLoaded)
+    Parser.parseList[MinimalProjectish] _))(onMinimalProjectsLoaded)
   }
 
   def onMinimalProjectsLoaded(response: JsonParseResult[MinimalProjectish]) {

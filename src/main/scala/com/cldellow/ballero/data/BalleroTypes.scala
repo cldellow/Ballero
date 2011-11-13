@@ -25,6 +25,20 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
   def getAge(implicit a: SmartActivity): Long = getAgeFromKey(ageName)
 
 
+  lazy val getParseFuncs: ParseFuncs[T] =
+    ParseFuncs[T](fromString, fromBytes)
+
+  protected def fromBytes(bytes: Array[Byte], size: Int): List[T] = {
+    val currentTime = System.currentTimeMillis
+    val rv = if(array)
+      Parser.parseListFromBytes[T](bytes, size)
+    else
+      List(Parser.parseFromBytes[T](bytes, size))
+    //Log.i("NETWORK_RESOURCE", "Parse took %s ms".format(System.currentTimeMillis - currentTime))
+    rv
+  }
+
+
   protected def fromString(string: String): List[T] = {
     val currentTime = System.currentTimeMillis
     val rv = if(array)
@@ -40,7 +54,10 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
     if(_cachedGet.isDefined) {
       callback(_cachedGet.get, delta)
     } else {
-      a.restServiceConnection.parseRequest(JsonParseRequest[T](Data.get(name, "[]"), Parser.parseList[T])){ response =>
+      a.restServiceConnection.parseRequest(
+        JsonParseRequest[T](
+          Data.get(name, "[]"),
+          Parser.parseList[T] _)){ response =>
         _cachedGet = Some(response.parsedVals)
         callback(response.parsedVals, delta)
       }
@@ -66,7 +83,7 @@ class NetworkResource[T <: Product](val url: UrlInput, val array: Boolean = true
     val delta = if (doNetwork) -1 else -2
     get(callback, delta)
     if(doNetwork) {
-      val restRequest = RestRequest[T](getUrl, parseFunc = fromString)
+      val restRequest = RestRequest[T](getUrl, parseFunc = getParseFuncs)
       a.restServiceConnection.request(restRequest) { response =>
           //Log.i("NETWORK_RESOURCE", "got %s".format(response.body))
 

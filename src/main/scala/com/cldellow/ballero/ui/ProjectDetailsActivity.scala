@@ -182,7 +182,7 @@ class ProjectDetailsActivity extends ProjectishActivity {
         request.params,
         token,
         secret),
-      parseFunc = Parser.parseAsList[T])
+      parseFunc = Parser.helperParseAsList[T])
   }
 
   override def startedOnClick(v: View) {
@@ -208,7 +208,7 @@ class ProjectDetailsActivity extends ProjectishActivity {
               .format(Data.currentUser.get.name, currentId),
             POST,
             Map("project.notes" -> input.getText().toString),
-            parseFunc = Parser.parseAsList[ProjectWrapper]))) { response =>
+            parseFunc = Parser.helperParseAsList[ProjectWrapper]))) { response =>
           response.parsedVals.map { project =>
             saveAndUpdate(project)
           }
@@ -235,7 +235,7 @@ class ProjectDetailsActivity extends ProjectishActivity {
               .format(Data.currentUser.get.name, currentId),
             POST,
             Map("project.made_for" -> input.getText().toString),
-            parseFunc = Parser.parseAsList[ProjectWrapper]))) { response =>
+            parseFunc = Parser.helperParseAsList[ProjectWrapper]))) { response =>
           response.parsedVals.map { project =>
             saveAndUpdate(project)
           }
@@ -287,7 +287,7 @@ class ProjectDetailsActivity extends ProjectishActivity {
               .format(Data.currentUser.get.name, currentId),
             POST,
             Map("project.%s".format(field) -> "%s/%s/%s".format(year, month + 1, day)),
-            parseFunc = Parser.parseAsList[ProjectWrapper]))) { response =>
+            parseFunc = Parser.helperParseAsList[ProjectWrapper]))) { response =>
           response.parsedVals.map { project =>
             saveAndUpdate(project)
           }
@@ -320,7 +320,7 @@ class ProjectDetailsActivity extends ProjectishActivity {
               .format(Data.currentUser.get.name, currentId),
             POST,
             Map("project.rating" -> item.toString),
-            parseFunc = Parser.parseAsList[ProjectWrapper]))) { response =>
+            parseFunc = Parser.helperParseAsList[ProjectWrapper]))) { response =>
           response.parsedVals.map { project =>
             saveAndUpdate(project)
           }
@@ -351,7 +351,7 @@ class ProjectDetailsActivity extends ProjectishActivity {
               .format(Data.currentUser.get.name, currentId),
             POST,
             Map("project.progress" -> items(item).toString.replace("%", "")),
-            parseFunc = Parser.parseAsList[ProjectWrapper]))) { response =>
+            parseFunc = Parser.helperParseAsList[ProjectWrapper]))) { response =>
           response.parsedVals.map { project =>
             saveAndUpdate(project)
           }

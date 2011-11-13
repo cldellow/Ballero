@@ -83,7 +83,7 @@ class StashListActivity extends GDListActivity with NavigableListActivity with S
 
   private def doParse(str: String) {
     restServiceConnection.parseRequest[MinimalStashedYarn](JsonParseRequest[MinimalStashedYarn](str,
-    Parser.parseList[MinimalStashedYarn]))(onMinimalStashedYarnsLoaded)
+    Parser.parseList[MinimalStashedYarn] _))(onMinimalStashedYarnsLoaded)
   }
 
   def onMinimalStashedYarnsLoaded(response: JsonParseResult[MinimalStashedYarn]) {

@@ -46,7 +46,7 @@ trait SmartActivity extends Activity {// this: Activity =>
     super.onResume
 
     val userString = Data.globalGet("currentUser", "")
-    if(userString != "") {
+    if(userString != "" && Data.currentUser.isEmpty) {
       Data.currentUser = Some(Parser.parse[User](userString))
     }
   }

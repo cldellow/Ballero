@@ -2,6 +2,13 @@ package com.cldellow.ballero.data
 
 import xml.{XML, NodeSeq}
 
+object S {
+  /** Fix Casey's null/empty-string equivalence */
+  def opt(s: Option[String]): Option[String] =
+    if(s.isDefined && s.get.length == 0) None
+    else s
+}
+
 case class AuthResponse (
   auth_token: Option[String],
   signing_key: Option[String]
@@ -286,7 +293,7 @@ case class Project (
     case _ => Unknown
   }
 
-  def uiName: String = name.getOrElse { pattern_name.getOrElse("bugbug: no name!") }
+  def uiName: String = S.opt(name).getOrElse { S.opt(pattern_name).getOrElse("bugbug: no name!") }
 }
 
 /**

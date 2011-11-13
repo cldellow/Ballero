@@ -95,7 +95,12 @@ public class QuickActionGrid extends QuickActionWidget {
     @Override
     protected void onMeasureAndLayout(Rect anchorRect, View contentView) {
 
-        contentView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        System.out.println("contentView is " + contentView);
+        if(contentView instanceof android.widget.RelativeLayout) {
+          contentView.setLayoutParams(new android.widget.RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        } else {
+          contentView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        }
         contentView.measure(MeasureSpec.makeMeasureSpec(getScreenWidth(), MeasureSpec.EXACTLY),
                 LayoutParams.WRAP_CONTENT);
 

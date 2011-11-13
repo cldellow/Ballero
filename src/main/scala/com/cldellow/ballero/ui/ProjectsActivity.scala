@@ -87,6 +87,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   class Listener extends OnQuickActionClickListener{
     def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
       if(position == 6) { // tagged...
+        filter = Unknown
         showTagDialog()
       } else {
         filter = quickActions(position).filter
@@ -100,10 +101,13 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   def showTagDialog() {
     val builder: AlertDialog.Builder = new AlertDialog.Builder(this)
     val items = tags.map { _.asInstanceOf[CharSequence] }.toArray
-    val checked = tags.map { _ => false }.toArray
-    val selected: collection.mutable.Set[Int] = collection.mutable.Set()
+    val setFilterTags = filterTags.toSet
+    val checkedList = tags.map { tag => setFilterTags.contains(tag) }
+    val checked = checkedList.toArray
+    val selected: collection.mutable.Set[Int] = collection.mutable.Set() ++
+      checkedList.zipWithIndex.filter { _._1 }.map { _._2}
 
-    builder.setTitle("Update progress")
+    builder.setTitle("Select tags")
     builder.setMultiChoiceItems(
       items,
       checked,

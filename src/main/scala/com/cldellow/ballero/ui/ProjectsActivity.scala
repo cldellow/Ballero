@@ -6,7 +6,7 @@ import com.cldellow.ballero.data._
 import scala.xml.XML
 
 import scala.collection.JavaConversions._
-import android.app.Activity
+import android.app._
 import android.content._
 import android.location._
 import android.graphics._
@@ -31,7 +31,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   case class QueueWithPattern(q: RavelryQueue, pattern: Option[Pattern])
   private var queued: List[QueueWithPattern] = Nil
   private var minimalProjects: List[MinimalProjectish] = Nil
-  private var tags: Set[String] = Set()
+  private var tags: List[String] = Nil
+  private var filterTags: List[String] = Nil
 
   var refreshButton: LoaderActionBarItem = null
   var numPending: Int = 0
@@ -85,10 +86,47 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
   class Listener extends OnQuickActionClickListener{
     def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
-      filter = quickActions(position).filter
-      updateTitle
-      redraw()
+      if(position == 6) { // tagged...
+        showTagDialog()
+      } else {
+        filter = quickActions(position).filter
+        filterTags = Nil
+        updateTitle
+        redraw()
+      }
     }
+  }
+
+  def showTagDialog() {
+    val builder: AlertDialog.Builder = new AlertDialog.Builder(this)
+    val items = tags.map { _.asInstanceOf[CharSequence] }.toArray
+    val checked = tags.map { _ => false }.toArray
+    val selected: collection.mutable.Set[Int] = collection.mutable.Set()
+
+    builder.setTitle("Update progress")
+    builder.setMultiChoiceItems(
+      items,
+      checked,
+      new DialogInterface.OnMultiChoiceClickListener() {
+        def onClick(dialog: DialogInterface, item: Int, isSelected: Boolean) {
+          if(isSelected)
+            selected += item
+          else
+            selected -= item
+        }
+      }
+    )
+    builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+      def onClick(dialog: DialogInterface, item: Int) {
+        val newTags = selected.map { tags(_) }.toList
+        info("new tags: %s".format(newTags))
+        filterTags = newTags
+        updateTitle
+        redraw()
+      }
+    });
+    val alert: AlertDialog = builder.create()
+    alert.show()
   }
 
   override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
@@ -132,7 +170,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
   def onMinimalProjectsLoaded(response: JsonParseResult[MinimalProjectish]) {
     minimalProjects = response.parsedVals
-    tags = new collection.immutable.TreeSet[String]() ++ minimalProjects.flatMap { _.tags.getOrElse(Nil) }
+    tags = (Set() ++ minimalProjects.flatMap { _.tags.getOrElse(Nil) }).toList.sorted
     println("tags: %s".format(tags))
     fetchedProjects = true
     fetchedQueue = true
@@ -202,7 +240,11 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     setTitle(filter match {
         case Hibernated => "hibernated"
         case InProgress => "in progress"
-        case Unknown => "all projects"
+        case Unknown => 
+          if (filterTags.isEmpty)
+            "all projects"
+          else
+            "tagged: %s".format(filterTags.mkString(", "))
         case Queued => "queued"
         case Frogged => "frogged"
         case Finished => "finished"
@@ -256,12 +298,21 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     }
   }
 
-  private def filterProjects(projectish: MinimalProjectish): Boolean = projectish._actualStatus match {
-    case Queued =>
-      filter == Unknown || filter == Queued
-    case x =>
-      filter == Unknown || filter == x
+  private def filterTags(projectish: MinimalProjectish): Boolean = {
+    val tags = projectish.tags.getOrElse(Nil)
+    filterTags.forall{ reqd => tags.contains(reqd) }
   }
+
+  private def filterProjects(projectish: MinimalProjectish): Boolean = 
+    if(filter == Unknown && !filterTags.isEmpty) {
+      filterTags(projectish)
+    } else
+      projectish._actualStatus match {
+        case Queued =>
+          filter == Unknown || filter == Queued
+        case x =>
+          filter == Unknown || filter == x
+      }
 
   private def updateItems {
     if(numPending > 0)

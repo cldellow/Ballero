@@ -51,6 +51,7 @@ public class PredicateLayout extends ViewGroup {
         int height = MeasureSpec.getSize(heightMeasureSpec) - getPaddingTop() - getPaddingBottom();
         final int count = getChildCount();
         int line_height = 0;
+        int vert_space = 0;
 
         int xpos = getPaddingLeft();
         int ypos = getPaddingTop();
@@ -59,6 +60,7 @@ public class PredicateLayout extends ViewGroup {
             final View child = getChildAt(i);
             if (child.getVisibility() != GONE) {
                 final LayoutParams lp = (LayoutParams) child.getLayoutParams();
+                vert_space = lp.vertical_spacing;
                 /*
                 child.measure(
                         MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST),
@@ -97,7 +99,8 @@ public class PredicateLayout extends ViewGroup {
                 height = ypos + line_height;
             }
         }
-        setMeasuredDimension(width, height);
+        /** don't include the extra vertical space on the last line */
+        setMeasuredDimension(width, height - vert_space);
     }
 
     @Override

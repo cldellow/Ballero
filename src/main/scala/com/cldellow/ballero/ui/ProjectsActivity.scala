@@ -43,6 +43,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   var filter: ProjectStatus = Unknown
   var fetchedQueue = false
   var fetchedProjects = false
+  var intentLoaded = false
 
   case class ActionItem(action: QuickAction, label: String, filter: ProjectStatus)
 
@@ -152,6 +153,16 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
     var savedFilter = Data.currentUser.get.uiPref("projects_filter", "Unknown")
     filter = ProjectStatus(savedFilter)
+
+    if(!intentLoaded) {
+      intentLoaded = true
+      val projectIntent = getParams[ProjectsIntent]
+      if(projectIntent.isDefined) {
+        filter = Unknown
+        filterTags = projectIntent.get.tags
+      }
+    }
+
     updateTitle
 
     if(!fetchedProjects || !fetchedQueue)

@@ -151,6 +151,7 @@ class ProjectDetailsActivity extends ProjectishActivity {
 
       tagsLayout.setVisibility(View.GONE)
       tagsContentLayout.removeAllViews()
+      val outer = this;
       project.tag_names.foreach { tag_names =>
         tag_names.foreach { tag_name =>
           tagsLayout.setVisibility(View.VISIBLE)
@@ -158,10 +159,20 @@ class ProjectDetailsActivity extends ProjectishActivity {
           textView.setVisibility(View.VISIBLE)
           textView.setText(tag_name)
           textView.setBackgroundColor(Color.LTGRAY)
-          textView.setPadding(10,2,10,2)
+          textView.setPadding(12,12,12,12)
           textView.setTextColor(Color.BLACK)
           textView.setSingleLine(true)
-          tagsContentLayout.addView(textView, new PredicateLayout.LayoutParams(10,4))
+          textView.setClickable(true)
+          textView.setOnClickListener(new View.OnClickListener() {
+            def onClick(v: View) {
+              // go to view with intent
+              val intent: Intent = new Intent(outer, classOf[ProjectsActivity])
+              intent.putExtra("com.cldellow.params",
+                Parser.serialize(ProjectsIntent(List(tag_name))))
+              startActivity(intent)
+            }
+          })
+          tagsContentLayout.addView(textView, new PredicateLayout.LayoutParams(20, 25))
         }
       }
     }

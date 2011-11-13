@@ -12,6 +12,7 @@ object Constants {
 }
 
 case class PhotoIntent(id: Int, index: Int, name: String)
+case class ProjectsIntent(tags: List[String])
 
 sealed trait RefreshPolicy
 case object ForceNetwork extends RefreshPolicy

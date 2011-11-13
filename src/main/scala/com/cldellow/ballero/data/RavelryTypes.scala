@@ -178,6 +178,7 @@ case class MinimalProjectish(
   imgUrl: Option[String],
   order: Option[Int],
   status: Option[String],
+  tags: Option[List[String]],
   uiName: String
 ) {
   lazy val _actualStatus: ProjectStatus = ProjectStatus(status.getOrElse(""))

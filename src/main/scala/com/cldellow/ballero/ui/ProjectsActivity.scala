@@ -31,6 +31,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   case class QueueWithPattern(q: RavelryQueue, pattern: Option[Pattern])
   private var queued: List[QueueWithPattern] = Nil
   private var minimalProjects: List[MinimalProjectish] = Nil
+  private var tags: Set[String] = Set()
 
   var refreshButton: LoaderActionBarItem = null
   var numPending: Int = 0
@@ -131,6 +132,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
   def onMinimalProjectsLoaded(response: JsonParseResult[MinimalProjectish]) {
     minimalProjects = response.parsedVals
+    tags = new collection.immutable.TreeSet[String]() ++ minimalProjects.flatMap { _.tags.getOrElse(Nil) }
+    println("tags: %s".format(tags))
     fetchedProjects = true
     fetchedQueue = true
     redraw()
@@ -274,9 +277,15 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
             photo,
             Some(qwp.q.sort_order),
             Some("Queued"),
+            Some(Nil),
             qwp.q.uiName)
         case Right(p) =>
-          MinimalProjectish(p.id, p.first_photo.map { _.thumbnail_url }, None, Some(p.status.toString), p.uiName)
+          MinimalProjectish(p.id,
+            p.first_photo.map { _.thumbnail_url },
+            None,
+            Some(p.status.toString),
+            p.tag_names,
+            p.uiName)
       }
     }
     val saved = Parser.serializeList[MinimalProjectish](minimalProjects)

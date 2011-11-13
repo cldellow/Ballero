@@ -4,7 +4,6 @@ import com.cldellow.ballero.service._
 import com.cldellow.ballero.data._
 import com.cldellow.ballero.R
 
-import org.json.JSONObject
 import java.net.URLEncoder
 import android.app.Activity
 import android.content._

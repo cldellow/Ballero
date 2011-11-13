@@ -6,8 +6,6 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.Spec
 import org.coriander.oauth._
 
-import org.json._
-
 class RavelryApiTest extends Spec with ShouldMatchers {
   describe("ravelry API") {
     it("should list stores") {

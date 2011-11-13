@@ -5,8 +5,6 @@ import com.cldellow.ballero.data._
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.Spec
 
-import org.json._
-
 class Serializer extends Spec with ShouldMatchers {
   describe("json serializer") {
     it("can serialize a case class with string") {

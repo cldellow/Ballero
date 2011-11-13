@@ -13,7 +13,7 @@ import android.graphics._
 import android.graphics.drawable._
 import android.os.Bundle
 import android.util.Log
-import android.view.View
+import android.view._
 import android.widget._
 import greendroid.app._
 import greendroid.widget.QuickActionWidget._
@@ -34,35 +34,42 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   private var tags: List[String] = Nil
   private var filterTags: List[String] = Nil
 
-  var refreshButton: LoaderActionBarItem = null
   var numPending: Int = 0
   var queuePending: Int = 0
   var projectsPending: Int = 0
+  var filterButton: ActionBarItem = null
   var sortButton: ActionBarItem = null
-  var actions: QuickActionGrid = null
+  var filterActions: QuickActionGrid = null
+  var sortActions: QuickActionGrid = null
   var filter: ProjectStatus = Unknown
   var fetchedQueue = false
   var fetchedProjects = false
   var intentLoaded = false
 
-  case class ActionItem(action: QuickAction, label: String, filter: ProjectStatus)
+  case class FilterActionItem(action: QuickAction, label: String, filter: ProjectStatus)
 
-  val BLACK_CF: ColorFilter = new LightingColorFilter(Color.BLACK, Color.BLACK)
   def d(id: Int): Drawable = {
     val d = this.getResources().getDrawable(id)
-    d.setColorFilter(BLACK_CF)
     d
   }
 
 
-  lazy val quickActions = List(
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "all"), "all projects", Unknown),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "WIPs"), "in progress projects", InProgress),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "queued"), "queued projects", Queued),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "finished"), "finished projects", Finished),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "zzz"), "hibernating projects", Hibernated),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "frogged"), "frogged projects", Frogged),
-    ActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "tagged..."), "tagged projects", Unknown)
+  sealed trait SortType
+  case object SortAlphabetically extends SortType
+  case class SortActionItem(action: QuickAction, label: String, sort: SortType)
+  lazy val sortQuickActions = List(
+    SortActionItem(new QuickAction(d(R.drawable.ic_menu_sort_alphabetically), "sort alpha"), "alphabetically",
+    SortAlphabetically)
+  )
+
+  lazy val filterQuickActions = List(
+    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "all"), "all projects", Unknown),
+    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "WIPs"), "in progress projects", InProgress),
+    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "queued"), "queued projects", Queued),
+    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "finished"), "finished projects", Finished),
+    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "zzz"), "hibernating projects", Hibernated),
+    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "frogged"), "frogged projects", Frogged),
+    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "tagged..."), "tagged projects", Unknown)
   )
 
   override def onPause{
@@ -75,27 +82,50 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
     adapter = new ItemAdapter(this)
     setListAdapter(adapter)
-    refreshButton = addActionBarItem(Type.Refresh, R.id.action_bar_refresh).asInstanceOf[LoaderActionBarItem]
-    sortButton = addActionBarItem(Type.Export, R.id.action_bar_locate)
+    filterButton = addActionBarItem(Type.Search, R.id.action_bar_locate)
+    sortButton = addActionBarItem(Type.SortAlphabetically, R.id.action_bar_sort)
 
     ensureLayout()
-    actions = new QuickActionGrid(this)
-    quickActions.foreach { qa => actions.addQuickAction(qa.action) }
 
-    actions.setOnQuickActionClickListener(new Listener)
+    filterActions = new QuickActionGrid(this)
+    filterQuickActions.foreach { qa => filterActions.addQuickAction(qa.action) }
+    filterActions.setOnQuickActionClickListener(new FilterListener)
+
+    sortActions = new QuickActionGrid(this)
+    sortQuickActions.foreach { qa => sortActions.addQuickAction(qa.action) }
+    sortActions.setOnQuickActionClickListener(new SortListener)
   }
 
-  class Listener extends OnQuickActionClickListener{
+  class SortListener extends OnQuickActionClickListener{
+    def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
+    }
+  }
+
+
+  class FilterListener extends OnQuickActionClickListener{
     def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
       if(position == 6) { // tagged...
         filter = Unknown
         showTagDialog()
       } else {
-        filter = quickActions(position).filter
+        filter = filterQuickActions(position).filter
         filterTags = Nil
         updateTitle
         redraw()
       }
+    }
+  }
+
+  val PROGRESS_DIALOG = 0
+  var progressDialog: ProgressDialog = null
+  override def onCreateDialog(id: Int): Dialog = {
+    id match {
+      case PROGRESS_DIALOG =>
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Downloading project and queue lists, this could be a while.")
+        progressDialog.setIndeterminate(true)
+        progressDialog
+      case _ => null
     }
   }
 
@@ -136,11 +166,11 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
   override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
     item.getItemId match {
-      case R.id.action_bar_refresh =>
-        refreshAll(ForceNetwork)
+      case R.id.action_bar_sort =>
+        sortActions.show(item.getItemView)
         true
       case R.id.action_bar_locate =>
-        actions.show(item.getItemView)
+        filterActions.show(item.getItemView)
         true
       case _ =>
         true
@@ -267,7 +297,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   }
 
   private def refreshAll(policy: RefreshPolicy) {
-    refreshButton.setLoading(true)
+    showDialog(PROGRESS_DIALOG)
     numPending += 4
     queuePending += 2
     projectsPending += 2
@@ -281,7 +311,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     numPending += delta
     if(numPending <= 0) {
       numPending = 0
-      refreshButton.setLoading(false)
+      dismissDialog(PROGRESS_DIALOG)
+      progressDialog = null
     }
   }
 
@@ -292,6 +323,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     if(queuePending <= 0) {
       queuePending = 0
       fetchedQueue = true
+      if(progressDialog != null)
+        progressDialog.incrementProgressBy(1)
       val curTime = System.currentTimeMillis
       this.queued = queued.map { q =>
         QueueWithPattern(q, q.pattern)
@@ -308,6 +341,8 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     if(projectsPending <= 0) {
       projectsPending = 0
       fetchedProjects = true
+      if(progressDialog != null)
+        progressDialog.incrementProgressBy(1)
       this.projects = projects
       updateItems
     }
@@ -357,6 +392,23 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     val saved = Parser.serializeList[MinimalProjectish](minimalProjects)
     Data.save(ProjectsActivity.MINIMAL_PROJECTS, saved)
     doParse(saved)
+  }
+
+  override def onCreateOptionsMenu(menu: Menu): Boolean = {
+    val inflater: MenuInflater = getMenuInflater()
+    inflater.inflate(R.menu.projects_menu, menu)
+    true
+  }
+
+  override def onOptionsItemSelected(item: MenuItem): Boolean = {
+    item.getItemId match {
+      case R.id.refresh => refreshAll(ForceNetwork)
+      case R.id.notebook =>
+        val intent = new Intent(this, classOf[RavellerHomeActivity])
+        startActivity(intent)
+      case _ =>
+    }
+    true
   }
 }
 

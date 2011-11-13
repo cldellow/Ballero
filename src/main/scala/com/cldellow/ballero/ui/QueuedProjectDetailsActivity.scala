@@ -30,30 +30,21 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
     btnTakePhoto.setVisibility(View.GONE)
   }
 
+
   override def onResume() {
     super.onResume()
 
     lblMadeFor.setText("make for")
     lblCompletedOn.setText("finish by")
-    fetch(FetchIfNeeded)
+    refreshAll(FetchIfNeeded)
   }
 
-  private def fetch(localPolicy: RefreshPolicy) {
+  def doFetch(localPolicy: RefreshPolicy) {
     policy = localPolicy
-    refreshButton.setLoading(true)
 
     pending += 2
     RavelryApi.makeQueueDetailsResource(currentId).render(policy, onQueueDetails(new AtomicInteger(2)))
   }
-
-  override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
-    item.getItemId match {
-      case R.id.action_bar_refresh =>
-        fetch(ForceNetwork)
-        true
-      case _ =>
-        true
-    }
 
 
   private def onQueueDetails(sanity: AtomicInteger)(ravelryQueue: List[RavelryQueue], delta: Int) {
@@ -96,7 +87,7 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
 
     if(pending <= 0) {
       pending = 0
-      refreshButton.setLoading(false)
+      dismissProgressDialog()
     }
 
     if(queue.isEmpty)
@@ -254,7 +245,6 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
       }
     }
     */
-    progressBarLoading.setVisibility(View.GONE)
     linearLayout.setVisibility(View.VISIBLE)
 
   }

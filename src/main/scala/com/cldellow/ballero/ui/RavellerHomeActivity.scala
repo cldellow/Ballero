@@ -11,7 +11,7 @@ import android.content._
 import android.location._
 import android.os.Bundle
 import android.util.Log
-import android.view.View
+import android.view._
 import android.widget._
 import greendroid.app._
 import greendroid.widget.ActionBarItem.Type
@@ -27,8 +27,6 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
   var needlesItem: SubtitleItem = null
   var projectsItem: SubtitleItem = null
   var stashedItem: SubtitleItem = null
-
-  var refreshButton: LoaderActionBarItem = null
 
   var numPending: Int = 0
 
@@ -47,17 +45,7 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
     adapter.add(needlesItem)
 
     setListAdapter(adapter)
-    refreshButton = addActionBarItem(Type.Refresh, R.id.action_bar_refresh).asInstanceOf[LoaderActionBarItem]
   }
-
-  override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
-    item.getItemId match {
-      case R.id.action_bar_refresh =>
-        refreshAll(ForceNetwork)
-        true
-      case _ =>
-        true
-    }
 
   override def onResume {
     super.onResume
@@ -68,7 +56,6 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
   private var needlesPending = 0
   private var stashPending = 0
   private def refreshAll(policy: RefreshPolicy) {
-    refreshButton.setLoading(true)
     numPending += 8
     projectsPending += 4
     needlesPending += 2
@@ -83,7 +70,6 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
     numPending += delta
     if(numPending <= 0) {
       numPending = 0
-      refreshButton.setLoading(false)
     }
   }
 
@@ -154,4 +140,17 @@ class RavellerHomeActivity extends GDListActivity with NavigableListActivity wit
     onContentChanged
   }
 
+  override def onCreateOptionsMenu(menu: Menu): Boolean = {
+    val inflater: MenuInflater = getMenuInflater()
+    inflater.inflate(R.menu.raveller_home_menu, menu)
+    true
+  }
+
+  override def onOptionsItemSelected(item: MenuItem): Boolean = {
+    item.getItemId match {
+      case R.id.refresh => refreshAll(ForceNetwork)
+      case _ =>
+    }
+    true
+  }
 }

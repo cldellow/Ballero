@@ -31,15 +31,6 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:orientation="vertical" >
-
-                <ProgressBar
-                    android:id="@+id/progressBarLoading"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="20dp" >
-                </ProgressBar>
-
                 <LinearLayout
                     xmlns:android="http://schemas.android.com/apk/res/android"
                     android:id="@+id/linearLayout"

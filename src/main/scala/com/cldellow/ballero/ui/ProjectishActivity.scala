@@ -5,7 +5,7 @@ import greendroid.widget.ActionBarItem.Type
 import com.cldellow.ballero.data._
 import android.graphics._
 import scala.collection.JavaConversions._
-import android.app.Activity
+import android.app._
 import android.content._
 import android.location._
 import android.os.Bundle
@@ -44,7 +44,6 @@ abstract class ProjectishActivity extends GDActivity with SmartActivity {
   lazy val lblMadeFor = findLabel(R.id.lblMadeFor)
   lazy val madeForValue = findLabel(R.id.lblMadeForValue)
   lazy val progressBar = findProgressBar(R.id.progressBar)
-  lazy val progressBarLoading = findProgressBar(R.id.progressBarLoading)
   lazy val linearLayout = findView(R.id.linearLayout)
   lazy val status = findLabel(R.id.lblStatus)
   lazy val patternName = findLabel(R.id.lblPatternName)
@@ -52,13 +51,12 @@ abstract class ProjectishActivity extends GDActivity with SmartActivity {
   lazy val btnTakePhoto = findButton(R.id.btnTakePhoto)
   //lazy val imageView = findAsyncImageView(R.id.image_view)
 
-  var refreshButton: LoaderActionBarItem = null
   var currentId: Int = 0
 
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
+    ensureLayout()
     currentId = getParams[Id].get.id
-    refreshButton = addActionBarItem(Type.Refresh, R.id.action_bar_refresh).asInstanceOf[LoaderActionBarItem]
   }
 
   override def onResume() {
@@ -98,8 +96,54 @@ abstract class ProjectishActivity extends GDActivity with SmartActivity {
 
   override def onPause() {
     super.onPause()
-    progressBarLoading.setVisibility(View.VISIBLE)
     linearLayout.setVisibility(View.GONE)
+  }
+
+  override def onCreateOptionsMenu(menu: Menu): Boolean = {
+    val inflater: MenuInflater = getMenuInflater()
+    inflater.inflate(R.menu.project_details_menu, menu)
+    true
+  }
+
+  def refreshAll(policy: RefreshPolicy) {
+    doFetch(policy)
+    showDialog(PROGRESS_DIALOG)
+  }
+
+  def dismissProgressDialog() {
+    dismissDialog(PROGRESS_DIALOG)
+    progressDialog = null
+  }
+
+  /** 10, don't clash with IDs for editing in project details */
+  val PROGRESS_DIALOG = 10
+  var progressDialog: ProgressDialog = null
+  override def onCreateDialog(id: Int): Dialog = {
+    id match {
+      case PROGRESS_DIALOG =>
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Downloading details...")
+        progressDialog.setIndeterminate(true)
+        progressDialog
+      case _ => null
+    }
+  }
+
+
+  def doFetch(policy: RefreshPolicy): Unit
+
+  override def onOptionsItemSelected(item: MenuItem): Boolean = {
+    item.getItemId match {
+      case R.id.refresh => refreshAll(ForceNetwork)
+      case R.id.notebook =>
+        val intent = new Intent(this, classOf[RavellerHomeActivity])
+        startActivity(intent)
+      case R.id.projects =>
+        val intent = new Intent(this, classOf[ProjectsActivity])
+        startActivity(intent)
+      case _ =>
+    }
+    true
   }
 
 }

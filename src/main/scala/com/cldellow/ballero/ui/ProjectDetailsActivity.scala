@@ -33,22 +33,13 @@ class ProjectDetailsActivity extends ProjectishActivity {
     btnTakePhoto.setVisibility(View.GONE)
   }
 
-  override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
-    item.getItemId match {
-      case R.id.action_bar_refresh =>
-        fetch(ForceNetwork)
-        true
-      case _ =>
-        true
-    }
-
   var pending = 0
 
   def onProjectLoaded(projects: List[Project], delta: Int) {
     pending += delta
     if(pending <= 0) {
       pending = 0
-      refreshButton.setLoading(false)
+      dismissProgressDialog()
     }
 
     btnEditNotes.setVisibility(View.VISIBLE)
@@ -176,7 +167,6 @@ class ProjectDetailsActivity extends ProjectishActivity {
         }
       }
     }
-    progressBarLoading.setVisibility(View.GONE)
     linearLayout.setVisibility(View.VISIBLE)
   }
 
@@ -286,7 +276,7 @@ class ProjectDetailsActivity extends ProjectishActivity {
     case DATE_DIALOG_COMPLETED =>
       val date = parseDate(cachedProject.flatMap { _.completed })
       new DatePickerDialog(this, setDate("completed"), date.year, date.month - 1, date.day)
-    case _ => null
+    case _ => super.onCreateDialog(id)
   }
 
   def setDate(field: String): DatePickerDialog.OnDateSetListener =
@@ -376,9 +366,8 @@ class ProjectDetailsActivity extends ProjectishActivity {
 
   override def onResume() {
     super.onResume()
-    progressBarLoading.setVisibility(View.VISIBLE)
     linearLayout.setVisibility(View.GONE)
-    fetch(FetchIfNeeded)
+    refreshAll(FetchIfNeeded)
   }
   override def btnTakePhotoClick(v: View) {
     val intent: Intent = new Intent("android.media.action.IMAGE_CAPTURE");
@@ -412,9 +401,8 @@ class ProjectDetailsActivity extends ProjectishActivity {
   }
 
 
-  def fetch(policy: RefreshPolicy) {
+  def doFetch(policy: RefreshPolicy) {
     pending += 2
-    refreshButton.setLoading(true)
     RavelryApi.makeProjectDetailsResource(currentId).render(policy, onProjectLoaded)
   }
 }

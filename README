@@ -25,6 +25,10 @@ Beta 0.4:
 
 - edit project details: notes, made for, started/completed date, progress, happiness
 
+Beta 0.5:
+
+- filter by tags in projects list; click on tag in project view to see other projects with that tag
+
 GitHub's heuristics to the contrary, the app is written in Scala, not Java.
 
 Thanks to the folks who made useful libraries with permissive licenses:

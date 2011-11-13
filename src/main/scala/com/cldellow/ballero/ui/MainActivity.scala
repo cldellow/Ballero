@@ -26,7 +26,8 @@ class MainActivity extends GDListActivity with NavigableListActivity with SmartA
     registerForContextMenu(getListView())
 
     setTitle("Ballero")
-BugSenseHandler.setup(this, "1d4be5ef");
+    BugSenseHandler.setup(this, "1d4be5ef");
+    Data.globalSave("currentUser", "")
   }
 
   override def onResume() {

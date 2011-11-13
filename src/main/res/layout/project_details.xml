@@ -442,20 +442,32 @@
                             android:id="@+id/btnEditNotes"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="0"
-                            android:paddingTop="-1dip"
-                            android:paddingBottom="-1dip"
-                            android:layout_marginTop="0dip"
                             android:layout_marginBottom="0dip"
+                            android:layout_marginTop="0dip"
+                            android:layout_weight="0"
+                            android:onClick="btnEditNotesClick"
+                            android:paddingBottom="-1dip"
                             android:paddingLeft="7dip"
                             android:paddingRight="7dip"
-                            android:onClick="btnEditNotesClick"
-                            android:visibility="gone"
+                            android:paddingTop="-1dip"
                             android:text="edit"
-                            android:textAppearance="?android:attr/textAppearanceSmall" >
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:visibility="gone" >
                         </Button>
                     </LinearLayout>
                 </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnTakePhoto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="0dip"
+                    android:layout_marginTop="0dip"
+                    android:layout_weight="0"
+                    android:onClick="btnTakePhotoClick"
+                    android:text="add a photo"
+                    android:textAppearance="?android:attr/textAppearanceSmall" >
+                </Button>
             </LinearLayout>
         </ScrollView>
     </FrameLayout>

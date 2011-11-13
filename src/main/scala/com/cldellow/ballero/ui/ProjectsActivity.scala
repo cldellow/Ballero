@@ -228,10 +228,6 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     queuePending += delta
     updatePendings(delta)
 
-    info("!")
-    info("!")
-    info("!")
-    info("got queue: q.length = %s".format(queued.length))
     if(queuePending <= 0) {
       queuePending = 0
       fetchedQueue = true
@@ -245,6 +241,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   }
 
   private def onProjectsChanged(projects: List[Project], delta: Int) {
+    info("got projects: %s".format(projects))
     projectsPending += delta
     updatePendings(delta)
     if(projectsPending <= 0) {

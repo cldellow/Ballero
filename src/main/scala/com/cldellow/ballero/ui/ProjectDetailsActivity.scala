@@ -18,6 +18,8 @@ import greendroid.app._
 import se.fnord.android.layout._
 import greendroid.widget._
 import greendroid.widget.item._
+import android.net._
+import java.io._
 
 class ProjectDetailsActivity extends ProjectishActivity {
   val TAG = "ProjectDetailsActivity"
@@ -25,6 +27,11 @@ class ProjectDetailsActivity extends ProjectishActivity {
   val patternId = None
 
   var cachedProject: Option[Project] = None
+
+  override def onCreate(savedInstanceState: Bundle) {
+    super.onCreate(savedInstanceState)
+    btnTakePhoto.setVisibility(View.GONE)
+  }
 
   override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
     item.getItemId match {
@@ -362,6 +369,37 @@ class ProjectDetailsActivity extends ProjectishActivity {
     linearLayout.setVisibility(View.GONE)
     fetch(FetchIfNeeded)
   }
+  override def btnTakePhotoClick(v: View) {
+    val intent: Intent = new Intent("android.media.action.IMAGE_CAPTURE");
+    startActivityForResult(intent, 0);
+  }
+
+  override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    if (resultCode == Activity.RESULT_OK && requestCode == 0) {
+      val result: String = data.toURI()
+      info("got result %s".format(result))
+      val imageUri: Uri = data.getData()
+      info("got uri:%s".format(imageUri))
+      val inStream: InputStream = getContentResolver().openInputStream(imageUri)
+      val image: Bitmap = BitmapFactory.decodeStream(inStream)
+      info("bitmap %s".format(image))
+      val width = image.getWidth
+      val height = image.getHeight
+      info("bitmap width=%s, height=%s".format(width, height))
+
+      // Create a scaled copy that is 1024 px on its longest edge
+      val scaleFactor: Double = (width.max(height) / 1024.0).max(1.0)
+      val (newWidth, newHeight) = ((width / scaleFactor).toInt, (height / scaleFactor).toInt)
+      val scaled = Bitmap.createScaledBitmap(image, newWidth, newHeight, false)
+      val byteArrayOutputStream = new java.io.ByteArrayOutputStream(512 * 1024)
+      scaled.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream)
+
+      val bytes = byteArrayOutputStream.toByteArray()
+      info("new length %s".format(bytes.length))
+
+    }
+  }
+
 
   def fetch(policy: RefreshPolicy) {
     pending += 2

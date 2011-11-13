@@ -27,6 +27,7 @@ class QueuedProjectDetailsActivity extends ProjectishActivity {
     super.onCreate(savedInstanceState)
     policy = FetchIfNeeded
     setTitle("queued project details")
+    btnTakePhoto.setVisibility(View.GONE)
   }
 
   override def onResume() {

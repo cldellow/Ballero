@@ -189,6 +189,9 @@ NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")
         }
       })
     }
+
+    if(ids.isEmpty)
+      fire()
   }
 
   override def render(refreshPolicy: RefreshPolicy, callback: (List[RavelryQueue], Int) => Unit)(implicit a: SmartActivity) {
@@ -353,6 +356,16 @@ object Data {
     val prefs = getGlobalPreferences(context)
     val storedValue = prefs.getString(usersKey, """{ "users" : [] }""")
     Parser.parse[Users](storedValue).users
+  }
+
+  def globalSave(key: String, value: String)(implicit context: Context) {
+    getGlobalPreferences.edit.putString(key, value).commit
+  }
+
+  def globalGet(key: String, default: String)(implicit context: Context): String = {
+    val prefs = getGlobalPreferences(context)
+    val storedValue = prefs.getString(key, default)
+    storedValue
   }
 
   def saveUser(user: User)(implicit context: Context) {

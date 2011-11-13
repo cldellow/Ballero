@@ -42,6 +42,24 @@ trait SmartActivity extends Activity {// this: Activity =>
     Toast.makeText(this, s, Toast.LENGTH_LONG).show()
   }
 
+  /** If we get a phone call and the app dies, need to remember what user we are. */
+  override def onResume {
+    super.onResume
+
+    val userString = Data.globalGet("currentUser", "")
+    if(userString != "") {
+      Data.currentUser = Some(Parser.parse[User](userString))
+    }
+  }
+
+  override def onPause {
+    super.onPause
+
+    Data.currentUser.foreach { user =>
+      Data.globalSave("currentUser", Parser.serialize[User](user))
+    }
+  }
+
   protected def getParams[P <: Product](implicit mf: Manifest[P]): Option[P] = {
     val intent = getIntent()
     val bundle = intent.getExtras

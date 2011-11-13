@@ -85,7 +85,6 @@ class PhotoViewerActivity extends GDActivity with SmartActivity {
     })
   }
 
-
   override def createLayout(): Int = {
     return R.layout.photo_viewer_activity
   }

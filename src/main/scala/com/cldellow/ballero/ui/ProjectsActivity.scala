@@ -373,11 +373,13 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
           case SortAlphabetically =>
             kept.sortBy { _.n.toLowerCase }
           case SortHappiness =>
-            kept.sortBy { -_.r.getOrElse(0) }
+            kept.sortBy { item =>
+              if(item._actualStatus == Queued) 1 else -item.r.getOrElse(0)
+            }
           case SortProgress =>
             kept.sortBy { -_.p.getOrElse(0) }
           case SortStarted =>
-            kept.sortBy { -_.c.getOrElse(0) }
+            kept.sortBy { item => if(item._actualStatus == Queued) 1 else -item.c.getOrElse(0) }
           case SortCompleted =>
             kept.sortBy { -_.f.getOrElse(0) }
         }

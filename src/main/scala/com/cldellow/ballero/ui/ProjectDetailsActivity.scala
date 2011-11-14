@@ -218,6 +218,15 @@ class ProjectDetailsActivity extends ProjectishActivity {
       }
     });
     val alert: AlertDialog = builder.create()
+    if(!isHardwareKeyboardAvailable()) {
+      input.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        override def onFocusChange(v: View, hasFocus: Boolean) {
+          if (hasFocus) {
+            alert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+          }
+        }
+      })
+    }
     alert.show()
   }
 
@@ -245,6 +254,16 @@ class ProjectDetailsActivity extends ProjectishActivity {
       }
     });
     val alert: AlertDialog = builder.create()
+
+    if(!isHardwareKeyboardAvailable()) {
+      input.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        override def onFocusChange(v: View, hasFocus: Boolean) {
+          if (hasFocus) {
+            alert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+          }
+        }
+      })
+    }
     alert.show()
   }
 
@@ -252,6 +271,8 @@ class ProjectDetailsActivity extends ProjectishActivity {
   final val DATE_DIALOG_STARTED = 0
   final val DATE_DIALOG_COMPLETED = 1
 
+  private def isHardwareKeyboardAvailable(): Boolean = 
+    getResources().getConfiguration().keyboard != android.content.res.Configuration.KEYBOARD_NOKEYS
 
   def parseDate(str: Option[String]): RavDate = {
     val dateRe = "([0-9]{1,4})/([0-9]{1,2})/([0-9]{1,2})".r

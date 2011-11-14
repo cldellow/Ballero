@@ -28,6 +28,7 @@ Beta 0.4:
 Beta 0.5:
 
 - filter by tags in projects list; click on tag in project view to see other projects with that tag
+- sort projects/queued projects in projects list
 
 GitHub's heuristics to the contrary, the app is written in Scala, not Java.
 

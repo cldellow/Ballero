@@ -2,11 +2,38 @@ package com.cldellow.ballero.data
 
 import xml.{XML, NodeSeq}
 
+case class RavDate(year: Int, month: Int, day: Int)
+
 object S {
   /** Fix Casey's null/empty-string equivalence */
   def opt(s: Option[String]): Option[String] =
     if(s.isDefined && s.get.length == 0) None
     else s
+
+  /** convert 2011/08/11 into seconds since epoch */
+  def parseDate(s: Option[String]): Option[Int] = {
+    val real = opt(s)
+
+    if(real.isEmpty)
+      None
+    else {
+      var hmm = real.get
+      val index = hmm.indexOf(" ")
+      if(index > 0) {
+        hmm = hmm.substring(0, index)
+      }
+
+      // extract rav date
+      val dateRe = "([0-9]{1,4})/([0-9]{1,2})/([0-9]{1,2})".r
+      val rv =
+        hmm match {
+          case dateRe(year, month, day) =>
+            Some((java.util.Date.UTC(year.toInt - 1900, month.toInt - 1, day.toInt, 0, 0, 0) / 1000).toInt)
+          case _ => None
+        }
+      rv
+    }
+  }
 }
 
 case class AuthResponse (
@@ -140,6 +167,7 @@ case class RavelryQueue(
   yarn_name: Option[String]
 )  extends Projectish with IdKey {
   def uiName: String = pattern.map { _.name }.getOrElse(pattern_name.getOrElse(name))
+  lazy val _createdAtInt: Option[Int] = S.parseDate(created_at)
 }
 
 
@@ -173,15 +201,29 @@ case object InProgress extends ProjectStatus { def human = "in progress" }
 case object Finished extends ProjectStatus { def human = "finished" }
 case object Unknown extends ProjectStatus { def human = "unknown" }
 
+/** this is in a performance critical path, hence the unreadable name abbreviations
+    to minimize json size */
 case class MinimalProjectish(
+  /* started / queued_on */
+  c: Option[Int],
+  /* completed on */
+  f: Option[Int],
   id: Int,
-  imgUrl: Option[String],
-  order: Option[Int],
-  status: Option[String],
-  tags: Option[List[String]],
-  uiName: String
+  img: Option[String],
+  /* name */
+  n: String,
+  /* order */
+  o: Option[Int],
+  /* progress */
+  p: Option[Int],
+  /* rating */
+  r: Option[Int],
+  /* status */
+  s: Option[String],
+  /* tags */
+  t: Option[List[String]]
 ) {
-  lazy val _actualStatus: ProjectStatus = ProjectStatus(status.getOrElse(""))
+  lazy val _actualStatus: ProjectStatus = ProjectStatus(s.getOrElse(""))
 }
 
 trait Projectish {
@@ -293,6 +335,9 @@ case class Project (
     case "Finished" => Finished
     case _ => Unknown
   }
+
+  lazy val _completedOnInt: Option[Int] = S.parseDate(completed)
+  lazy val _startedOnInt: Option[Int] = S.parseDate(started)
 
   def uiName: String = S.opt(name).getOrElse { S.opt(pattern_name).getOrElse("bugbug: no name!") }
 }

@@ -40,8 +40,11 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   var filterButton: ActionBarItem = null
   var sortButton: ActionBarItem = null
   var filterActions: QuickActionGrid = null
-  var sortActions: QuickActionGrid = null
+  var projectSortActions: QuickActionGrid = null
+  var queueSortActions: QuickActionGrid = null
   var filter: ProjectStatus = Unknown
+  var projectSort: SortType = SortAlphabetically
+  var queueSort: SortType = SortAlphabetically
   var fetchedQueue = false
   var fetchedProjects = false
   var intentLoaded = false
@@ -55,26 +58,61 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
 
   sealed trait SortType
+  object SortType {
+    def apply(s: String): SortType = s match {
+      case "SortHappiness" => SortHappiness
+      case "SortStarted" => SortStarted
+      case "SortCompleted" => SortCompleted
+      case "SortProgress" => SortProgress
+      case _ => SortAlphabetically
+    }
+  }
+
   case object SortAlphabetically extends SortType
-  case class SortActionItem(action: QuickAction, label: String, sort: SortType)
-  lazy val sortQuickActions = List(
-    SortActionItem(new QuickAction(d(R.drawable.ic_menu_sort_alphabetically), "sort alpha"), "alphabetically",
-    SortAlphabetically)
+  case object SortHappiness extends SortType
+  case object SortStarted extends SortType
+  case object SortCompleted extends SortType
+  case object SortProgress extends SortType
+
+  case class SortActionItem(action: QuickAction, label: String, sort: SortType, drawableId: Int)
+  lazy val projectSortQuickActions = List(
+    SortActionItem(new QuickAction(d(R.drawable.small_ic_menu_sort_alphabetically), "alpha"), "alphabetically",
+    SortAlphabetically, R.drawable.gd_action_bar_sort_alpha),
+    SortActionItem(new QuickAction(d(R.drawable.small_ic_menu_emoticons), "happiness"), "happiness", SortHappiness,
+    R.drawable.small_ic_menu_emoticons),
+    SortActionItem(new QuickAction(d(R.drawable.small_ic_menu_day), "started"), "started date", SortStarted,
+    R.drawable.small_ic_menu_day),
+    SortActionItem(new QuickAction(d(R.drawable.small_ic_menu_month), "completed"), "completed date", SortCompleted,
+    R.drawable.small_ic_menu_month),
+    SortActionItem(new QuickAction(d(R.drawable.small_ic_menu_sort_by_size), "% done"), "percent done", SortProgress,
+    R.drawable.gd_action_bar_sort_by_size)
   )
 
+  lazy val queueSortQuickActions = List(
+    SortActionItem(new QuickAction(d(R.drawable.small_ic_menu_sort_alphabetically), "alpha"), "alphabetically",
+    SortAlphabetically, R.drawable.gd_action_bar_sort_alpha),
+    SortActionItem(new QuickAction(d(R.drawable.small_ic_menu_day), "added"), "added date", SortStarted,
+    R.drawable.small_ic_menu_day),
+    SortActionItem(new QuickAction(d(R.drawable.small_ic_menu_sort_by_size), "queue order"), "queue order", SortProgress,
+    R.drawable.gd_action_bar_sort_by_size)
+  )
+
+
   lazy val filterQuickActions = List(
-    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "all"), "all projects", Unknown),
-    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "WIPs"), "in progress projects", InProgress),
-    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "queued"), "queued projects", Queued),
-    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "finished"), "finished projects", Finished),
-    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "zzz"), "hibernating projects", Hibernated),
-    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "frogged"), "frogged projects", Frogged),
-    FilterActionItem(new QuickAction(d(R.drawable.gd_action_bar_compose), "tagged..."), "tagged projects", Unknown)
+    FilterActionItem(new QuickAction(d(R.drawable.small_ic_menu_agenda), "all"), "all projects", Unknown),
+    FilterActionItem(new QuickAction(d(R.drawable.small_ic_menu_agenda), "WIPs"), "in progress projects", InProgress),
+    FilterActionItem(new QuickAction(d(R.drawable.small_ic_menu_agenda), "queued"), "queued projects", Queued),
+    FilterActionItem(new QuickAction(d(R.drawable.small_ic_menu_agenda), "finished"), "finished projects", Finished),
+    FilterActionItem(new QuickAction(d(R.drawable.small_ic_menu_agenda), "zzz"), "hibernating projects", Hibernated),
+    FilterActionItem(new QuickAction(d(R.drawable.small_ic_menu_agenda), "frogged"), "frogged projects", Frogged),
+    FilterActionItem(new QuickAction(d(R.drawable.small_ic_menu_agenda), "tagged..."), "tagged projects", Unknown)
   )
 
   override def onPause{
     super.onPause
     Data.currentUser.get.setUiPref("projects_filter", filter.toString)
+    Data.currentUser.get.setUiPref("projects_sort", projectSort.toString)
+    Data.currentUser.get.setUiPref("queue_sort", queueSort.toString)
   }
 
   override def onCreate(savedInstanceState: Bundle) {
@@ -91,13 +129,46 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     filterQuickActions.foreach { qa => filterActions.addQuickAction(qa.action) }
     filterActions.setOnQuickActionClickListener(new FilterListener)
 
-    sortActions = new QuickActionGrid(this)
-    sortQuickActions.foreach { qa => sortActions.addQuickAction(qa.action) }
-    sortActions.setOnQuickActionClickListener(new SortListener)
+    projectSortActions = new QuickActionGrid(this)
+    projectSortQuickActions.foreach { qa => projectSortActions.addQuickAction(qa.action) }
+    projectSortActions.setOnQuickActionClickListener(new ProjectSortListener)
+
+    queueSortActions = new QuickActionGrid(this)
+    queueSortQuickActions.foreach { qa => queueSortActions.addQuickAction(qa.action) }
+    queueSortActions.setOnQuickActionClickListener(new QueueSortListener)
   }
 
-  class SortListener extends OnQuickActionClickListener{
+  val BLACK_CF: ColorFilter = new LightingColorFilter(Color.BLACK, Color.BLACK)
+  val WHITE_CF: ColorFilter = new LightingColorFilter(Color.WHITE, Color.WHITE)
+  def db(id: Int): Drawable = {
+    val d = this.getResources().getDrawable(id).mutate()
+    d.setColorFilter(WHITE_CF)
+    d
+  }
+
+  class ProjectSortListener extends OnQuickActionClickListener{
     def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
+      projectSort = projectSortQuickActions(position).sort
+      updateSortButton
+      redraw()
+    }
+  }
+
+  class QueueSortListener extends OnQuickActionClickListener{
+    def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
+      queueSort = queueSortQuickActions(position).sort
+      updateSortButton
+      redraw()
+    }
+  }
+
+  def updateSortButton {
+    if(useQueueOrder) {
+      val drawableId = queueSortQuickActions.filter { _.sort == queueSort }.head.drawableId
+      sortButton.setDrawable(db(drawableId))
+    } else {
+      val drawableId = projectSortQuickActions.filter { _.sort == projectSort }.head.drawableId
+      sortButton.setDrawable(db(drawableId))
     }
   }
 
@@ -106,11 +177,13 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     def onQuickActionClicked(widget: QuickActionWidget, position: Int) {
       if(position == 6) { // tagged...
         filter = Unknown
+        updateSortButton
         showTagDialog()
       } else {
         filter = filterQuickActions(position).filter
         filterTags = Nil
         updateTitle
+        updateSortButton
         redraw()
       }
     }
@@ -167,7 +240,10 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   override def onHandleActionBarItemClick(item: ActionBarItem, position: Int): Boolean =
     item.getItemId match {
       case R.id.action_bar_sort =>
-        sortActions.show(item.getItemView)
+        if(useQueueOrder)
+          queueSortActions.show(item.getItemView)
+        else
+          projectSortActions.show(item.getItemView)
         true
       case R.id.action_bar_locate =>
         filterActions.show(item.getItemView)
@@ -180,6 +256,13 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
   override def onResume {
     super.onResume
+
+    var savedProjectSort = Data.currentUser.get.uiPref("projects_sort", "SortAlphabetically")
+    projectSort = SortType(savedProjectSort)
+    var savedQueueSort = Data.currentUser.get.uiPref("queue_sort", "SortProgress")
+    queueSort = SortType(savedQueueSort)
+    updateSortButton
+    
 
     var savedFilter = Data.currentUser.get.uiPref("projects_filter", "Unknown")
     filter = ProjectStatus(savedFilter)
@@ -215,12 +298,44 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
 
   def onMinimalProjectsLoaded(response: JsonParseResult[MinimalProjectish]) {
     minimalProjects = response.parsedVals
-    tags = (Set() ++ minimalProjects.flatMap { _.tags.getOrElse(Nil) }).toList.sorted
+    tags = (Set() ++ minimalProjects.flatMap { _.t.getOrElse(Nil) }).toList.sorted
     println("tags: %s".format(tags))
     fetchedProjects = true
     fetchedQueue = true
     redraw()
   }
+
+  var _dt = new java.util.Date
+  var _now = new java.util.Date
+  var _yesterday = new java.util.Date(_now.getTime() - (86400 * 1000))
+  def fmtDate(t: Int): String = {
+    if(t == 0)
+      return "never"
+
+    _dt.setTime(t.toLong * 1000)
+    if(_dt.getYear == _now.getYear && _dt.getMonth == _now.getMonth && _dt.getDate == _now.getDate)
+      "today"
+    else if(_dt.getYear == _yesterday.getYear && _dt.getMonth == _yesterday.getMonth && _dt.getDate == _yesterday.getDate)
+      "yesterday"
+    else
+      "%s %s, %s".format(
+        _dt.getMonth match {
+          case 0 => "Jan"
+          case 1 => "Feb"
+          case 2 => "Mar"
+          case 3 => "Apr"
+          case 4 => "May"
+          case 5 => "June"
+          case 6 => "July"
+          case 7 => "Aug"
+          case 8 => "Sept"
+          case 9 => "Oct"
+          case 10 => "Nov"
+          case 11 => "Dec"
+        }, _dt.getDate, _dt.getYear + 1900)
+  }
+
+  def useQueueOrder = filter == Queued
 
   def redraw() {
     adapter = new ItemAdapter(this)
@@ -241,36 +356,106 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
       adapter.add(new TextItem("no projects found"))
     }
 
-    val useQueueOrder = kept.forall { _._actualStatus == Queued }
 
     val sorted: List[MinimalProjectish] =
-      if(useQueueOrder)
-        kept.collect { case q if q._actualStatus == Queued => q}.sortBy { _.order.getOrElse(999) }
-      else
-        kept.sortBy { _.uiName.toLowerCase }
+      if(useQueueOrder) {
+        val collected = kept.collect { case q if q._actualStatus == Queued => q}
+        queueSort match {
+          case SortAlphabetically =>
+            collected.sortBy { _.n }
+          case SortStarted =>
+            collected.sortBy { -_.c.getOrElse(0) }
+          case _ =>
+            collected.sortBy { _.o.getOrElse(999) }
+          }
+      } else {
+        projectSort match {
+          case SortAlphabetically =>
+            kept.sortBy { _.n.toLowerCase }
+          case SortHappiness =>
+            kept.sortBy { -_.r.getOrElse(0) }
+          case SortProgress =>
+            kept.sortBy { -_.p.getOrElse(0) }
+          case SortStarted =>
+            kept.sortBy { -_.c.getOrElse(0) }
+          case SortCompleted =>
+            kept.sortBy { -_.f.getOrElse(0) }
+        }
+      }
 
     sorted.zipWithIndex.foreach { case (projectish, index) =>
       projectish match {
         case q if q._actualStatus == Queued =>
-          val subtitle = if(!useQueueOrder) "in queue" else "queue item %s".format(index + 1)
-          val item = q.imgUrl match {
-              case Some(url) => new ThumbnailItem(q.uiName, subtitle, R.drawable.ic_gdcatalog, url)
-              case None => new SubtitleItem(q.uiName, subtitle)
+          val subtitle =
+            projectSort match {
+              case _ =>
+                if(!useQueueOrder)
+                  "in queue"
+                else
+                  queueSort match {
+                    case SortStarted =>
+                      "added %s, #%s".format(fmtDate(q.c.getOrElse(0)), q.o.getOrElse(0))
+                    case _ =>
+                      "queue item %s".format(q.o.getOrElse(0))
+                  }
+            }
+
+          val item = q.img match {
+              case Some(url) => new ThumbnailItem(q.n, subtitle, R.drawable.ic_gdcatalog, url)
+              case None => new SubtitleItem(q.n, subtitle)
             }
           item.goesToWithData[QueuedProjectDetailsActivity, Id](Id(q.id))
           adapter.add(item)
         case p =>
-          val subtitle = p._actualStatus match {
-            case Finished => "finished"
-            case InProgress => "in progress"
-            case Frogged => "frogged"
-            case Hibernated => "hibernating"
-            case Unknown => "unknown"
-          }
+          val subtitle =
+            projectSort match {
+              case SortStarted|SortCompleted =>
+                (if(projectSort == SortStarted) "%s, started %s" else "%s, completed %s").format(
+                  (p._actualStatus: @unchecked) match {
+                    case Finished => "finished"
+                    case InProgress => "in progress"
+                    case Frogged => "frogged"
+                    case Hibernated => "hibernating"
+                    case Unknown => "unknown"
+                  }, fmtDate(if(projectSort == SortStarted) p.c.getOrElse(0) else p.f.getOrElse(0)))
+              case SortHappiness =>
+                "%s, %s".format(
+                  (p._actualStatus: @unchecked) match {
+                    case Finished => "finished"
+                    case InProgress => "in progress"
+                    case Frogged => "frogged"
+                    case Hibernated => "hibernating"
+                    case Unknown => "unknown"
+                  }, p.r.getOrElse(5) match {
+                    case 5 => "not rated"
+                    case 0 => "ugh"
+                    case 1 => "meh"
+                    case 2 => "it's ok"
+                    case 3 => "like it"
+                    case 4 => "love it"
+                  })
+              case SortProgress =>
+                "%s, %s%% complete".format(
+                  (p._actualStatus: @unchecked) match {
+                    case Finished => "finished"
+                    case InProgress => "in progress"
+                    case Frogged => "frogged"
+                    case Hibernated => "hibernating"
+                    case Unknown => "unknown"
+                  }, p.p.getOrElse(0))
+              case _ =>
+                (p._actualStatus: @unchecked) match {
+                  case Finished => "finished"
+                  case InProgress => "in progress"
+                  case Frogged => "frogged"
+                  case Hibernated => "hibernating"
+                  case Unknown => "unknown"
+                }
+            }
 
-          val item = p.imgUrl match {
-            case Some(url) => new ThumbnailItem(p.uiName, subtitle, R.drawable.ic_gdcatalog, url)
-            case None => new SubtitleItem(p.uiName, subtitle)
+          val item = p.img match {
+            case Some(url) => new ThumbnailItem(p.n, subtitle, R.drawable.ic_gdcatalog, url)
+            case None => new SubtitleItem(p.n, subtitle)
           }
           item.goesToWithData[ProjectDetailsActivity, Id](Id(p.id))
           adapter.add(item)
@@ -349,7 +534,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   }
 
   private def filterTags(projectish: MinimalProjectish): Boolean = {
-    val tags = projectish.tags.getOrElse(Nil)
+    val tags = projectish.t.getOrElse(Nil)
     filterTags.forall{ reqd => tags.contains(reqd) }
   }
 
@@ -374,19 +559,29 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
         case Left(qwp) =>
           val photos: List[Photo] = qwp.pattern.map { _.photos.getOrElse(Nil) }.getOrElse(Nil)
           val photo = photos.headOption map { _.thumbnail_url }
-          MinimalProjectish(qwp.q.id,
-            photo,
-            Some(qwp.q.sort_order),
-            Some("Queued"),
-            Some(Nil),
-            qwp.q.uiName)
+          MinimalProjectish(
+            c = qwp.q._createdAtInt,
+            f = None,
+            id = qwp.q.id,
+            img = photo,
+            p = None,
+            r = None,
+            o = Some(qwp.q.sort_order),
+            s = Some("Queued"),
+            t = Some(Nil),
+            n = qwp.q.uiName)
         case Right(p) =>
-          MinimalProjectish(p.id,
-            p.first_photo.map { _.thumbnail_url },
-            None,
-            Some(p.status.toString),
-            p.tag_names,
-            p.uiName)
+          MinimalProjectish(
+            c = p._startedOnInt,
+            f = p._completedOnInt,
+            p = p.progress,
+            r = p.rating,
+            id = p.id,
+            img = p.first_photo.map { _.thumbnail_url },
+            o = None,
+            s = Some(p.status.toString),
+            t = p.tag_names,
+            n = p.uiName)
       }
     }
     val saved = Parser.serializeList[MinimalProjectish](minimalProjects)

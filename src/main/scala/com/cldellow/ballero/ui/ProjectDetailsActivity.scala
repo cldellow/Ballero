@@ -252,7 +252,6 @@ class ProjectDetailsActivity extends ProjectishActivity {
   final val DATE_DIALOG_STARTED = 0
   final val DATE_DIALOG_COMPLETED = 1
 
-  case class RavDate(year: Int, month: Int, day: Int)
 
   def parseDate(str: Option[String]): RavDate = {
     val dateRe = "([0-9]{1,4})/([0-9]{1,2})/([0-9]{1,2})".r

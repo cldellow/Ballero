@@ -28,8 +28,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   var adapter: ItemAdapter = null
 
   private var projects: List[Project] = Nil
-  case class QueueWithPattern(q: RavelryQueue, pattern: Option[Pattern])
-  private var queued: List[QueueWithPattern] = Nil
+  private var queued: List[SimpleQueuedProject] = Nil
   private var minimalProjects: List[MinimalProjectish] = Nil
   private var tags: List[String] = Nil
   private var filterTags: List[String] = Nil
@@ -490,7 +489,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     projectsPending += 2
     fetchedQueue = false
     fetchedProjects = false
-    Data.currentUser.get.queuedProjects.render(policy, onQueueChanged)
+    Data.currentUser.get.queue.render(policy, onQueueChanged)
     Data.currentUser.get.projects.render(policy, onProjectsChanged)
   }
 
@@ -503,7 +502,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
     }
   }
 
-  private def onQueueChanged(queued: List[RavelryQueue], delta: Int) {
+  private def onQueueChanged(queued: List[SimpleQueuedProject], delta: Int) {
     queuePending += delta
     updatePendings(delta)
 
@@ -513,9 +512,7 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
       if(progressDialog != null)
         progressDialog.incrementProgressBy(1)
       val curTime = System.currentTimeMillis
-      this.queued = queued.map { q =>
-        QueueWithPattern(q, q.pattern)
-      }
+      this.queued = queued
       info("time for onQueueChanged to map: %s".format(System.currentTimeMillis - curTime))
       updateItems
     }
@@ -554,24 +551,23 @@ class ProjectsActivity extends GDListActivity with NavigableListActivity with Sm
   private def updateItems {
     if(numPending > 0)
       return
-    val allProjects: List[Either[QueueWithPattern, Project]] =
+    val allProjects: List[Either[SimpleQueuedProject, Project]] =
       ((queued.map { Left(_) }) ::: (projects.map { Right(_) }))
     val minimalProjects: List[MinimalProjectish] = allProjects.map { x =>
       x match {
         case Left(qwp) =>
-          val photos: List[Photo] = qwp.pattern.map { _.photos.getOrElse(Nil) }.getOrElse(Nil)
-          val photo = photos.headOption map { _.thumbnail_url }
+          val photo = qwp.best_photo.map { _.thumbnail_url }
           MinimalProjectish(
-            c = qwp.q._createdAtInt,
+            c = qwp._createdAtInt,
             f = None,
-            id = qwp.q.id,
+            id = qwp.id,
             img = photo,
             p = None,
             r = None,
-            o = Some(qwp.q.sort_order),
+            o = Some(qwp.sort_order),
             s = Some("Queued"),
             t = Some(Nil),
-            n = qwp.q.uiName)
+            n = qwp.uiName)
         case Right(p) =>
           MinimalProjectish(
             c = p._startedOnInt,

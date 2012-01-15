@@ -58,10 +58,18 @@ trait IdKey extends Key {
 }
 
 case class SimpleQueuedProject(
+  best_photo: Option[Photo],
+  created_at: Option[String],
   id: Int,
+  name: Option[String],
   notes: Option[String],
-  pattern_id: Option[Int]
-) extends IdKey
+  pattern_id: Option[Int],
+  pattern_name: Option[String],
+  sort_order: Int
+) extends IdKey {
+  lazy val _createdAtInt: Option[Int] = S.parseDate(created_at)
+  def uiName: String = name orElse pattern_name getOrElse "unknown"
+}
 
 case class QueuedProjects (queued_projects: List[SimpleQueuedProject])
 

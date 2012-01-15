@@ -1,13 +1,19 @@
 <manifest 
-android:versionName="0.5" android:versionCode="7" package="com.cldellow.ballero" xmlns:android="http://schemas.android.com/apk/res/android">
+android:versionName="0.6" android:versionCode="9" package="com.cldellow.ballero" xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-sdk android:minSdkVersion="7"></uses-sdk>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CALL_PHONE"/>
 
+    <uses-feature android:name="android.hardware.location.network" android:required="false"/>
+    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
+    <uses-feature android:name="android.hardware.location" android:required="false"/>
+    <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
+
     <application
-      android:icon="@drawable/android:star_big_on"
+      android:icon="@drawable/ballero_icon"
       android:label="@string/app_name"
       android:theme="@style/Theme.GDCatalog"
       android:name=".ui.BalleroApplication">

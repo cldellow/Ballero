@@ -137,95 +137,6 @@ class TransformedNetworkResource[From <: Product, To <: Product] (in: NetworkRes
   }
 }
 
-/** Convenience class to map asynchronously from one domain object to another */
-class QueueNetworkResource(in: NetworkResource[SimpleQueuedProject]) extends
-NetworkResource[RavelryQueue](UrlInput("http://example.com/",Map(), "delete_me")) {
-  override def canNetwork = Data.currentUser map { _.hasToken } getOrElse false
-
-
-  private def get(callback: (List[RavelryQueue], Int) => Unit, delta: Int)(implicit a: SmartActivity) {
-    if(_cachedGet.isDefined)
-      callback(_cachedGet.get, delta)
-    else
-      in.render(ForceDisk, fetchAll(new AtomicInteger(2), ForceDisk, callback, delta))
-  }
-
-  /** rawDelta is the delta the original caller is expecting to see */
-  private def fetchAll(sanity: AtomicInteger, policy: RefreshPolicy, callback: (List[RavelryQueue], Int) => Unit, rawDelta: Int)(ids:
-  List[SimpleQueuedProject], delta: Int)(implicit a: SmartActivity) {
-    val counter = new AtomicInteger(ids.length * 2)
-    import scala.collection.JavaConversions._
-    val patternMap: collection.mutable.ConcurrentMap[Int, Pattern] = 
-      new java.util.concurrent.ConcurrentHashMap[Int, Pattern]
-    val queueMap: collection.mutable.ConcurrentMap[Int, RavelryQueue] = 
-      new java.util.concurrent.ConcurrentHashMap[Int, RavelryQueue]
-    val syncObject = new Object
-
-    val rv = sanity.addAndGet(delta)
-    if(rv != 0)
-      return
-
-    def fire() {
-      Log.i("BALLEROTYPES", "FIRE!")
-      if(policy != ForceDisk)
-        Data.save(ageName, System.currentTimeMillis.toString)
-      val ravelryQueue = queueMap.values.toList
-      ravelryQueue.foreach { q =>
-        q.pattern_id.foreach { id =>
-          q.pattern = patternMap.get(id)
-        }
-      }
-      callback(ravelryQueue, rawDelta)
-    }
-    ids.foreach { id =>
-      val resource = RavelryApi.makeQueueDetailsResource(id.id)
-
-      id.pattern_id.map { pattern_id =>
-        counter.addAndGet(2)
-
-        val patternResource = RavelryApi.makePatternDetailsResource(pattern_id)
-        patternResource.render(policy, { (items, pending) =>
-          val contains = items.exists { item => patternMap.contains(item.id) }
-          items.foreach { item => patternMap(item.id) = item }
-
-          val newValue = counter.addAndGet(pending)
-
-          if(newValue == 0) {
-            fire()
-          }
-        })
-      }
-
-      resource.render(policy, { (items, pending) =>
-        val contains = items.exists { item => queueMap.contains(item.id) }
-        items.foreach { item => queueMap(item.id) = item }
-
-        val newValue = counter.addAndGet(pending)
-
-        if(newValue == 0) { 
-          fire()
-        }
-      })
-    }
-
-    if(ids.isEmpty)
-      fire()
-  }
-
-  override def render(refreshPolicy: RefreshPolicy, callback: (List[RavelryQueue], Int) => Unit)(implicit a: SmartActivity) {
-    val doNetwork = (refreshPolicy == ForceNetwork ||
-      (refreshPolicy == FetchIfNeeded && (in.stale || stale))) && canNetwork
-
-
-    val delta = if(doNetwork) -1 else -2
-    get(callback, delta)
-
-    if(doNetwork) {
-      in.render(refreshPolicy, fetchAll(new AtomicInteger(2), refreshPolicy, callback, delta))
-    }
-  }
-}
-
 case class User(name: String, oauth_token: Option[OAuthCredential]) {
   def hasToken = oauth_token.isDefined
 
@@ -260,13 +171,8 @@ case class User(name: String, oauth_token: Option[OAuthCredential]) {
       new SignedNetworkResource[SimpleProjects](RavelryApi.projectList, false),
       { sp => sp.projects })
 
-  private val _queuedProjectsResource =
-    new QueueNetworkResource(_queueResource)
-
-
 
   def queue: NetworkResource[SimpleQueuedProject] = _queueResource
-  def queuedProjects: NetworkResource[RavelryQueue] = _queuedProjectsResource
   def projects: NetworkResource[Project] = _projectResource
   def needles: NetworkResource[Needle] = _needleResource
   def stash: NetworkResource[SentinelStashedYarn] = _stashResource

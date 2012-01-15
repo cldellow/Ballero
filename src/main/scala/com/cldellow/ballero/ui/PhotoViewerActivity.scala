@@ -46,13 +46,13 @@ class PhotoViewerActivity extends GDActivity with SmartActivity {
     updatePendings(delta)
 
     setTitle(projects.head.uiName)
-    setImages(projects.headOption.flatMap { _.photos }.getOrElse(Nil).take(3))
+    setImages(projects.headOption.flatMap { _.photos }.getOrElse(Nil))
   }
 
   def onPatternChanged(patterns: List[Pattern], delta: Int) {
     updatePendings(delta)
     setTitle(patterns.head.name)
-    setImages(patterns.headOption.flatMap { _.photos }.getOrElse(Nil).take(3))
+    setImages(patterns.headOption.flatMap { _.photos }.getOrElse(Nil))
   }
 
   def setImages(photos: List[Photo]) {
@@ -73,7 +73,8 @@ class PhotoViewerActivity extends GDActivity with SmartActivity {
   }
 
   def setImage(index: Int) {
-    imageView.setUrl(imageUrls(index))
+    if(imageUrls.length > index)
+      imageView.setUrl(imageUrls(index))
   }
 
 

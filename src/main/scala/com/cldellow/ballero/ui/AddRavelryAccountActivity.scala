@@ -50,7 +50,7 @@ class AddRavelryAccountActivity extends GDActivity with SmartActivity {
   }
 
   def goodLogin(username: String, auth_token: String, signing_key: String) {
-    longToast("Great! Hang on a sec, admiring your knitting.")
+    longToast("Great! Hang on a sec, admiring your handiwork.")
 
     val newUser = User(username, Some(OAuthCredential(auth_token, signing_key)))
     Data.newUser = true

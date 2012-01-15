@@ -30,6 +30,18 @@ Beta 0.5:
 - filter by tags in projects list; click on tag in project view to see other projects with that tag
 - sort projects/queued projects in projects list
 
+0.6:
+
+- Android market release
+
+0.7:
+
+- Remove requirement of touchscreen + network-based location
+- Fix crash bug when clicking images in projects/patterns
+- Add yarn stash
+- Improve queue download
+- Be less knit centric ("admiring your knitting" vs "admiring your handiwork")
+
 GitHub's heuristics to the contrary, the app is written in Scala, not Java.
 
 Thanks to the folks who made useful libraries with permissive licenses:

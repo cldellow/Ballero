@@ -18,6 +18,7 @@ object General {
     AndroidMarketPublish.settings ++ Seq (
       keyalias in Android := "ballero",
       libraryDependencies ++= Seq("org.scalatest" %% "scalatest" % "1.5.1" % "test",
+        "org.apache.httpcomponents" % "httpclient" % "4.1.2",
         "org.codehaus.jackson" % "jackson-core-asl" % "1.9.2",
         "com.bugsense" % "trace" % "1.1")
     )
